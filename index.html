@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ModemMatch — Ditch the rental fee</title>
+<title>ByteMatch — Buy the right gear, set it up right</title>
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body { font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
@@ -63,6 +63,21 @@
               padding-bottom: 0; height: 120px; background: #1e293b;
               border: 1px dashed #475569; color: #64748b; font-size: .9rem; }
   .card .why { color: #cbd5e1; font-size: .9rem; margin: 8px 0 0; }
+  .chips { margin: 8px 0 2px; }
+  .chip { display: inline-block; background: #0f172a; border: 1px solid #334155;
+          color: #cbd5e1; border-radius: 999px; padding: 3px 10px;
+          font-size: .76rem; margin: 0 6px 6px 0; }
+  .badge { display: inline-block; background: #7c3aed; color: #fff; font-weight: 700;
+           border-radius: 999px; padding: 3px 10px; font-size: .76rem; margin: 0 6px 6px 0; }
+  .badge.x86 { background: #334155; color: #cbd5e1; }
+  .warnline { color: #fbbf24; font-size: .85rem; margin: 6px 0 0; }
+  .setupbox { margin-top: 12px; border-top: 1px solid #334155; padding-top: 10px; }
+  .setupbox summary { cursor: pointer; color: #38bdf8; font-weight: 700; font-size: .92rem; }
+  .setupbox h4 { margin: 14px 0 6px; font-size: .95rem; }
+  .setupbox .gstep { padding: 10px 12px; }
+  .setupbox .gstep p { font-size: .84rem; }
+  .setupbox ul { margin: 4px 0 8px; padding-left: 18px; color: #94a3b8; font-size: .85rem; }
+  .picks-head { font-size: 1.15rem; font-weight: 700; margin: 22px 0 10px; }
   .card .blurb { color: #94a3b8; font-size: .85rem; margin: 4px 0 0; font-style: italic; }
   .savings { background: #052e16; border: 1px solid #16a34a; border-radius: 14px;
              padding: 16px; margin: 20px 0; }
@@ -72,6 +87,7 @@
   .restart { display: block; width: 100%; margin-top: 24px; background: #38bdf8;
              color: #0f172a; font-weight: 800; border: none; border-radius: 14px;
              padding: 16px; font-size: 1rem; cursor: pointer; }
+  .buildstamp { text-align: center; color: #475569; font-size: .75rem; margin-top: 32px; }
   .loading { text-align: center; padding: 60px 0; color: #94a3b8; }
   .dots::after { content: ""; animation: dots 1s steps(3) infinite; }
   @keyframes dots { 0% { content: ""; } 33% { content: "."; } 66% { content: ".."; } 100% { content: "..."; } }
@@ -80,9 +96,10 @@
 <body>
 <div class="wrap">
   <div id="home">
-    <h1>Modem<span class="accent">Match</span></h1>
-    <p class="sub">Ditch your ISP's rental fee. We'll help you buy the right gear — and set it up.</p>
+    <h1>Byte<span class="accent">Match</span></h1>
+    <p class="sub">Buy the right gear — and set it up. Networking gear that kills the rental fee, plus laptops matched to how you'll actually use them.</p>
     <button class="opt" onclick="startBuy()">🛒 Help me buy gear<small>Quick quiz → top picks → what you'll save</small></button>
+    <button class="opt" onclick="startLaptopBuy()">💻 Help me buy a laptop<small>Quick quiz → ranked picks with real price ranges → setup guidance</small></button>
     <button class="opt" onclick="startSetup()">🔧 Help me set it up<small>Already have the gear? Jump straight to the setup guide</small></button>
   </div>
   <div id="isp-pick" style="display:none"></div>
@@ -92,6 +109,7 @@
   </div>
   <div id="results" style="display:none"></div>
   <div id="guide" style="display:none"></div>
+  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.3 &middot; If a page looks outdated, read this stamp back to us</p>
 </div>
 <script>const stepsEl = document.getElementById('steps');
 const bar = document.getElementById('bar');
@@ -422,6 +440,232 @@ async function finish() {
            isp_id: payload.isp };
   sortMode = 'value'; showAll = false; activeTab = 'modems';
   renderResults();
+}
+
+// ---------------------------------------------------------------- laptops
+const lanswers = {};
+let lstep = 0;
+const BRAND_OPTS = [
+  { v: 'Apple', t: 'Apple' }, { v: 'Samsung', t: 'Samsung' },
+  { v: 'Google', t: 'Google' }, { v: 'LG', t: 'LG' },
+  { v: 'Sony', t: 'Sony' }, { v: 'Motorola', t: 'Motorola' },
+  { v: 'Garmin', t: 'Garmin' }, { v: 'Other', t: 'Other brand' },
+  { v: '', t: "Don't have one" } ];
+const LAPTOP_QUESTIONS = [
+  { key: 'use', q: "What's the laptop mainly for?",
+    opts: () => [
+      { v: 'school', t: '🎒 School', s: 'Classes, homework, school accounts' },
+      { v: 'everyday', t: '🏠 Everyday home use', s: 'Web, email, streaming, photos' },
+      { v: 'work', t: '💼 Work', s: 'Documents, calls, spreadsheets, business apps' },
+      { v: 'gaming', t: '🎮 Gaming', s: 'Playing games is the point' },
+      { v: 'creative', t: '🎨 Creative work', s: 'Photo/video editing, design, music' } ] },
+  { key: 'os', q: "Which operating system?",
+    opts: () => [
+      { v: 'windows', t: 'Windows', s: 'The most common — runs the most programs' },
+      { v: 'mac', t: 'Mac (macOS)', s: 'Apple laptops' },
+      { v: 'chromebook', t: 'Chromebook (ChromeOS)', s: 'Simple, web-based, great for school' },
+      { v: 'any', t: 'No preference', s: 'Show me the best fit, any system' } ] },
+  { key: 'screen', q: "How big a screen?",
+    opts: () => [
+      { v: '13-14', t: '13–14 inch', s: 'Carry-friendly' },
+      { v: '15-16', t: '15–16 inch', s: 'Most people pick this' },
+      { v: '17plus', t: '17 inch or bigger', s: 'Desk-bound, big canvas' },
+      { v: 'any', t: 'No preference' } ] },
+  { key: 'budget', q: "What's the budget?",
+    opts: () => [
+      { v: 'under500', t: 'Under $500' },
+      { v: '500-900', t: '$500 – $900' },
+      { v: '900-1400', t: '$900 – $1,400' },
+      { v: '1400plus', t: 'Over $1,400' },
+      { v: 'any', t: 'No limit / not sure', s: "We'll rank by fit" } ] },
+  { key: 'snapdragon', when: () => lanswers.os !== 'mac' && lanswers.os !== 'chromebook',
+    q: "Do you need to run specific Windows programs, older printers or accessories, or competitive online games?",
+    opts: () => [
+      { v: 'no', t: 'No', s: 'Browser, Office, Zoom, streaming — mainstream stuff. (This unlocks Snapdragon laptops: the battery-life champions.)' },
+      { v: 'yes', t: 'Yes, I have must-run stuff', s: "We'll stick to Intel/AMD machines that run everything" },
+      { v: 'unsure', t: 'Not sure', s: "We'll play it safe — same as yes" } ] },
+  { key: 'usage', q: "How will it mostly be used, day to day?",
+    opts: () => [
+      { v: 'light', t: 'Mostly browser and documents', s: 'Web apps, email, a few tabs' },
+      { v: 'heavy', t: 'Big apps and lots of files', s: 'Huge photo libraries, video, many programs at once' } ] },
+  { key: 'kid', q: "Is this laptop for a kid?",
+    opts: () => [
+      { v: 'no', t: 'No' },
+      { v: 'yes', t: 'Yes', s: "We'll include the parental-control setup path with your picks" } ] },
+  { key: 'eco_wants', q: "Do you want your devices to work together?",
+    opts: () => [
+      { v: 'yes', t: 'Yes', s: 'Phone, TV, smartwatch, and laptop playing nice together' },
+      { v: 'no', t: 'No / don\'t care', s: 'Just the best laptop for the job' } ] },
+  { key: 'eco_phone', when: () => lanswers.eco_wants === 'yes',
+    q: "What brand is your phone?", opts: () => BRAND_OPTS },
+  { key: 'eco_tv', when: () => lanswers.eco_wants === 'yes',
+    q: "What brand is your TV?", opts: () => BRAND_OPTS },
+  { key: 'eco_watch', when: () => lanswers.eco_wants === 'yes',
+    q: "What brand is your smartwatch?", opts: () => BRAND_OPTS },
+];
+function lvisible() { return LAPTOP_QUESTIONS.filter(q => !q.when || q.when()); }
+function startLaptopBuy() {
+  ['home', 'results', 'guide', 'isp-pick'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('quiz').style.display = 'block';
+  Object.keys(lanswers).forEach(k => delete lanswers[k]);
+  lstep = 0;
+  lrender();
+  window.scrollTo(0, 0);
+}
+function lrender() {
+  const V = lvisible();
+  if (lstep > V.length - 1) lstep = V.length - 1;
+  const Q = V[lstep];
+  bar.style.width = ((lstep + 1) / (V.length + 1) * 100) + '%';
+  let h = `<button class="back" onclick="${lstep === 0 ? 'backHome()' : 'lback()'}">← Back</button>`;
+  h += `<p class="q">${Q.q}</p>`;
+  Q.opts().forEach(o => {
+    h += `<button class="opt" onclick="lpick('${Q.key}','${o.v}')">${o.t}${o.s ? `<small>${o.s}</small>` : ''}</button>`;
+  });
+  stepsEl.innerHTML = h;
+}
+function lpick(k, v) {
+  lanswers[k] = v;
+  const V = lvisible();
+  if (lstep < V.length - 1) { lstep++; lrender(); }
+  else finishLaptops();
+}
+function lback() { if (lstep > 0) { lstep--; lrender(); } }
+
+let laptopRes = null, lshowAll = false, ltwoInOne = false, lbattery = false;
+function esc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function currentLaptopPicks() {
+  let p = [...laptopRes.recommendations];
+  if (lbattery) p.sort((a, b) => (b.snapdragon - a.snapdragon) || (b.score - a.score));
+  if (ltwoInOne) p = p.filter(x => x.laptop_category === '2-in-1');
+  return p;
+}
+function archBadge(p) {
+  if (p.snapdragon && p.architecture === 'both') return ['Intel or Snapdragon versions', ''];
+  if (p.snapdragon) return ['Snapdragon', ''];
+  if (p.platform === 'macOS') return ['Apple silicon', ''];
+  if (p.platform === 'ChromeOS') return ['Chromebook', 'x86'];
+  return ['Intel / AMD', 'x86'];
+}
+function laptopSetupHTML(p) {
+  const g = laptopRes.guides;
+  const flow = g.os_flows[p.setup.os_key];
+  const layer = g.brand_layers[p.setup.brand_key];
+  if (!flow && !layer) return '';
+  let h = `<details class="setupbox"><summary>🔧 Setup path for this pick</summary>`;
+  if (flow) {
+    h += `<h4>First boot — ${esc(flow.os || p.platform)}</h4>`;
+    flow.steps.forEach((s, i) => {
+      h += `<div class="gstep"><span class="stepnum">${i + 1}</span><div><h3>${esc(s.title)}</h3><p>${esc(s.detail)}</p></div></div>`;
+    });
+    if (flow.honest_notes && flow.honest_notes.length)
+      h += `<div class="note">${esc(flow.honest_notes[0])}</div>`;
+  }
+  if (layer) {
+    h += `<h4>${esc(p.brand)} setup tools</h4>`;
+    const util = layer.utility;
+    if (util) {
+      const uname = typeof util === 'string' ? util : util.name;
+      const udesc = typeof util === 'string' ? '' : util.what_it_does;
+      if (uname) h += `<p class="why">Utility: <strong>${esc(uname)}</strong>${udesc ? ` — ${esc(udesc)}` : ''}</p>`;
+    }
+    if (layer.driver_bios_channel) h += `<p class="why">${esc(layer.driver_bios_channel)}</p>`;
+    if (layer.setup_notes && layer.setup_notes.length) {
+      h += `<ul>${layer.setup_notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>`;
+    }
+  }
+  const par = g.parental && g.parental.platforms[p.setup.os_key];
+  if (laptopRes.kid && par) {
+    h += `<h4>👨‍👩‍👧 Parental controls — ${esc(par.control_system || '')}</h4>`;
+    h += `<ol style="margin:4px 0 8px;padding-left:20px;color:#cbd5e1;font-size:.88rem">` +
+      par.first_setup_checklist.map(c => `<li style="margin-bottom:4px">${esc(typeof c === 'string' ? c : (c.title || c.item || ''))}${typeof c === 'object' && c.detail ? ` — <span style="color:#94a3b8">${esc(c.detail)}</span>` : ''}</li>`).join('') + `</ol>`;
+    if (par.honest_limits && par.honest_limits.length)
+      h += `<div class="note">${esc(typeof par.honest_limits[0] === 'string' ? par.honest_limits[0] : (par.honest_limits[0].detail || par.honest_limits[0].title || ''))}</div>`;
+  }
+  h += `</details>`;
+  return h;
+}
+function laptopCardHTML(p, i, isTop) {
+  const [badge, badgeCls] = archBadge(p);
+  const chips = [];
+  if (p.display_inches) chips.push(`📺 ${p.display_inches}″ screen`);
+  if (p.cpu) chips.push(esc(p.cpu));
+  if (p.ram_text) chips.push('🧠 ' + esc(p.ram_text));
+  if (p.storage_text) chips.push('💾 ' + esc(p.storage_text));
+  if (p.gpu) chips.push('🎨 ' + esc(p.gpu));
+  if (p.weight_text) chips.push('⚖️ ' + esc(p.weight_text));
+  const maxBit = p.price_max
+    ? ` <span class="permo">— up to $${p.price_max.toLocaleString()} fully loaded${p.max_config_note ? ' (' + esc(p.max_config_note) + ')' : ''}</span>` : '';
+  return `<div class="card${isTop ? ' combo' : ''}"><span class="rank">${isTop ? '⭐ OUR TOP LAPTOP PICK' : '#' + (i + 1) + ' LAPTOP'}</span>
+    <h3>${esc(p.name)}</h3>
+    <div class="price">from $${p.price.toLocaleString()}${maxBit}</div>
+    <p class="permo" style="color:#94a3b8;font-size:.78rem;margin:2px 0 0">Prices via ${esc(p.price_source || 'manufacturer')}, checked Oct 2026</p>
+    <div class="chips"><span class="badge ${badgeCls}">${badge}</span>${chips.map(c => `<span class="chip">${c}</span>`).join('')}</div>
+    ${p.cpu_check ? `<p class="warnline">⚠️ Sold in Intel <em>and</em> Snapdragon versions — check which CPU the listing you're buying actually has.</p>` : ''}
+    ${p.formerly ? `<p class="why">ℹ️ Line renamed in 2025 — this is the new ${esc(p.formerly)}.</p>` : ''}
+    <p class="why">${esc(p.why)}</p>
+    ${p.ecosystem_note ? `<p class="why">🔗 ${esc(p.ecosystem_note)}</p>` : ''}
+    ${laptopSetupHTML(p)}</div>`;
+}
+function renderLaptopResults() {
+  const r = document.getElementById('results');
+  const picks = currentLaptopPicks();
+  const q = laptopRes.query;
+  const useLabel = { school: 'School', everyday: 'Everyday use', work: 'Work', gaming: 'Gaming', creative: 'Creative work' }[q.use] || q.use;
+  let h = `<h1>Your top <span class="accent">laptop picks</span></h1>
+           <p class="sub">${useLabel} · ${q.os === 'any' ? 'Any system' : q.os} · prices shown as a range (starting → fully loaded)</p>`;
+  h += `<div class="sortrow">
+    <button class="sort${!ltwoInOne && !lbattery ? ' on' : ''}" onclick="ltwoInOne=false;lbattery=false;lshowAll=false;renderLaptopResults()">⭐ Best fit</button>
+    <button class="sort${ltwoInOne ? ' on' : ''}" onclick="ltwoInOne=!ltwoInOne;lshowAll=false;renderLaptopResults()">🔄 Touchscreen 2-in-1</button>
+    <button class="sort${lbattery ? ' on' : ''}" onclick="lbattery=!lbattery;lshowAll=false;renderLaptopResults()">🔋 Battery priority</button>
+  </div>`;
+  if (!picks.length) {
+    h += `<div class="note">No picks match that filter — try turning it off.</div>`;
+  } else {
+    h += laptopCardHTML(picks[0], 0, true);
+    const rest = picks.slice(1);
+    if (rest.length) {
+      h += `<p class="picks-head">Your other matches</p>`;
+      const shown = lshowAll ? rest : rest.slice(0, 4);
+      shown.forEach((p, i) => { h += laptopCardHTML(p, i + 1, false); });
+      if (!lshowAll && rest.length > 4)
+        h += `<button class="more" onclick="lshowAll=true;renderLaptopResults()">Show ${rest.length - 4} more ▼</button>`;
+    }
+  }
+  const fw = laptopRes.guides.first_week_checklist;
+  if (fw && fw.length) {
+    h += `<p class="picks-head">First week with any new laptop</p>`;
+    fw.forEach(c => {
+      h += `<div class="gstep"><span class="stepnum">✓</span><div><h3>${esc(c.item)}</h3><p>${esc(c.detail)}</p></div></div>`;
+    });
+  }
+  laptopRes.notes.forEach(n => { h += `<div class="note">${esc(n)}</div>`; });
+  h += `<button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
+  r.innerHTML = h;
+  window.scrollTo(0, 0);
+}
+async function finishLaptops() {
+  document.getElementById('quiz').style.display = 'none';
+  const r = document.getElementById('results');
+  r.style.display = 'block';
+  r.innerHTML = `<div class="loading"><span class="dots">Finding your laptops</span></div>`;
+  const payload = {
+    use: lanswers.use, os: lanswers.os, screen: lanswers.screen,
+    budget: lanswers.budget, snapdragon: lanswers.snapdragon || 'unsure',
+    usage: lanswers.usage, kid: lanswers.kid,
+    ecosystem: { wants: lanswers.eco_wants === 'yes',
+      phone: lanswers.eco_phone || '', tv: lanswers.eco_tv || '',
+      watch: lanswers.eco_watch || '' }
+  };
+  laptopRes = await fetch('/api/recommend-laptops', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).then(x => x.json());
+  lshowAll = false; ltwoInOne = false; lbattery = false;
+  renderLaptopResults();
 }
 
 fetch('/api/isps').then(x => x.json()).then(d => { isps = d; });
