@@ -1,0 +1,801 @@
+{
+ "laptop_setup_guides": {
+  "os_flows": {
+   "windows_11": {
+    "os": "Windows 11",
+    "applies_to": "New Windows 11 laptops/desktops on first boot (out-of-box experience, OOBE), mainly Home and Pro for personal use. Exact screens vary by Windows 11 version, edition, manufacturer, and whether the device is managed by a work or school organisation.",
+    "steps": [
+     {
+      "detail": "On the first setup screens, pick your country or region, language, and keyboard layout when prompted. Setup may offer a second keyboard layout; add one only if you use it, otherwise skip that prompt.",
+      "title": "Choose region and keyboard"
+     },
+     {
+      "detail": "Choose your Wi-Fi network and enter its password, or plug in Ethernet if the laptop has it or you have an adapter. An internet connection is part of documented first setup for consumer editions (see honest_notes), and it is also needed for updates and some features.",
+      "title": "Connect to a network"
+     },
+     {
+      "detail": "Sign in with an existing Microsoft account, or create one during setup if prompted. Signing in is what Microsoft documents as bringing your files, settings and Microsoft services with you to the new device. Complete any extra verification the account asks for.",
+      "title": "Sign in with a Microsoft account"
+     },
+     {
+      "detail": "Some Windows 11 versions and manufacturers show a screen to name the device during setup. If you see it, use a short, recognisable name. If you do not see it, do not worry \u2014 the name can be changed later in Settings. See honest_notes: Microsoft's consumer support pages consulted for this guide do not settle this step.",
+      "title": "Name the PC, if setup offers it"
+     },
+     {
+      "detail": "Setup presents privacy choices for the device (historically including things such as location, diagnostic data, inking and typing improvement, and tailored experiences). Read each screen instead of tapping through, and choose the more private option if you do not want that data use. You can change these choices later in Settings.",
+      "title": "Make the privacy choices shown during setup"
+     },
+     {
+      "detail": "Follow any remaining prompts (for example PIN / Windows Hello if offered for your model, and any manufacturer or Microsoft service offers). Decline offers you do not want. Setup finishes at the Windows desktop.",
+      "title": "Finish setup and reach the desktop"
+     },
+     {
+      "detail": "Open Start > Settings > Windows Update and select Check for updates. Install what is offered, restart when asked, then go back and check again. Repeat until Windows Update reports no further updates are offered. Keep the laptop plugged in and online while this runs.",
+      "title": "Run Windows Update until current"
+     },
+     {
+      "detail": "Worth reviewing after setup: Start > Settings > Privacy & security. Check Location (which apps may use your location), Diagnostics & feedback (turn off optional diagnostic data and tailored experiences if you do not want them), and the advertising ID / personalisation page \u2014 labelled General on some builds and Recommendations & offers on newer builds \u2014 where you can turn off letting apps show personalised ads using your advertising ID. Also review app permissions for Camera, Microphone, Contacts and Calendar, and turn off individual apps you do not want to have access. Note: Microsoft says these permission lists mainly cover Microsoft Store apps; desktop apps may not appear in them and control access in their own settings.",
+      "title": "Review privacy settings in Settings"
+     },
+     {
+      "detail": "Microsoft Support documents creating a USB recovery drive after setup: search the taskbar for 'Create a recovery drive', open the tool, keep 'Back up system files to the recovery drive' selected, choose a USB drive and select Create. Creating it erases that USB drive, so use a blank one or move its files first.",
+      "title": "Optional: make a recovery drive"
+     }
+    ],
+    "honest_notes": [
+     "Local account \u2014 stated honestly: Microsoft's current Windows 11 specifications say Windows 11 Home, and Windows 11 Pro for personal use, require internet connectivity and a Microsoft account during initial device setup. Microsoft does not document a consumer local-account path in Home OOBE in the pages consulted for this guide.",
+     "Workarounds for a local account exist online, but they are not Microsoft's documented consumer flow, so this guide does not give a hack tutorial for them.",
+     "Pro for work or school is different from Pro for personal use: organisation setup can involve joining a work or school account / domain instead of a personal Microsoft account, but the consumer Microsoft Support pages consulted here do not document that OOBE path step by step, so the exact screens are unsettled in this guide and will depend on the organisation.",
+     "PC naming during OOBE is unsettled in the official pages consulted: it appears on some versions/builds and not others, so it is presented as 'if offered' rather than as a guaranteed step.",
+     "Privacy page labels vary by Windows 11 build: the advertising ID and related personalisation controls have appeared under Privacy & security > General and, on newer builds, under Recommendations & offers / personalised offers pages. Use the labels shown on the device.",
+     "Required diagnostic data cannot be turned completely off in consumer Settings in the way optional diagnostic data can; the documented review action is to turn optional data / tailored experiences off if you do not want them."
+    ]
+   },
+   "macos": {
+    "os": "macOS",
+    "applies_to": "New Mac laptops (MacBook Air / MacBook Pro) on first startup with Setup Assistant. Exact screens, and whether Touch ID, Apple Pay and FileVault are offered during setup, vary by model, chip and macOS version.",
+    "steps": [
+     {
+      "detail": "Turn the Mac on. Setup Assistant starts the first time. Choose your country or region \u2014 Apple uses this to set language and time zone. Accessibility options are available early in setup if you need them (for example VoiceOver guidance).",
+      "title": "Start Setup Assistant and choose country or region"
+     },
+     {
+      "detail": "Choose your Wi-Fi network and enter its password if asked. If you are using wired Ethernet, choose Other Network Options instead. You can change the network later from the Wi-Fi menu / System Settings.",
+      "title": "Connect to Wi-Fi"
+     },
+     {
+      "detail": "Setup Assistant offers Migration Assistant during setup. If this is a first Mac or you want a clean start, choose the option not to transfer information now. If you are moving from another Mac, a PC, a Time Machine backup or another disk, choose that source and follow the prompts. If you skip it, you can still transfer later with Migration Assistant in Applications > Utilities.",
+      "title": "Decide whether to transfer information"
+     },
+     {
+      "detail": "Sign in with your Apple Account (the account formerly called Apple ID) if prompted, and complete any verification. Apple notes some setup items can be skipped and done later \u2014 its guide gives Apple Pay and Screen Time as examples where choosing 'Set up later' can make sense during first setup.",
+      "title": "Sign in with your Apple Account"
+     },
+     {
+      "detail": "Read and agree to the macOS Terms and Conditions when shown. Create the local computer (administrator) account for the Mac \u2014 full name, account name and a strong password you will remember. This password is also important for FileVault (see below).",
+      "title": "Agree to Terms and Conditions and create your computer account"
+     },
+     {
+      "detail": "Work through the choice screens Setup Assistant shows on your model/version, which can include Location Services / time zone, sharing analytics / crash and usage data with Apple and developers, Screen Time, Siri, and appearance. Choose 'Set up later' / decline sharing where that is what you want; these choices can be changed later in System Settings.",
+      "title": "Make Siri, analytics and other choice screens"
+     },
+     {
+      "detail": "On models with Touch ID, Setup Assistant can offer fingerprint setup during first setup, and Apple Pay setup if you add a supported card. Both vary by model, and Apple Pay needs a verified card, so it is reasonable to choose 'Set up later' and finish these in System Settings after setup if you prefer.",
+      "title": "Set up Touch ID and Apple Pay, if your model offers them"
+     },
+     {
+      "detail": "FileVault may be offered during setup. Apple documents it as an extra security layer: on Macs with Apple silicon or a T2 chip the data is already encrypted automatically, and turning FileVault on means someone cannot decrypt or access the data without the login password. If you turn it on, choose how to unlock the disk if you forget your password \u2014 allow your iCloud / Apple Account to unlock it, or create a recovery key. If you choose a recovery key, copy it exactly and keep it somewhere safe away from the Mac and not only on the encrypted disk. If FileVault was not offered in Setup Assistant, check it in Apple menu > System Settings > Privacy & Security > FileVault.",
+      "title": "Turn on FileVault if offered, or check it right after setup"
+     },
+     {
+      "detail": "Open Apple menu > System Settings > General > Software Update. Software Update checks automatically and only offers updates compatible with your Mac. If updates are shown, click Update Now (or Upgrade Now for a newer major macOS version), enter the administrator password if asked, and let the Mac restart if needed. In the same place you can review Automatic Updates options, including downloading updates and installing macOS and security updates automatically.",
+      "title": "Update macOS after setup"
+     }
+    ],
+    "honest_notes": [
+     "Apple does not publish one single support page that lists every current Setup Assistant screen in order for all Mac laptops; this flow combines Apple's model Setup Assistant guides with Apple's separate Software Update and FileVault support pages, so screen order can differ slightly by macOS version.",
+     "Touch ID, Apple Pay, Siri / Apple Intelligence, Screen Time and FileVault prompts vary by model, chip, region and macOS version \u2014 this guide marks them as 'if offered' instead of guaranteeing them.",
+     "Migration Assistant sources and wording vary by version (another Mac, PC, Time Machine backup or startup disk); the settled point from Apple is that transferring is optional during setup and can also be done later.",
+     "Whether FileVault is presented as a setup screen or is already on / needs turning on in System Settings was not settled for every model by the Apple pages consulted; the safe documented action is to check Privacy & Security > FileVault after setup."
+    ]
+   },
+   "chromeos": {
+    "os": "ChromeOS",
+    "applies_to": "New Chromebooks (and Chromeboxes, with a monitor, keyboard and mouse) on first setup. Exact wording, Google Play availability and Linux support vary by model, ChromeOS version, and whether the device is managed by a work or school.",
+    "steps": [
+     {
+      "detail": "If the battery is separate, install it first, then press the power button. Have your Google Account username and password and internet access ready \u2014 Google lists those as what you need for setup.",
+      "title": "Turn on the Chromebook"
+     },
+     {
+      "detail": "Follow the on-screen instructions: select the language shown to set language and keyboard settings, turn on Accessibility features if you need them, choose your network (Wi-Fi) and connect, then accept the terms of service.",
+      "title": "Choose language, keyboard, network and accept terms"
+     },
+     {
+      "detail": "Enter your Google Account email or phone number and password. The first account to sign in becomes the Chromebook owner. If you use 2-Step Verification, enter the code sent to your chosen device when prompted. Once you sign in, your bookmarks, extensions and apps appear automatically.",
+      "title": "Sign in with a Google Account"
+     },
+     {
+      "detail": "If you do not have a Google Account, create one \u2014 on some Chromebooks you can select More options > Create new account during setup. To use the Chromebook without an account, select Browse as Guest. Guest browsing is not the same as setting the Chromebook up as owner.",
+      "title": "If you have no account, or want to browse without one"
+     },
+     {
+      "detail": "ChromeOS automatically checks for and downloads operating system updates when connected to the internet. To finish a downloaded update, use the 'Update available' / 'Update device' notification at the bottom right and select Restart. To check yourself: turn the Chromebook on, connect to Wi-Fi, select the time at the bottom right > Settings, select About ChromeOS at the bottom left, and under Google ChromeOS select Check for updates \u2014 if an update is found it downloads automatically, then restart to finish. Keep it plugged in to avoid interruption, and note that on mobile data you may get an alert about data use.",
+      "title": "Let ChromeOS updates work, and check manually"
+     },
+     {
+      "detail": "After setup, open the time at the bottom right > Settings > Apps > Google Play Store and select Turn on if that option is shown, then follow the prompts and accept the Play terms. Menu labels vary by ChromeOS version. Not every model supports Android apps, and work or school devices may have this controlled by an administrator \u2014 if there is no Turn on option, check model support / admin policy instead of forcing it.",
+      "title": "Turn on Google Play / Android apps, if supported and wanted"
+     },
+     {
+      "detail": "Linux is off by default. On a supported Chromebook: select the time at the bottom right > Settings > Advanced > Developers, next to 'Linux development environment' select Turn On, and follow the on-screen instructions using the default settings unless you need different ones. Setup can take 10 minutes or more and opens a Terminal window with a Debian environment. Linux lets you install command-line tools, code editors and IDEs.",
+      "title": "Optional: enable Linux (developers only)"
+     }
+    ],
+    "honest_notes": [
+     "Not all Chromebook models support Linux \u2014 Google directs users to check which devices have Linux, and notes that if you use your Chromebook at work or school you might not be able to use Linux; contact the administrator in that case.",
+     "Linux apps all run in the same sandbox as each other (separate from the rest of the Chromebook), and Google lists current limitations for Linux on Chromebook on its support page (for example cameras and hardware/GPU acceleration support limits at the time of the page consulted).",
+     "Google Play / Android app support also varies by model and by work/school management; the official page text retrieved for the Play turn-on flow in this session was thinner than the setup, update and Linux pages, so exact Settings labels are noted as version-dependent.",
+     "Browse as Guest lets you use the Chromebook without an account, per Google, but it does not set an owner account and your signed-in bookmarks, extensions and apps will not appear that way."
+    ]
+   }
+  },
+  "brand_layers": {
+   "lenovo": {
+    "brand": "Lenovo",
+    "utility": {
+     "name": "Lenovo Vantage",
+     "sources": [
+      "Lenovo Support \u2014 Lenovo Vantage - Using your PC just got easier (pcsupport.lenovo.com, HT505081)",
+      "Lenovo Support \u2014 Use Lenovo Vantage (download.lenovo.com user guide excerpt)"
+     ],
+     "what_it_does": "Preinstalled / Microsoft Store app for Windows 10 and 11 Lenovo PCs. In the vendor's description it personalizes settings (power and battery life, audio/visual, camera/microphone, touchpad, Fn key and keyboard backlight), updates important system software and drivers including BIOS, runs device diagnostics / hardware scans, shows serial number, product number and BIOS level, checks warranty status, accesses the user guide, and lets the owner request support."
+    },
+    "driver_bios_channel": "Primary: Lenovo Vantage System Update, which can download and install firmware and driver updates and can be configured for automatic updates. Alternative official routes: pcsupport.lenovo.com / support.lenovo.com \u2014 enter product name, serial number or machine type, open Drivers & Software for Manual Update or Automatic Update / Scan Now; BIOS can also be downloaded as an executable from the same Drivers & Software > BIOS/UEFI section. Lenovo System Update is listed as another official updater for Think / Lenovo systems. Lenovo Service Bridge can auto-detect system type and serial number on the support site.",
+    "setup_notes": [
+     "Vantage replaces the older Lenovo Companion, Lenovo Settings and Lenovo Account Portal apps, per Lenovo's own Vantage page \u2014 a new owner should not look for those older apps.",
+     "Battery-specific Vantage features are officially documented, including battery health checks, battery details and a battery charge threshold setting, via Lenovo Support videos / Quick Tips linked from the Vantage page.",
+     "Lenovo also documents a Digital Download Recovery / USB recovery key route and UEFI Diagnostics separately from Vantage on pcsupport.lenovo.com \u2014 existence verified from Lenovo Support topic listings, full recovery steps not reviewed in this pass.",
+     "Standalone product registration steps for consumer PCs: not verified on official pages in this pass \u2014 only Lenovo ID creation, warranty lookup by serial, and registration for other Lenovo product families were found on official pages."
+    ],
+    "warranty_registration": "Warranty status is checked, not created, by serial number: on pcsupport.lenovo.com under Warranty & Services / Warranty Lookup, log in or enter the machine serial number to view status; the same status is visible in Lenovo Vantage. Lenovo ID is the vendor account \u2014 signing in gives purchase-history access used for warranty validation. A separate standalone PC product-registration flow with full steps was not detailed on the official PC support pages opened for this research \u2014 see setup_notes."
+   },
+   "dell": {
+    "brand": "Dell",
+    "utility": {
+     "name": "Dell SupportAssist (for Home PCs)",
+     "sources": [
+      "Dell Support \u2014 SupportAssist for Home PCs (dell.com/support contents article)",
+      "Dell \u2014 SupportAssist for Home PCs product/learn page (dell.com)"
+     ],
+     "what_it_does": "Preinstalled on Dell PCs in Dell's description. It monitors PC health, performance and security in one dashboard, scans to proactively identify issues and start resolution, predicts failures including hard drive, battery and SSD, finds and installs available updates, removes unwanted files and tunes network settings, removes viruses/malware in Dell's description, and is the contact route to Dell technical support by phone, chat or messaging. Full feature set is tied in Dell's current pages to Dell Care Premium on top of the base warranty."
+    },
+    "driver_bios_channel": "Primary: SupportAssist \u2014 it automatically scans for available updates and the owner acts via the notification or by opening SupportAssist and choosing Update Software. Alternative official route: Dell Support website \u2014 under Identify your product or search support, enter Service Tag, Express Service Code or model to reach that machine's drivers, manuals and warranty pages; Dell also offers a Detect This PC / View This PC option using SupportAssist to auto-detect the Service Tag. Dell Update / Dell Command Update are referenced by Dell as related update utilities in SupportAssist OS Recovery plugin material, but they were not the primary consumer route documented in this pass.",
+    "setup_notes": [
+     "SupportAssist OS Recovery is a separate, factory-installed component on supported Dell systems and needs no extra service plan: if the PC repeatedly cannot boot to the OS it auto-starts a recovery environment to diagnose hardware, repair the computer, back up files, or reset to factory state \u2014 Dell SupportAssist for Home PCs page and SupportAssist OS Recovery User's Guide.",
+     "Dell Migrate / Dell Data Assistant is Dell's documented new-PC move-in route for moving files and personal settings from an old PC to a new Dell PC \u2014 linked from the SupportAssist for Home PCs page.",
+     "Minimum requirements Dell lists for current SupportAssist for Home PCs include Windows 10 version 1809 or later (64-bit) or Windows 11, .NET Desktop Runtime 6.0.x, and an active internet connection."
+    ],
+    "warranty_registration": "Every Dell PC ships with a base warranty in Dell's description. Warranty status and expiration are checked on Dell Support by entering the Service Tag or letting Dell's automated tool detect it. Dell's warranty KB groups check / renew / transfer / register together on its Support Services & Warranty page, and states the retail rule plainly: a computer bought through a retail seller must be registered with Dell to get personalized support \u2014 Dell Product Registration, distinct from a direct-from-Dell purchase."
+   },
+   "hp": {
+    "brand": "HP",
+    "utility": {
+     "name": "HP Support Assistant",
+     "sources": [
+      "HP Support \u2014 HP Support Assistant (hp.com / HP Support Assistant help page)"
+     ],
+     "what_it_does": "Included on new HP desktop and notebook PCs in HP's description, and installable on other PCs for HP printer/PC support access. HP lists: automated fixes and troubleshooters for common issues, with escalation to device-specific support resources if they do not resolve it; personalized support \u2014 manage connected HP devices after creating an HP ID or signing in, add another person's device for update/message notifications, and view available/subscribed HP services; automatic firmware and driver updates, configurable to install automatically or notify first; and help at any time via the HP Virtual Agent. Requires Windows 10 RS4 or higher for the current version in HP's note."
+    },
+    "driver_bios_channel": "Primary: HP Support Assistant automatic updates for firmware and drivers, with owner-configurable automatic install vs. notify. Alternative official route: support.hp.com \u2014 Software & Drivers / Drivers & Software by product / serial, which HP staff also point to for the separate HP PC Hardware Diagnostics Windows download under Diagnostics. HP does not in the HPSA page opened for this pass present Windows Update as a substitute for HPSA for HP drivers.",
+    "setup_notes": [
+     "HP's own HPSA page stresses sign-in: personalized device management and subscribed-service views need a new HP ID or existing credentials \u2014 a new owner who skips sign-in gets a reduced view.",
+     "HP registration prompt in Support Assistant during first setup: not verified on official pages in this pass \u2014 HP Community posts repeat 'register during first setup or soon afterwards' and link an HP Registration FAQ, but the FAQ body and an in-app prompt screenshot were not retrieved from support.hp.com here.",
+     "Separate diagnostics layer: HP PC Hardware Diagnostics (Windows and UEFI) exists as a distinct HP download/tool referenced from HP Support and HP Community staff answers \u2014 it is not described as part of HPSA itself on the HPSA page opened.",
+     "Coverage for HP is thinner than Lenovo/Dell/ASUS in this pass because several detailed HPSA guides surfaced only via HP Community or third-party mirrors, which were excluded per the official-sources-only rule."
+    ],
+    "warranty_registration": "Check route is well documented: support.hp.com/checkwarranty \u2014 use Identify now to let HP auto-identify the product and serial, or enter country/region plus serial number (single device, or Check multiple warranties for several) to see warranty status/details, with a warranty dispute/validation route if dates look wrong. In-app route referenced in HP material: HP Support Assistant My Dashboard > Warranty shows status, start and estimated end date. Registration itself: HP Community registration guidance says register the product during first setup or soon afterwards and points to a Register HP Product and Registration FAQ \u2014 the full text of that FAQ was not opened on an official page in this pass, so the exact first-setup registration prompt flow is marked thin below."
+   },
+   "asus": {
+    "brand": "ASUS",
+    "utility": {
+     "name": "MyASUS (plus Armoury Crate on ROG / TUF gaming lines)",
+     "sources": [
+      "ASUS Support \u2014 MyASUS - Introduction (asus.com/support FAQ 1038301)",
+      "ASUS Support \u2014 MyASUS - System Diagnosis (asus.com/support FAQ 1045716)",
+      "ASUS Support \u2014 MyASUS - System Update (asus.com/support FAQ 1051729)"
+     ],
+     "what_it_does": "Preinstalled on compatible ASUS computers and also in the Microsoft Store in ASUS's description. MyASUS provides: System Info and system-status monitoring; One-click diagnosis from the home page; Device Settings to fine-tune the laptop including Power & Performance (battery life/longevity), Audio & Visual, Connectivity, Input and Privacy & Security; System Diagnosis that identifies problems, reports sources and gives fixing suggestions and helps customer service identify problems; System Update for BIOS, drivers and firmware; Customer Support with FAQ/self-troubleshoot, ASUS Switch file backup, repair-status check and nearby repair-center search; Message Center; and User Center for account and product ownership."
+    },
+    "driver_bios_channel": "Primary: MyASUS > System Update \u2014 ASUS describes it as updating the latest software including BIOS, drivers and firmware in one click, showing Critical / Recommended / Optional updates newer than the installed versions, with update history (not available in Windows S mode). Alternative official route: ASUS Support website \u2014 search the model to reach its support/download pages for drivers, BIOS and utilities, the route ASUS itself gives for manually downloading e.g. the Armoury Crate installer for a model. ASUS troubleshooting articles also route BIOS/Windows/driver updating through the MyASUS System Update article.",
+    "setup_notes": [
+     "Armoury Crate is the gaming-line layer, separate from MyASUS: ASUS describes it as an integration app for ROG series and TUF series gaming laptops/desktops for system performance adjustments from its home page, system information, operating/performance modes and GPU modes, and Aura Sync lighting for the machine and supported external devices. ASUS's Armoury Crate FAQ states it is preinstalled for new ROG/TUF Gaming laptop/desktop owners and findable in the Start menu.",
+     "Battery diagnosis is a named MyASUS path in ASUS troubleshooting: MyASUS > System Diagnosis > Diagnosis Tool > Battery problems > Checkup, and ASUS advises contacting ASUS Product Support for replacement if battery health is bad.",
+     "Feature availability varies by model \u2014 ASUS repeatedly notes some devices show only partial MyASUS features, and System Diagnosis / System Update are not available in Windows S mode.",
+     "ASUS Switch (file backup when moving/repairing) is surfaced inside MyASUS Customer Support in ASUS's introduction \u2014 a setup-relevant move-in/backup note a new owner will encounter there."
+    ],
+    "warranty_registration": "Handled inside MyASUS User Center with an ASUS account: log in with ASUS ID (register one if needed), choose Instant product registration, type the product serial number and Send \u2014 the product then appears under My product. From the registered product, Product Footprint shows in one page the tech specs, repair status, warranty status and repair history, and offers Upgrade Warranty to buy an extension package; ASUS notes a newly bought extension refreshes the warranty end date within 3 to 5 days."
+   },
+   "acer": {
+    "brand": "Acer",
+    "utility": {
+     "name": "Acer Care Center (ACC)",
+     "sources": [
+      "Acer \u2014 Acer Care Center Application Security Issue with Update Mechanism (acer.com support alerts page)",
+      "Acer \u2014 Acer Care Center software page (acer.com, as listed in Acer Support search results)"
+     ],
+     "what_it_does": "Acer's own current description is brief: the software on the device links the owner to Acer's support infrastructure for all support needs and provides services, checks and updates to keep the device updated and running smoothly. Acer's security-advisory page adds scope: Acer Care Center (and Acer Control Center) can be installed on any Acer consumer PC manufactured after 2014 running Windows 8.1 or a newer Windows OS, and its update mechanism verifies software/driver update authenticity. A fuller official feature breakdown (system info, checkup, tune-up, recovery) was not present on the official Acer pages retrieved in this pass \u2014 see setup_notes."
+    },
+    "driver_bios_channel": "Primary official web route: Acer Support > Drivers and Manuals \u2014 identify the device first by entering serial number, SNID or model number to get that model's drivers, manuals and downloads (wording from Acer's own Drivers page listing). In-app route: Acer Care Center's check/update functions as described in Acer's broad 'checks and updates' wording and its Check for updates function in the advisory. Acer does not in the pages retrieved present a separate Acer BIOS updater app; BIOS files are part of the per-model Drivers and Manuals downloads.",
+    "setup_notes": [
+     "Thin brand overall: Acer documents noticeably less first-setup guidance on its current official support/product pages than Lenovo, Dell or ASUS \u2014 that thinness is the honest result here, not a gap filled from blogs or community posts.",
+     "Acer Care Center registration inside the app: not verified on official pages in this pass \u2014 do not claim ACC registers the product or shows warranty dates without a further official-source check.",
+     "Detailed ACC features often listed elsewhere \u2014 My System info, PC Checkup for drives/battery/network, Tune-Up cleaners/startup manager, and Recovery Management backup/restore \u2014 were found in this pass only on non-official mirrors (e.g. FileHorse reproducing Acer copy) and Acer Community posts, so they are marked: not verified on official pages.",
+     "What is solid for a new owner from official Acer pages alone: install/keep ACC for support linkage and updates, and use acer.com Drivers and Manuals by serial/SNID/model for drivers, BIOS and manuals."
+    ],
+    "warranty_registration": "Thin on official pages retrieved: Acer Support exposes Warranty Information and warranty-status checking tied to identifying the product by serial/SNID on acer.com/support, and Acer manuals instruct owners to reach Service & Support via Care Center's Support link and the Drivers and Manuals serial/SNID/model search. A step-by-step official product-registration flow (Acer ID account + serial + purchase date) was not verified on official pages in this pass \u2014 third-party and Acer Community descriptions of it were excluded per the official-sources-only rule."
+   },
+   "samsung": {
+    "brand": "Samsung",
+    "utility": {
+     "name": "Samsung Update / Samsung Device Care + Samsung Settings (Galaxy Book Experience apps)",
+     "sources": [
+      "Samsung Support \u2014 How to use Device Care in Galaxy Book series (samsung.com/in/support/computing)",
+      "Samsung Support \u2014 How to use Battery and Performance feature in Galaxy Book series (samsung.com/in/support/computing)",
+      "Samsung Support \u2014 Galaxy Book Battery (samsung.com/us/support/galaxy-battery)",
+      "Samsung Download Center \u2014 Galaxy Book Guidance for Custom OS installation / driver package guide (downloadcenter.samsung.com)"
+     ],
+     "what_it_does": "Samsung Update is Samsung's driver/software maintenance app for Galaxy Books: Samsung's own driver-package guidance describes Samsung Update (in the Optional folder of the driver package) as the tool to keep Samsung software up to date, and drivers can be installed/updated via Samsung Update or Windows Update. Current Samsung support centres on Samsung Device Care: per Samsung, it provides backup/restore, storage cleanup (temp/duplicate files), memory optimisation, factory reset, Maintenance Mode for repairs, online support (S Service), and an Updates section that keeps software, drivers, BIOS and apps up to date, with a Settings option for manual/auto driver updates. Samsung Settings is the hardware-settings companion: its Battery and performance section controls Battery protection (charge limit \u2014 85% on the US Galaxy Book battery page, 90% in the India Battery and Performance article; model/region dependent), USB charging while off/hibernating, and Performance mode."
+    },
+    "driver_bios_channel": "Samsung Update app, or Samsung Device Care > Updates (keeps drivers, BIOS and apps current; manual/auto configurable in its Settings); also Windows Update. Model-specific driver packages/downloads are via Samsung support/download center for the exact model.",
+    "setup_notes": [
+     "Sign in with both a Samsung Account and a Microsoft Account \u2014 Samsung Device Care lists this as a prerequisite note, and some features vary by country/region, model and Windows version.",
+     "Turn on Battery protection in Samsung Settings > Battery and performance if the laptop will live on AC power; Samsung says it limits maximum charge to prolong battery lifespan (85% US page / 90% India article \u2014 check the value shown for your model).",
+     "Protect battery applies to Galaxy Book3 and later models per Samsung's US battery page.",
+     "Samsung Members as the Galaxy Book warranty-registration channel: not verified on official pages in this research.",
+     "A Galaxy Book Experience as a single named suite page: not verified on official pages in this research \u2014 Samsung documents the individual apps (Samsung Settings, Device Care, Samsung Update) instead."
+    ],
+    "warranty_registration": "Samsung support pages direct owners to register the product to see what is covered \u2014 Samsung's regional support home (samsung.com/my/support, as an example of Samsung's own support layout) lists Warranty: 'Register your product and find out what's covered.' Registration is tied to a Samsung account, and Samsung Device Care notes both a Samsung Account and a Microsoft Account should be signed in. A single canonical Galaxy Book-specific registration URL/flow was not verified on official pages in this research \u2014 see setup_notes."
+   },
+   "msi": {
+    "brand": "MSI",
+    "utility": {
+     "name": "MSI Center",
+     "sources": [
+      "MSI Support \u2014 MSI Center (NB SW_MSI_Center technical details, msi.com/support/technical_details)",
+      "MSI \u2014 MSI Center landing page (uk.msi.com/Landing/MSI-Center)",
+      "MSI Blog \u2014 MSI RTX 50 Laptop GPU Driver Update (msi.com/blog)"
+     ],
+     "what_it_does": "MSI's exclusive app for its Gaming series laptops, per MSI's own technical-details page. Live Update scans and downloads/installs driver updates; User Scenario offers Extreme Performance, Balanced, Silent, Super Battery and a custom User mode (performance level and fan speed, GPU overclock on some models); Gaming Mode auto-tunes a selected game; System Diagnosis includes Battery Master (battery health view, charging modes including Balanced and Best for Battery charge limits, and battery calibration, which MSI recommends every 3 months) and System Checker (disk cleanup, memory freeing, SSD model/capacity/temperature/health); Hardware Monitoring shows real-time CPU/GPU usage; Mystic Light controls LED effects; General Settings covers items such as Windows-key and graphics-mode (MSHybrid vs discrete) toggles, varying by model."
+    },
+    "driver_bios_channel": "Primary: MSI Center > Support > Live Update \u2014 Scan, select the driver, Download; some drivers auto-install (reboot after), others open an unzipped folder for manual install per MSI's driver-update instructions on its support page. MSI's blog directs laptop owners to the same Live Update route for GPU drivers after Windows setup. Manual alternative: download drivers/BIOS for the exact model from the model's product support/download page on msi.com. BIOS via Live Update is documented for some lines (e.g. MSI Center M notes BIOS update through Live Update); model support pages remain the fallback \u2014 BIOS availability by model was not uniformly verified on official pages.",
+    "setup_notes": [
+     "Run Live Update once after Windows setup \u2014 MSI notes some MSI Center functions (e.g. Microsoft APP downloads) require a first Live Update system analysis.",
+     "MSI's own laptop GPU-driver article recommends updating the GPU driver before first use, either from the on-screen prompt after Windows setup/restart or manually via MSI Center > Support > Live Update, staying online and not powering off during the update.",
+     "Battery Master charge-limit modes differ by selection (e.g. Balanced stops at 80%, Best for Battery at 60% per MSI's page) \u2014 a new-owner setting worth choosing deliberately.",
+     "Feature sets are modular/customisable in current MSI Center per MSI's landing page \u2014 only install the feature sets needed."
+    ],
+    "warranty_registration": "Register the product in the MSI Member Center (account.msi.com): become an MSI Member, log in, and register the product with its details \u2014 MSI's official Extended Warranty Service Manual (download-2.msi.com) describes exactly this flow, with extended-warranty activation done afterwards in Member Center via Product Activation using the service code/password from the purchased Extended Warranty Digital Membership Card."
+   },
+   "lg": {
+    "brand": "LG",
+    "utility": {
+     "name": "LG Update / LG Update & Recovery (current) \u2014 LG Update Center / LG DNA Center Plus (older)",
+     "sources": [
+      "LG USA Support \u2014 LG Gram: LG Update Program Installation Guide (lg.com/us/support/help-library)",
+      "LG USA Support \u2014 LG Gram: How to Factory Reset Using the LG Recovery Center App (lg.com/us/support/help-library)",
+      "LG UK Support \u2014 Manual and Software / LG Update (lg.com/uk/support)"
+     ],
+     "what_it_does": "LG's model-matched update app. Per LG's installation guide, an integrated LG Update apps launcher installs the LG Update app suitable for the PC, and with the installed app 'the latest drivers and programs can be used optimally.' The variant that runs depends on release date: LG Update / LG Update & Recovery for products released after April 2022; LG Update Center and LG DNA Center Plus for products released before April 2022. LG product-support pages also surface related help items such as LG Recovery Center for factory reset (separate from the update app)."
+    },
+    "driver_bios_channel": "Run the LG Update Program to launch the compatible LG Update app and install/update drivers and LG programs from its Required Updates / Update list (as also described in LG gram manual material). The Update app itself is installed via the LG Update Installer from the Microsoft Store (or LG's download link). Fallback/manual route: LG's website download library / model product-support page (Software & Drivers) for the exact model and OS. LG cautions that installing a different OS than the pre-installed one may prevent the Update Program from installing drivers/software, and recommends the pre-installed OS.",
+    "setup_notes": [
+     "First step for a new gram owner per LG: install/run the LG Update Installer (Microsoft Store) \u2014 it auto-updates itself and installs the LG Update app compatible with that system, then offers 'LG Update & Recovery Run'.",
+     "Variant names are date-dependent (see utility) \u2014 do not look for 'LG Update Center' by name on a post-April-2022 machine.",
+     "LG gram software notes beyond the Update family (e.g. LG Control Center / LG Smart Assistant functions referenced in gram manuals for touchpad and settings): partially documented in LG manual/help material; a single official gram software overview page was not verified on official pages in this research.",
+     "Warranty registration path: not verified on official pages (see warranty_registration)."
+    ],
+    "warranty_registration": "not verified on official pages \u2014 LG's laptop help-library and product-support pages reviewed for this research document driver/software downloads, repair requests and LG Premium Care, but no specific laptop warranty-registration path (account, URL or steps) was verified on official LG pages in this research."
+   },
+   "microsoft": {
+    "brand": "Microsoft (Surface)",
+    "utility": {
+     "name": "Surface app (with Windows Update as the driver/firmware channel) + Surface Diagnostic Toolkit",
+     "sources": [
+      "Microsoft Support \u2014 Fix common problems using the Surface app and Surface Diagnostic Toolkit (support.microsoft.com)",
+      "Microsoft Support \u2014 Using the Surface Diagnostic Toolkit (support.microsoft.com)",
+      "Microsoft Support \u2014 Download drivers and firmware for Surface (support.microsoft.com)",
+      "Microsoft Support \u2014 Check your Microsoft warranty and create service orders (support.microsoft.com)"
+     ],
+     "what_it_does": "The Surface app is the owner hub: per Microsoft Support, in the Surface app you can check driver/firmware health and update status under Help & support (with a Check for updates button that opens Windows Update), get help / surface detected issues, and view warranty under Warranty & services. The separate Surface Diagnostic Toolkit runs guided checks/repairs \u2014 Microsoft lists tests for Windows update and system repair, power supply and battery, touchscreen/display brightness, speakers/microphone, network connectivity, and memory/storage; it is downloaded from the Microsoft Store if not pre-installed."
+    },
+    "driver_bios_channel": "Windows Update is the primary channel: Settings > Windows Update > Check for updates (attach Surface dock/Type Cover/accessories so they receive updates too), plus View optional updates for additional Surface-named driver updates. The Surface app's Help & support > Check for updates jumps to the same place. Manual/offline alternative per Microsoft: download the model-specific .msi driver+firmware package from Microsoft's Download drivers and firmware for Surface page / Download Center. Firmware updates cannot be uninstalled or reverted, per Microsoft's update-history notes.",
+    "setup_notes": [
+     "Install/open the Surface app (Microsoft Store if missing) and use Help & support to confirm update status before troubleshooting anything else \u2014 Microsoft's recommended first check.",
+     "Run the Surface Diagnostic Toolkit for guided hardware/software checks if something is not working; Microsoft notes diagnosis/repair averages about 15 minutes but can take longer.",
+     "Keep the device plugged in and connected to the internet, with accessories attached, when checking Windows Update so firmware for the device and accessories installs together.",
+     "Manual .msi packages are positioned by Microsoft for troubleshooting, offline devices, multi-device deployment and imaging \u2014 not the normal new-owner route."
+    ],
+    "warranty_registration": "Via the Microsoft account. Microsoft Support states you may need to register your Surface to your account before checking warranty or getting service: at account.microsoft.com/devices, if the device is not listed, select Register device and add it (serial number); then select the device > Info & support to see Device coverage type and remaining time. Warranty/coverage dates are also visible in the Surface app under Warranty & services. If the warranty date does not match the purchase date, Microsoft provides an Update your Surface warranty with proof-of-purchase flow. The task brief's claim that a Surface registers automatically simply by signing in was not stated in those terms on the Microsoft pages reviewed \u2014 Microsoft describes registration as an account action at account.microsoft.com/devices when the device is not already listed."
+   },
+   "apple": {
+    "brand": "Apple",
+    "utility": {
+     "name": "None \u2014 no separate vendor utility; System Settings > General > Software Update handles updates",
+     "sources": [
+      "Apple Support \u2014 Update macOS on Mac (support.apple.com)",
+      "Apple Support \u2014 Software Update settings on Mac (support.apple.com guide)",
+      "Apple Support \u2014 About background updates in macOS (support.apple.com)",
+      "Apple Support \u2014 System Information User Guide for Mac (support.apple.com)"
+     ],
+     "what_it_does": "There is no Apple equivalent of MSI Center/Synapse for Mac laptops. Built-in System Settings does the job: Software Update settings (Apple menu > System Settings > General > Software Update) find, download and install Apple software updates/upgrades compatible with that Mac model, with Automatic Updates options to download new updates when available, install macOS updates automatically, and install Security Responses / system files (and background security/system-data updates, which Apple says install automatically by default). System Information (About) is Apple's built-in hardware/software report tool and points to warranty/repair information via About settings."
+    },
+    "driver_bios_channel": "Software Update only. Apple delivers macOS, firmware, drivers and security updates together through System Settings > General > Software Update (or Spotlight search for 'Software Update'); Apple states Software Update shows only software compatible with your Mac model and is the fastest/easiest route, using less storage than other methods. There is no separate Apple driver/BIOS download channel for Mac laptops. Back up the Mac before installing, and allow installation to complete without sleeping/closing the lid (multiple restarts/progress bars are normal, per Apple).",
+    "setup_notes": [
+     "New-owner step per Apple: open Software Update, let it check automatically, install what is offered, and turn on the Automatic Updates options you want (download when available, install macOS updates, install security/system files).",
+     "Mac laptops must have the power adapter plugged in to automatically download updates, per Apple's Keep your Mac up to date guide (older macOS wording).",
+     "There are no third-party-style driver packs to hunt down \u2014 if Software Update says the Mac is up to date, Apple offers no additional model driver downloads.",
+     "checkcoverage.apple.com / mysupport.apple.com coverage-check flow: not verified on official pages in this research (only the on-device About / AppleCare & Warranty route was verified on support.apple.com)."
+    ],
+    "warranty_registration": "No product-registration step is required to have Apple Limited Warranty coverage documented in this research. Coverage can be reviewed on the Mac itself \u2014 Apple Support's System Information guide directs users to About settings for warranty and repair-service information, and current macOS exposes AppleCare & Warranty under System Settings > General. The checkcoverage.apple.com serial-number checker and My Support (Apple Account) device list referenced in the task brief were not verified on official Apple pages returned in this research \u2014 see setup_notes."
+   },
+   "framework": {
+    "brand": "Framework",
+    "utility": {
+     "name": "None \u2014 no preinstalled vendor utility; Framework Driver Bundle (downloaded installer) + Framework guides",
+     "sources": [
+      "Framework Guides \u2014 Windows 11 Installation on the Framework Laptop 13 (guides.frame.work)",
+      "Framework Guides \u2014 Upgrading to Windows 11 from Windows 10 on the Framework Laptop (guides.frame.work)",
+      "Framework Community \u2014 Framework Laptop 16 AMD Ryzen 7040 Driver Bundle release posts (community.frame.work)"
+     ],
+     "what_it_does": "Framework ships no MSI Center-style preinstalled control app. The setup layer is the downloadable Framework Laptop Driver Bundle: per Framework's own Windows 11 installation guide, after Windows installation you download the bundle for your Mainboard/generation and run it, and it automatically installs all drivers required to use the laptop (several minutes, then press a key to reboot). DIY assembly, repair and upgrade steps live as step-by-step guides at guides.frame.work (e.g. the Windows 11 Installation guide for the Framework Laptop 13 DIY Edition, which assumes memory, storage and Wi-Fi are installed first)."
+    },
+    "driver_bios_channel": "Drivers: download and run the generation-specific Driver Bundle from frame.work (linked from the guides); if the machine has no network yet, download it on another system and copy it via USB flash drive. The guide also notes an OOBE Wi-Fi driver package placed on the Windows install USB so networking works during setup. After the bundle, run Windows Update \u2014 Framework's guides state future driver and firmware updates can also come through Windows Update. BIOS: separate downloadable BIOS updaters announced on community.frame.work / downloads.frame.work \u2014 Windows .exe installer (run, agree to reboot, wait for the firmware progress bar), Linux via LVFS/fwupdmgr, or UEFI Shell update from a FAT32 USB (suspend BitLocker first if using the EFI updater with Windows); charger must be attached.",
+    "setup_notes": [
+     "DIY Edition order of operations per Framework's guide: install memory, storage and Wi-Fi first, install Windows, then install the Driver Bundle to get the laptop fully functional \u2014 a fresh Windows install may lack drivers for the new hardware, and the touchpad runs in a limited compatibility mode until the bundle is installed.",
+     "Put the OOBE Wi-Fi driver package on the install USB in advance so the 'Let's connect you to a network' setup screen can load a driver and show networks.",
+     "BIOS/driver release notifications: Framework's BIOS release posts offer an opt-in email subscription for new BIOS/driver releases for your laptop.",
+     "Framework's explicit 'no-bloatware' stance as a documented setup claim: not verified on official pages in this research \u2014 what is verified is the absence of a preinstalled vendor utility and the manual Driver Bundle step in Framework's own guide."
+    ],
+    "warranty_registration": "Via your Framework account/order and Framework Support \u2014 the Windows guide directs owners who bought Windows from Framework to log into their Framework account (Digital Purchases) for their key, and closes by directing questions to Framework Support via frame.work. No separate warranty-registration form or serial-registration flow was verified on official Framework pages in this research \u2014 support is order/account-based as documented."
+   },
+   "razer": {
+    "brand": "Razer",
+    "utility": {
+     "name": "Razer Synapse (Synapse 4, formerly Synapse 3)",
+     "sources": [
+      "Razer \u2014 Razer Synapse 4: Advanced Device Control and Lighting Software (razer.com/gb-en/synapse)",
+      "Razer Support \u2014 Razer Blade CPU overclocking via Razer Synapse FAQs (mysupport.razer.com, Answer ID 9698)",
+      "Razer Support \u2014 How to install or upgrade Razer Synapse (mysupport.razer.com)"
+     ],
+     "what_it_does": "Razer's unified device-control software. Razer's own Synapse page describes Synapse 4 as advanced device control and lighting software with profile/macro/Chroma migration from Synapse 3, faster processing and driver installation than Synapse 3, and a multi-threaded architecture so installing/upgrading one device does not interrupt others. For Blade laptops specifically, Razer Support documents Synapse SYSTEM > PERFORMANCE controls for CPU overclocking/undervolting on Intel Blades (with RESET to defaults in the same section), and Synapse is the Blade control surface for performance modes, fan and battery/charge settings on supported models as referenced across Razer Support Blade answers."
+    },
+    "driver_bios_channel": "Per-model support pages on mysupport.razer.com are the official channel: each Blade model has Drivers & Downloads and, where applicable, a model-specific 'BIOS Updater' answer (e.g. Razer Blade 14 (2025) BIOS Updater RZ09-0530x) giving the latest BIOS update and install instructions, plus firmware updaters (e.g. Intel ME Firmware Updater answers). Many base drivers also arrive via Windows Update. Synapse itself is installed/upgraded via Razer's Synapse installer per Razer Support's install/upgrade answer. Razer also offers a Blade System Recovery Image online service via mysupport.razer.com.",
+    "setup_notes": [
+     "Install or upgrade to current Synapse early: Razer documents Synapse as the Blade's performance-control surface, including CPU overclock/undervolt reset to defaults under SYSTEM > PERFORMANCE if the system becomes unstable; Razer notes Synapse overclocking/undervolting does not by itself void the Blade warranty, but support is provided with those features disabled.",
+     "Find your exact model first (Razer Support: 'How to identify a Razer Blade model' and serial/product-number finders) \u2014 BIOS updaters and driver downloads are model-specific (RZ09-xxxx).",
+     "BIOS access documented by Razer Support: tap F1 or Del at the Razer logo on startup, or via Windows Advanced startup > UEFI Firmware Settings.",
+     "Warranty registration via Razer ID: not verified on official pages (see warranty_registration)."
+    ],
+    "warranty_registration": "not verified on official pages \u2014 Razer Support pages reviewed document per-model warranty information on model support/At a Glance pages and support via serial/product numbers, and Synapse/Razer ID sign-in exists, but a specific 'register your Blade to a Razer ID for warranty' flow was not verified on official Razer pages in this research."
+   },
+   "google": {
+    "brand": "Google / Chromebook",
+    "utility": {
+     "name": "None \u2014 no Google vendor utility; ChromeOS updates are built in and automatic (any extra utility is the OEM's)",
+     "sources": [
+      "Google Support \u2014 Update your Chromebook's operating system (support.google.com/chromebook/answer/177889)",
+      "Google Support \u2014 Check your Chromebook's update schedule (support.google.com/chromebook/answer/9367166)"
+     ],
+     "what_it_does": "Google provides no Chromebook equivalent of a vendor control centre. ChromeOS itself handles updates: per Chromebook Help, the device automatically checks for and downloads updates when connected to the internet, and the owner completes an update by restarting when the 'Update device' notification appears. Settings > About ChromeOS shows the current version and a manual Check for updates button, and About ChromeOS > Additional details shows the update schedule / final update date. Hardware-specific utilities, diagnostics or settings beyond ChromeOS, if any, come from the device manufacturer (Acer, Lenovo, HP, Samsung, etc.), not Google."
+    },
+    "driver_bios_channel": "ChromeOS automatic updates are the only channel \u2014 Google states Chromebooks automatically manage updates so the device has the latest software and security features; there are no separate user-installed Google driver or BIOS packages for Chromebooks. Manual check: Settings (select time > Settings) > About ChromeOS > Check for updates; a found update downloads automatically and applies on restart. Google notes Chromebooks receive 10 years of automatic updates (per its Auto Update policy page, with caveats for pre-2021 devices receiving extended updates).",
+    "setup_notes": [
+     "Connect to Wi-Fi and restart when prompted \u2014 that is the entire update routine for a new owner; plug into power to avoid interruptions, per Google's tips.",
+     "Check About ChromeOS > Additional details early to see how long the specific model will keep receiving automatic updates \u2014 models differ, and a 'Final software update' notification means ChromeOS/browser updates (security, bug fixes, features) stop.",
+     "Work/school Chromebooks may show update notifications as recommended (blue) or required (orange) and can be admin-managed \u2014 Google documents this distinction in Chromebook Help.",
+     "Any OEM utility (e.g. a maker's diagnostics or settings app on a specific Chromebook model): not verified on official Google pages \u2014 check the OEM's own support site for that model."
+    ],
+    "warranty_registration": "not verified on official pages \u2014 Google's Chromebook Help pages reviewed cover updates and update schedules, not warranty registration. Chromebook hardware warranty is the device manufacturer's (OEM's), not Google's; no Google-run Chromebook warranty-registration path was verified on support.google.com/chromebook in this research."
+   }
+  },
+  "first_week_checklist": [
+   {
+    "item": "Check for BIOS / firmware updates early",
+    "detail": "In the first week, check for a BIOS or firmware update for your exact model through the maker's own update utility or the maker's support site (by model name or service tag), rather than a third-party driver site. Makers that document this route include Dell, Lenovo, HP, and ASUS (in its MyASUS app). Follow the maker's cautions: keep the laptop plugged into AC power, use a charged battery where the maker requires one, save your work first, and do not turn the computer off, suspend it, unplug it, or otherwise interrupt the update while it runs \u2014 Dell warns that turning off or disconnecting power during a BIOS update could harm the computer, Lenovo's BIOS update instructions require an AC adapter and a charged battery and warn not to turn off or suspend until the update completes, and HP's BIOS update guidance says to run on AC power because an interruption from power loss could leave the computer unable to operate correctly. Expect the machine to restart, possibly more than once, and leave it alone until it boots back into the operating system normally.",
+    "applies_to": "Windows"
+   },
+   {
+    "item": "Run operating system and driver updates",
+    "detail": "Make the operating system's own updater your baseline and run it in the first week, repeating until nothing more is offered. Windows: go to Start > Settings > Windows Update and select Check for updates, then Download & install anything offered and restart if prompted. macOS: use Software Update (Apple menu > System Settings > General > Software Update), which finds, downloads, and installs Apple software compatible with your model; Apple advises backing up your Mac before installing new software and letting installation finish without putting the Mac to sleep or closing its lid. ChromeOS: a Chromebook automatically checks for and downloads updates when connected to the internet, and you finish by restarting when you see the update notification; to check yourself, connect to Wi-Fi, open Settings > About ChromeOS, and select Check for updates. Then use the laptop maker's utility for drivers and firmware the OS updater may not cover \u2014 for example Lenovo Vantage / Lenovo System Update, Dell SupportAssist or Dell Update, HP Support Assistant, or MyASUS on ASUS machines (MyASUS System Update automatically checks and lists items that need updating).",
+    "applies_to": "all"
+   },
+   {
+    "item": "Review bundled trialware and remove what you do not want",
+    "detail": "Consumer Windows laptops commonly arrive with preinstalled software in a few generic categories: trial antivirus or security suites, trial office / productivity suites, and maker or partner promotional offers such as cloud-storage trials \u2014 alongside the maker's own support and update utilities, which are usually worth keeping because later items on this checklist use them. This is a general description of categories only, not a list for any specific model: what is actually preinstalled varies by model and retailer, and no official source we checked publishes a per-model list, so check your own machine rather than trusting a generic bloat list. To remove an app in Windows, Microsoft's documented route is Start > Settings > Apps > Installed apps, find the app, and select More (...) > Uninstall; Microsoft also documents uninstalling from the Start menu and from Control Panel, and notes that some apps and programs built into Windows cannot be uninstalled. If you remove a trial antivirus, you are not left unprotected: Microsoft states that Microsoft Defender Antivirus turns on when no other antivirus product is installed (or when the other product is out of date, expired, or not working), and turns itself off when another antivirus is installed and working.",
+    "applies_to": "Windows"
+   },
+   {
+    "item": "Battery first charge: skip the myths, use the maker's charge settings",
+    "detail": "Fact, not myth: a modern lithium-ion laptop battery does not need an initial full discharge or a special conditioning charge before first use. Apple states this most directly for its lithium-ion batteries: charge whenever you want, with no need to let it discharge 100% before recharging. Apple also explains that a charge cycle is cumulative \u2014 you complete one cycle when the total amount you have discharged equals 100% of capacity, not necessarily in a single discharge \u2014 and that capacity diminishes slightly with each complete cycle. For a laptop that lives mostly plugged in, use the built-in option your maker provides, if your model has one: on a Mac, Apple Support documents Optimized Battery Charging, which is designed to reduce the time the battery spends fully charged, and (on macOS Tahoe 26.4 or later) a Charge Limit you can set between 80% and 100%, noting the Mac will still occasionally charge to 100% to keep its charge estimates accurate; Dell's Power Manager / battery settings include Primarily AC Use, which lowers the charge threshold so the battery never charges to 100% and is recommended for people who mainly use the computer plugged in, plus Adaptive, which optimizes based on your usage patterns, and Custom start/stop levels; Lenovo Vantage offers a Battery Charge Threshold / Conservation Mode on supported models for holding the charge below full. Thin spots, flagged honestly: Lenovo's official pages we checked name the threshold / conservation features but do not state one uniform percentage that applies across models, and we did not find an HP Support document that settles a specific charge-limit percentage for consumer models, so exact levels vary by model and are not stated uniformly in official guidance \u2014 check the setting on your own machine instead of assuming a number. No official page we checked uses the word 'conditioning' for a first charge.",
+    "applies_to": "all"
+   },
+   {
+    "item": "Make a backup and create recovery media",
+    "detail": "Do this while the laptop is new and working, not after a failure. Windows: use Microsoft's Create a recovery drive tool \u2014 search for it, make sure 'Back up system files to the recovery drive' is selected, and write it to a USB drive, knowing the process erases anything already on that USB drive; Microsoft's Recovery Drive guidance recommends recreating the recovery media annually and notes it does not include your personal files, so back those up separately (for example with Windows Backup or File History). Mac: set up Time Machine with an external storage device and let the first backup complete \u2014 Apple notes the first backup may take longer than expected, that you can keep using the Mac while it runs, and that later backups only copy changed files; if you later need to reinstall, macOS Recovery, the built-in recovery system, can reinstall macOS while keeping your files and user settings intact, and your Mac must be connected to the internet to reinstall. Chromebook: recovery removes and reinstalls ChromeOS and permanently erases everything on the Chromebook's hard drive, including downloaded files, so back up your files first if possible; newer Chromebooks can recover over an internet connection, and Google's Chromebook Help also documents creating recovery media with the Chromebook Recovery Utility on another computer for models that need USB recovery. Some Windows brands also ship their own recovery environment on supported models \u2014 Dell documents SupportAssist OS Recovery and HP documents its own recovery / HP Cloud Recovery options \u2014 noted here only so you know they may exist on your machine; availability varies by model.",
+    "applies_to": "all"
+   },
+   {
+    "item": "Save your encryption recovery key somewhere off the laptop",
+    "detail": "Windows / BitLocker: before you ever need it, confirm where your BitLocker recovery key is backed up. Microsoft documents these backup choices in Manage BitLocker > Back up your recovery key: save it to your Microsoft account (it goes into that account's recovery keys library, and you can view it from another device by signing in to your Microsoft account at Microsoft's recovery-key page), save it to a USB flash drive, save it as a file (it cannot be saved to the BitLocker-encrypted drive itself), or print it. Microsoft warns not to store the USB drive or the printout with the computer, because together they would let someone bypass the encryption, and states that Microsoft Support cannot retrieve, provide, or recreate a lost recovery key. Mac / FileVault: when you turn on FileVault, Apple has you choose how you could unlock the disk if you forget your login password \u2014 either allow your iCloud (Apple Account) account to unlock it / reset your password, or create a personal recovery key and not use iCloud. If you choose the recovery key, Apple says you must record and keep track of it yourself, copy the letters and numbers exactly as shown, and keep a copy somewhere other than your encrypted startup disk, in a safe place you will remember. Chromebook / ChromeOS: there is no user-held encryption recovery key like BitLocker's or FileVault's for you to print or save \u2014 Chromebook Help does not present a key-saving step, and access to your data is tied to signing in with your Google Account, so the first-week action here is simply to make sure you can sign in to that Google Account (and keep its password and any second-step verification working); a specific 'no recovery key' statement is not stated in official Chromebook Help guidance we checked, so treat this as 'no key is offered to save' rather than a quoted Google policy.",
+    "applies_to": "all"
+   }
+  ]
+ },
+ "laptop_parental_controls": {
+  "core_principle": "On all three platforms the controls attach to the child's account, not to the laptop. The child must sign in with their own child account (never the parent's account, never an administrator account) for any control to apply.",
+  "platforms": {
+   "chromeos": {
+    "platform": "ChromeOS",
+    "control_system": "Google Family Link",
+    "account_setup": [
+     {
+      "detail": "Google says it takes about 15 minutes: start at the Google Account creation page or inside the Family Link app, enter the child's name, the email address they want, and their birthday, then sign in with your own Google Account and give parental consent the way Google offers. This route is for a child under 13, or the applicable age in your country; the supervised account gives the child Search, Chrome and Gmail with parental controls.",
+      "title": "Create the child's Google Account"
+     },
+     {
+      "detail": "A child above the applicable age can create their own Google Account, and the parent adds supervision afterwards. Google states that above that age the child can also stop supervision; if they do, the parent is notified and the child's supervised devices are temporarily locked.",
+      "title": "Older children: add supervision instead"
+     },
+     {
+      "detail": "Use the child's supervised account to sign in. On a brand-new Chromebook the first account signed in becomes the device owner; a parent who needs to be owner signs in first, then adds the child as a user.",
+      "title": "Sign the child in on the Chromebook"
+     },
+     {
+      "detail": "On the child's Chromebook, open Settings; under Accounts, next to Parental controls, click Set up and follow the steps. Google notes the child and the device must be nearby and the child gives their consent during setup; the parent signs in to confirm. Parents then manage settings in the Family Link app on their own device.",
+      "title": "Add supervision on the Chromebook if needed"
+     },
+     {
+      "detail": "Install the Family Link app from Google Play or the App Store and sign in as the parent; some settings can also be managed at familylink.google.com.",
+      "title": "Get Family Link on the parent's phone"
+     }
+    ],
+    "controls_available": [
+     {
+      "detail": "A daily limit for the device set as a weekly schedule (different school-day and weekend allowances), plus a Downtime schedule (called Bedtime in older versions) that locks the device, and School time schedules. Daily limits apply per device, not as one shared pool across the child's devices. Parents can grant bonus time for the day.",
+      "name": "Screen time"
+     },
+     {
+      "detail": "Per-app time limits for the Chromebook's apps, unlimited time for chosen apps such as school apps, and the ability to block an app entirely.",
+      "name": "App limits and blocking"
+     },
+     {
+      "detail": "Three levels under Family Link Controls > Content restrictions > Google Chrome: allow all sites; try to block mature sites; or only allow approved sites. Parents keep their own approved and blocked site lists, manage which site permissions the child can grant, and can approve or deny the child's requests for blocked sites.",
+      "name": "Chrome web filtering"
+     },
+     {
+      "detail": "Per Google: children signed in on Chrome OS cannot use Incognito mode and do not have access to apps and extensions from the Chrome Web Store; parents manage the websites the child can visit and limit the child's ability to grant permissions to websites; with try to block mature sites on, Chrome blocks most sexually explicit and violent sites.",
+      "name": "Built-in supervised Chrome differences"
+     },
+     {
+      "detail": "SafeSearch is on for supervised accounts and is managed by the parent in Family Link's Google Search controls; the child cannot simply switch it off.",
+      "name": "Search"
+     },
+     {
+      "detail": "Content restrictions by maturity rating per content type, and purchase approvals in four strengths: all content; all purchases that use the family payment method; only in-app purchases; or no approval required. Free content that needs approval is requested either by message (parent approves or denies from a notification) or in person (parent enters their password on the child's device). Google states purchase approval settings only apply to purchases made through Google Play's billing system.",
+      "name": "Google Play content and purchases"
+     },
+     {
+      "detail": "Supervised YouTube settings and kids/teens tools are managed through Family Link alongside the other Google services.",
+      "name": "YouTube"
+     },
+     {
+      "detail": "Family Link shows the child's app activity: how much time goes to which apps.",
+      "name": "Activity"
+     },
+     {
+      "detail": "Family Link can show a supervised device's location when the device is powered on, recently active and connected to the internet, and parents can lock or unlock the child's device remotely from the app.",
+      "name": "Location and remote lock"
+     },
+     {
+      "detail": "Parents can help change or reset the child's password, edit the child's account information, or delete the account, all from Family Link.",
+      "name": "Account safety net"
+     }
+    ],
+    "enable_steps": [
+     {
+      "detail": "Child's Google Account created with consent, supervised in Family Link; child signed in on the Chromebook with the supervised account.",
+      "title": "Complete account setup and sign the child in"
+     },
+     {
+      "detail": "All controls below live under the child's profile in the parent's Family Link app.",
+      "title": "Open Family Link and select the child"
+     },
+     {
+      "detail": "Controls > Content restrictions > Google Chrome: choose the filtering level, then add always-approved school sites and any blocked sites.",
+      "title": "Set the Chrome filter"
+     },
+     {
+      "detail": "In Content restrictions: confirm SafeSearch under Google Search; under Google Play set maturity ratings and the purchase approval strength.",
+      "title": "Set Search and Play rules"
+     },
+     {
+      "detail": "Screen time > Time limits: turn on the daily limit, edit the weekly schedule, and add the Downtime (bedtime) schedule.",
+      "title": "Set screen time"
+     },
+     {
+      "detail": "Per-app limits for games, unlimited time for school apps, and block anything that should not be on the machine.",
+      "title": "Set app rules"
+     },
+     {
+      "detail": "Signed in as the device owner, open Settings > Privacy and security > Manage other people; turn off guest browsing and limit sign-in to chosen accounts, so the supervised account cannot be walked around with a guest session or another account. Setting names vary slightly by ChromeOS version.",
+      "title": "Close the side doors on the Chromebook"
+     },
+     {
+      "detail": "Sign in with the child's account: try a blocked site and send the access request, try downloading a free app and watch the approval arrive, and check the daily-limit display. Adjust, then hand over.",
+      "title": "Test as the child"
+     }
+    ],
+    "first_setup_checklist": [
+     "Child's Google Account created with the correct birthday; parental consent completed",
+     "Account supervised in Family Link; parent has the Family Link app",
+     "Child signed in on the Chromebook with their own supervised account",
+     "Chrome filter level chosen; SafeSearch confirmed; Play ratings and purchase approvals set",
+     "Daily limit and Downtime schedule set; per-app limits for games",
+     "Guest browsing off and sign-in limited, from the owner's account",
+     "Tested while signed in as the child, then handed over"
+    ],
+    "honest_limits": [
+     "School Chromebooks are the school's, not the parent's: Google states Google Workspace for Education accounts can't be managed by Family Link and the school administrator decides which services a school account can access. If a school account is added as a secondary account under the child's supervised personal account, Family Link controls apply to it; if it is added as a separate user on the sign-in screen, Google states Family Link parental controls will not apply to that user account.",
+     "Family Link supervises accounts, and only on Google's platforms: Google's getting-started page states iPhones, iPads, and computers other than Chromebooks can't be supervised with Family Link. A Windows or Mac laptop in the same house needs its own platform's system.",
+     "The filter is a filter, not a promise: Google's own name for the middle level is try to block mature sites, and Google's Family Link app description says outright that Family Link does not make the internet safe. It shapes what the supervised account can reach in Chrome, not other apps' built-in content or an unsupervised account.",
+     "Side doors are account-shaped: guest mode and additional unsupervised accounts bypass supervision unless the owner restricts them; a Powerwash (factory reset) followed by setup under a different account removes the device from the supervised arrangement, so the owner account should stay in the parent's hands (reset point is framed guidance; guest/sign-in behaviour is documented ChromeOS functionality).",
+     "Purchase approvals have a hard edge stated by Google: they apply only when the child buys through Google Play's billing system, not to alternate billing systems or purchases elsewhere.",
+     "Supervision has an age exit: above the applicable age in your country, Google documents that the child can stop supervision; the parent is notified and supervised devices are temporarily locked, but from that point the arrangement is a family agreement, not a setting."
+    ]
+   },
+   "macos": {
+    "platform": "macOS",
+    "control_system": "Family Sharing + Screen Time",
+    "account_setup": [
+     {
+      "detail": "On the parent's device, open Settings (iPhone/iPad) or System Settings (Mac) > Family and create the family group if there is not one already. The organizer, and adults designated as parent/guardian, can create child accounts and set controls for children and teens in the group.",
+      "title": "Set up Family Sharing"
+     },
+     {
+      "detail": "In Family settings, choose Add Member, then Create Child Account. Enter the child's name and correct date of birth; Apple uses the date of birth to determine eligible services and to suggest parental controls such as Ask to Buy and Screen Time.",
+      "title": "Create the child's Apple Account"
+     },
+     {
+      "detail": "Agree to Apple's Family Privacy Disclosure for Children and the terms. Because child-privacy law (COPPA in the US, similar laws elsewhere) requires verifiable parental consent, Apple verifies the organizer's adult status; its legal disclosure names methods such as confirming the payment method on file (for example its security code) or an identity card in Wallet, varying by country.",
+      "title": "Verify you are an adult, and consent"
+     },
+     {
+      "detail": "Create the child's email address (Apple can create a free iCloud address if the child has none) and a password. The account joins the family group automatically. During setup Apple offers the first controls: age-related content restrictions for apps, books, TV shows and movies; Downtime and app limits; restrictions on who the child can communicate with; and approvals for purchases or free downloads.",
+      "title": "Finish the account"
+     },
+     {
+      "detail": "Apple's disclosure states that a child's account cannot be removed from the family unless the account is deleted, the child turns 13 (or the equivalent minimum age in your jurisdiction), or the child is transferred to another family; after that age the child may be able to keep the account without participating in Family Sharing.",
+      "title": "Know the membership rule"
+     },
+     {
+      "detail": "Give the child their own Mac user account as a standard user, not an administrator, signed in with their child Apple Account. The parent keeps the administrator account and password. If the child already has an Apple Account without consent, Apple documents adding it to the family via Invite in Person and agreeing to the Parental Privacy Disclosure.",
+      "title": "On the MacBook itself"
+     },
+     {
+      "detail": "Offered during account creation. Apple Support notes the age rules vary by region; in the United States an organizer can turn Ask to Buy on for any family member under 18, and for children under 13 it is on by default.",
+      "title": "Ask to Buy"
+     }
+    ],
+    "controls_available": [
+     {
+      "detail": "Screen Time reports how much time the child spends in apps and on websites; with Family Sharing the parent views reports and adjusts settings from their own device.",
+      "name": "App & Website Activity"
+     },
+     {
+      "detail": "A scheduled time away from the screen (Every Day, or Custom days for school nights versus weekends), also switchable on immediately. The child is warned five minutes before downtime begins; calls and always-allowed apps stay available.",
+      "name": "Downtime"
+     },
+     {
+      "detail": "Daily time limits for individual apps, app categories and websites. When time runs out the child can request more; the parent approves or declines in Settings > Screen Time or in Messages.",
+      "name": "App Limits"
+     },
+     {
+      "detail": "The short list of apps that stay reachable during downtime and after limits, for essentials.",
+      "name": "Always Allowed"
+     },
+     {
+      "detail": "Web content level (unrestricted access, limit adult websites, or allowed websites only); Store Restrictions by age rating for apps, movies, music and books, plus preventing app installs/deletes and in-app purchases; and Game Center limits covering multiplayer games, adding friends, connecting with friends, private messaging, and avatar/nickname and profile-privacy changes.",
+      "name": "Content & Privacy restrictions"
+     },
+     {
+      "detail": "Limits on who the child can communicate with during allowed screen time and during downtime.",
+      "name": "Communication Limits"
+     },
+     {
+      "detail": "A Screen Time safety feature for child accounts that warns the child when photos containing nudity are sent or received in Messages and some other apps, blurs the image, and offers guidance and resources. Apple turns it on by default for child accounts in current versions.",
+      "name": "Communication Safety"
+     },
+     {
+      "detail": "A four-digit passcode the child does not know; it locks Screen Time settings and is required to grant more time. On current versions a parent can see when the passcode was last used and opt into a notification when it is used.",
+      "name": "Screen Time passcode"
+     },
+     {
+      "detail": "Purchases and free downloads the child initiates in the App Store, iTunes Store and Apple Books must be approved by the family organizer or a parent/guardian in the group.",
+      "name": "Ask to Buy"
+     },
+     {
+      "detail": "Optional: the child's device location can be shared with the family through Find My; enabling it is a choice offered when the child is added to the family.",
+      "name": "Location Sharing"
+     }
+    ],
+    "enable_steps": [
+     {
+      "detail": "Child Apple Account created in Family Sharing; child signed in on the MacBook with their own account as a standard user.",
+      "title": "Complete account setup and sign the child in"
+     },
+     {
+      "detail": "On the parent's Mac signed in with the organizer's Apple Account (or on the child's Mac signed in to the child's account), open System Settings > Screen Time; with Family Sharing, choose the child from the Family Member pop-up menu.",
+      "title": "Open Screen Time for the child"
+     },
+     {
+      "detail": "So usage reports exist before limits are judged.",
+      "title": "Turn on App & Website Activity"
+     },
+     {
+      "detail": "A code the child does not know and that is not reused anywhere else.",
+      "title": "Set a Screen Time passcode"
+     },
+     {
+      "detail": "Turn on the schedule; use Custom days for different school-night and weekend hours.",
+      "title": "Set Downtime"
+     },
+     {
+      "detail": "Cap the biggest time-sinks; keep school and messaging essentials always allowed.",
+      "title": "Set App Limits and Always Allowed"
+     },
+     {
+      "detail": "Set the web content level and store age ratings; under App Store, Media, Web & Games, set Game Center rules if relevant.",
+      "title": "Turn on Content & Privacy"
+     },
+     {
+      "detail": "Set Communication Limits and confirm Communication Safety is on.",
+      "title": "Review Communication settings"
+     },
+     {
+      "detail": "In Family settings, select the child and turn on Ask to Buy if it is not already on.",
+      "title": "Confirm Ask to Buy"
+     },
+     {
+      "detail": "Sign in with the child's account, run into a limit, and start a download so the parent sees the approval request arrive on their own device.",
+      "title": "Test as the child"
+     }
+    ],
+    "first_setup_checklist": [
+     "Family Sharing set up; parent is organizer or parent/guardian",
+     "Child Apple Account created with the child's correct date of birth; adult verification and consent completed",
+     "Child signed in on the MacBook with their own account, as a standard (non-admin) user",
+     "Screen Time on for the child, with a passcode the child doesn't know",
+     "Downtime schedule and App Limits set; Content & Privacy ratings set",
+     "Ask to Buy on; Communication Safety checked",
+     "Tested while signed in as the child, then handed over"
+    ],
+    "honest_limits": [
+     "The administrator password is the real lock on a Mac: Screen Time holds because the child is a standard user; a child who knows an administrator password, or holds an administrator account, can change accounts and settings (general guidance, framed as such; the account structure is Apple's documented pattern).",
+     "Without Family Sharing, Apple documents setting Screen Time by logging in to the child's own Mac account; that works on that Mac but nothing syncs to or reports to the parent's devices. Family Sharing is what makes controls remotely manageable and visible.",
+     "Content & Privacy web settings are Screen Time's own filtering for the Mac, not a whole-home network filter, and individual apps manage their own content on top of it; check the apps and browsers the child actually uses (framed guidance).",
+     "Ask to Buy covers purchases the child makes through Apple's stores with their account; it does not govern buying elsewhere, and Apple's legal disclosure notes some categories (for example re-downloads and redemption-code downloads) may not be subject to Ask to Buy.",
+     "Ages and defaults are regional: the age at which a child can leave the family arrangement, whether Ask to Buy is on by default, and which controls a region requires to stay on all vary by country, per Apple's support pages.",
+     "Erasing the Mac and setting it up under a different Apple Account takes it out from under these settings; the anchor is the child's account staying in the family and the parent keeping the only administrator credentials (framed guidance)."
+    ]
+   },
+   "windows_11": {
+    "platform": "Windows 11",
+    "control_system": "Microsoft Family Safety",
+    "account_setup": [
+     {
+      "detail": "Sign in at account.microsoft.com/family with the parent's own Microsoft account. The adult who runs the group is the family organizer; organizers add and remove members, manage limits and permissions, view activity for members with reporting enabled, and give consent for a minor.",
+      "title": "Start from the parent's account"
+     },
+     {
+      "detail": "Select Add a family member and choose the role Member. Microsoft describes Member as usually the best option for a child; Organizer is the adult role. The same flow exists in the Microsoft Family Safety app (Add a family member > role > Invite to family group).",
+      "title": "Add a family member"
+     },
+     {
+      "detail": "Enter the child's email address or phone number to send an invite, or create a new Microsoft account for the child as part of the flow. The invitee signs in to their own account to accept. An account can belong to only one family group at a time.",
+      "title": "Invite, or create the child's account"
+     },
+     {
+      "detail": "If the child is under the statutory age for your country, they are prompted to request adult consent and the organizer approves it. Statutory ages vary by country (Microsoft publishes a country list), and some regions require additional consent steps; Microsoft's consent pages describe an extra requirement under China's PIPL as an example.",
+      "title": "Give consent if asked"
+     },
+     {
+      "detail": "On the child's laptop, go to Windows Settings > Accounts > Family, add or allow the child's account, and have the child sign in to Windows with their own account. Once they sign in, the device appears in their connected devices, which is what applies the family settings to that machine.",
+      "title": "Connect the laptop"
+     },
+     {
+      "detail": "Microsoft's own note: make sure the child's account is set as a standard user, because family features may not work properly if the child's account is an administrator. The parent keeps the administrator password.",
+      "title": "Keep the child a standard user"
+     }
+    ],
+    "controls_available": [
+     {
+      "detail": "Daily time limit plus an allowed-hours schedule for the child's Windows device, settable per day of the week; one schedule can be shared across the child's devices (Windows, Xbox, Android). The child can request more time and the organizer grants or refuses. Microsoft notes screen time counts while the child is signed in.",
+      "name": "Screen time (device)"
+     },
+     {
+      "detail": "Per-app or per-game daily time limits and allowed windows across the child's connected Windows, Xbox and Android devices, plus the ability to block a specific app or game outright.",
+      "name": "App and game limits"
+     },
+     {
+      "detail": "In the Apps and games content filter, set the age up to which apps and games are allowed; content rated above that age is blocked or needs approval, and specific titles can go on a never-allowed list.",
+      "name": "App and game age ratings"
+     },
+     {
+      "detail": "Turn on Filter inappropriate websites and searches: mature websites blocked by default and Bing searches filtered, with parent-managed Blocked sites and Allowed sites lists, an Only use allowed websites allow-list mode, and an option to always allow educational websites. Applies only in Microsoft Edge while the child is signed in (see honest_limits).",
+      "name": "Web and search filtering"
+     },
+     {
+      "detail": "From the child's Spending page, organizers can require adult approval for purchases, add money to the child's own account balance instead of attaching a card, receive purchase notifications, and review spending activity.",
+      "name": "Purchases and spending"
+     },
+     {
+      "detail": "Organizers can view activity for members who have reporting enabled and a device added: device screen time, app and game activity, and the child's Edge searches and visited sites. Reporting is toggled per member, per platform.",
+      "name": "Activity reporting"
+     },
+     {
+      "detail": "Family Safety includes location sharing between family members, documented mainly around the Family Safety app on phones. Microsoft's pages consulted do not promise live location for a Windows laptop; treat location as a phone feature.",
+      "name": "Location"
+     }
+    ],
+    "enable_steps": [
+     {
+      "detail": "Child added as a Member with consent given if prompted; child signed in on the laptop with their own account, set as a standard user.",
+      "title": "Complete account setup and sign the child in"
+     },
+     {
+      "detail": "At account.microsoft.com/family, select the child's tile, open the Windows platform tab, select Screen time, turn limits on, and set the daily limit and allowed hours for each day.",
+      "title": "Set screen time"
+     },
+     {
+      "detail": "On the same platform tab, open Apps, features, and games, turn on App and game limits, then set daily limits on, or block, the apps and games that matter.",
+      "title": "Set app and game limits"
+     },
+     {
+      "detail": "Select the child, choose the Edge platform, turn on Filter inappropriate websites and searches, and add specific Blocked sites or Allowed sites. For younger children, turn on Only use allowed websites and build the allowed list.",
+      "title": "Turn on web filtering"
+     },
+     {
+      "detail": "In Content filters > Apps and games, set the age rating the child may use without approval.",
+      "title": "Set the age rating"
+     },
+     {
+      "detail": "Open the child's Spending page; require approval for purchases, or add an account balance instead of a payment method.",
+      "title": "Set spending rules"
+     },
+     {
+      "detail": "Sign in with the child's account, open Edge, and try a blocked site and an over-limit app so the parent sees exactly what the child sees and how requests arrive.",
+      "title": "Test as the child"
+     }
+    ],
+    "first_setup_checklist": [
+     "Parent (organizer) signed in at account.microsoft.com/family",
+     "Child added as a Member, with a Microsoft account of their own; consent given if prompted",
+     "Child signed in on the laptop with their own account, set as a standard user",
+     "Screen time limits turned on for the Windows device",
+     "Web and search filter turned on; child uses Edge while signed in",
+     "App/game age rating set; purchase approval required",
+     "Tested while signed in as the child, then handed over"
+    ],
+    "honest_limits": [
+     "Microsoft states it on its own filtering page: Family Safety web and search filters only work in the Microsoft Edge browser while the child is signed in to their Microsoft account. Filtering does not reach inside other browsers; Microsoft's documented answer is to block other browsers through App and game filters if that matters.",
+     "Microsoft states that app and game time limits do not work on websites; to limit a web version, use the Block related websites option in app limits or the web filter.",
+     "Everything follows the account: limits do not apply to a local account, to someone else's account, or while the child is signed in as an administrator.",
+     "A child with an administrator account, a second account, or the ability to reset the PC and start over is outside these controls (general guidance, framed as such; the account and standard-user points are Microsoft's own). Keep the administrator password with the parent.",
+     "Age and consent rules are country-specific: whether an account counts as a child account and what consent is required follow the statutory age where you live.",
+     "Dashboard labels drift: Microsoft has renamed these pages over the years (Content restrictions, Content filters, Web and search, Edge tab), so a reader's screen may use a sibling label for the same setting."
+    ]
+   }
+  }
+ }
+}
