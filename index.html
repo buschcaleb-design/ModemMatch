@@ -98,10 +98,10 @@
   <div id="home">
     <h1>Byte<span class="accent">Match</span></h1>
     <p class="sub">Buy the right gear — and set it up. Networking gear that kills the rental fee, plus laptops matched to how you'll actually use them.</p>
-    <button class="opt" onclick="startBuy()">🛒 Help me buy gear<small>Quick quiz → top picks → what you'll save</small></button>
-    <button class="opt" onclick="startLaptopBuy()">💻 Help me buy a laptop<small>Quick quiz → ranked picks with real price ranges → setup guidance</small></button>
-    <button class="opt" onclick="startSetup()">🔧 Help me set it up<small>Already have the gear? Jump straight to the setup guide</small></button>
+    <button class="opt" onclick="chooseFlow('buy')">🛒 Buy New Gear<small>Quick quiz → top picks matched to your home or how you'll use a laptop</small></button>
+    <button class="opt" onclick="chooseFlow('setup')">🔧 Set Up New Gear<small>Already have the gear? Step-by-step setup guides</small></button>
   </div>
+  <div id="flow-pick" style="display:none"></div>
   <div id="isp-pick" style="display:none"></div>
   <div id="quiz" style="display:none">
     <div class="progress"><i id="bar" style="width:20%"></i></div>
@@ -109,12 +109,42 @@
   </div>
   <div id="results" style="display:none"></div>
   <div id="guide" style="display:none"></div>
-  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.3 &middot; If a page looks outdated, read this stamp back to us</p>
+  <div id="pc-guide" style="display:none"></div>
+  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.4 &middot; If a page looks outdated, read this stamp back to us</p>
 </div>
 <script>const stepsEl = document.getElementById('steps');
 const bar = document.getElementById('bar');
 const answers = {};
 let isps = [];
+
+// ------------------------------------------------------------- front door
+// First screen: Buy New Gear / Set Up New Gear. Second: Internet / PC.
+// Then route into the matching existing flow.
+let flowType = 'buy';   // 'buy' | 'setup'
+const SECTION_IDS = ['home', 'flow-pick', 'isp-pick', 'quiz', 'results', 'guide', 'pc-guide'];
+function hideAllSections() {
+  SECTION_IDS.forEach(id => document.getElementById(id).style.display = 'none');
+}
+function chooseFlow(f) { flowType = f; renderFlowPick(); }
+function renderFlowPick() {
+  hideAllSections();
+  const el = document.getElementById('flow-pick');
+  el.style.display = 'block';
+  const buying = flowType === 'buy';
+  el.innerHTML = `<button class="back" onclick="backHome()">← Back</button>
+    <p class="q">${buying ? 'What are you buying?' : 'What are you setting up?'}</p>
+    <button class="opt" onclick="routeFlow('internet')">🌐 Internet<small>${buying ? 'Modems, routers & mesh — ditch the ISP rental fee' : 'Activate and set up your modem or router, step by step'}</small></button>
+    <button class="opt" onclick="routeFlow('pc')">💻 PC<small>${buying ? "Laptops matched to how you'll actually use them" : 'First-boot walkthroughs, brand setup tools & kid setup'}</small></button>`;
+  window.scrollTo(0, 0);
+}
+function backToFlowPick() { renderFlowPick(); }
+function routeFlow(kind) {
+  if (flowType === 'buy') {
+    if (kind === 'internet') startBuy(); else startLaptopBuy();
+  } else {
+    if (kind === 'internet') startSetup(); else startPcGuide();
+  }
+}
 
 const QUESTIONS = [
   { key: 'isp', q: "Who's your internet provider?",
@@ -184,7 +214,7 @@ function render() {
   if (step > V.length - 1) step = V.length - 1;
   const Q = V[step];
   bar.style.width = ((step + 1) / (V.length + 1) * 100) + '%';
-  let h = `<button class="back" onclick="${step === 0 ? 'backHome()' : 'back()'}">← Back</button>`;
+  let h = `<button class="back" onclick="${step === 0 ? 'backToFlowPick()' : 'back()'}">← Back</button>`;
   h += `<p class="q">${Q.q}</p>`;
   Q.opts().forEach(o => {
     h += `<button class="opt" onclick="pick('${Q.key}','${o.v}')">${o.t}${o.s ? `<small>${o.s}</small>` : ''}</button>`;
@@ -296,12 +326,13 @@ let setupGear = 'separate';
 let guideStep = 'activate';
 
 function backHome() {
-  ['isp-pick', 'quiz', 'results', 'guide'].forEach(id => document.getElementById(id).style.display = 'none');
+  hideAllSections();
   document.getElementById('home').style.display = 'block';
   window.scrollTo(0, 0);
 }
 function startBuy() {
   document.getElementById('home').style.display = 'none';
+  document.getElementById('flow-pick').style.display = 'none';
   document.getElementById('quiz').style.display = 'block';
   step = 0;
   render();
@@ -309,9 +340,10 @@ function startBuy() {
 // Setup flow: ISP -> gear type -> activation -> (Next) -> instructions
 function startSetup() {
   document.getElementById('home').style.display = 'none';
+  document.getElementById('flow-pick').style.display = 'none';
   const el = document.getElementById('isp-pick');
   el.style.display = 'block';
-  let h = `<button class="back" onclick="backHome()">← Back</button>
+  let h = `<button class="back" onclick="backToFlowPick()">← Back</button>
            <p class="q">Who's your internet provider?</p>`;
   isps.forEach(i => {
     const conn = i.connection === 'fiber' ? 'Fiber' : i.connection === 'dsl' ? 'DSL' : 'Cable';
@@ -465,6 +497,10 @@ const LAPTOP_QUESTIONS = [
       { v: 'mac', t: 'Mac (macOS)', s: 'Apple laptops' },
       { v: 'chromebook', t: 'Chromebook (ChromeOS)', s: 'Simple, web-based, great for school' },
       { v: 'any', t: 'No preference', s: 'Show me the best fit, any system' } ] },
+  { key: 'form', q: "Tower (desktop) or laptop?",
+    opts: () => [
+      { v: 'laptop', t: '💻 Laptop', s: 'Portable — take it anywhere' },
+      { v: 'tower', t: '🖥️ Tower (desktop)', s: 'Desk-bound — most power per dollar' } ] },
   { key: 'screen', q: "How big a screen?",
     opts: () => [
       { v: '13-14', t: '13–14 inch', s: 'Carry-friendly' },
@@ -505,7 +541,7 @@ const LAPTOP_QUESTIONS = [
 ];
 function lvisible() { return LAPTOP_QUESTIONS.filter(q => !q.when || q.when()); }
 function startLaptopBuy() {
-  ['home', 'results', 'guide', 'isp-pick'].forEach(id => document.getElementById(id).style.display = 'none');
+  ['home', 'results', 'guide', 'isp-pick', 'flow-pick', 'pc-guide'].forEach(id => document.getElementById(id).style.display = 'none');
   document.getElementById('quiz').style.display = 'block';
   Object.keys(lanswers).forEach(k => delete lanswers[k]);
   lstep = 0;
@@ -517,7 +553,7 @@ function lrender() {
   if (lstep > V.length - 1) lstep = V.length - 1;
   const Q = V[lstep];
   bar.style.width = ((lstep + 1) / (V.length + 1) * 100) + '%';
-  let h = `<button class="back" onclick="${lstep === 0 ? 'backHome()' : 'lback()'}">← Back</button>`;
+  let h = `<button class="back" onclick="${lstep === 0 ? 'backToFlowPick()' : 'lback()'}">← Back</button>`;
   h += `<p class="q">${Q.q}</p>`;
   Q.opts().forEach(o => {
     h += `<button class="opt" onclick="lpick('${Q.key}','${o.v}')">${o.t}${o.s ? `<small>${o.s}</small>` : ''}</button>`;
@@ -526,9 +562,19 @@ function lrender() {
 }
 function lpick(k, v) {
   lanswers[k] = v;
+  if (k === 'form' && v === 'tower') { renderTowerSoonBuy(); return; }
   const V = lvisible();
   if (lstep < V.length - 1) { lstep++; lrender(); }
   else finishLaptops();
+}
+function renderTowerSoonBuy() {
+  // No desktops catalog yet (census hasn't run) — honest placeholder, no invented picks.
+  stepsEl.innerHTML = `<button class="back" onclick="lrender()">← Back</button>
+    <h1>Desktops are <span class="accent">coming soon</span></h1>
+    <p class="sub">We're building our desktop catalog right now, model by model — the same way we built the laptop one. We won't recommend machines we haven't researched yet, so there's nothing honest to show you here today.</p>
+    <div class="note">Want a laptop instead? Go back and pick Laptop — that catalog is ready.</div>
+    <button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
+  window.scrollTo(0, 0);
 }
 function lback() { if (lstep > 0) { lstep--; lrender(); } }
 
@@ -666,6 +712,157 @@ async function finishLaptops() {
   }).then(x => x.json());
   lshowAll = false; ltwoInOne = false; lbattery = false;
   renderLaptopResults();
+}
+
+// ------------------------------------------- PC setup guides (Set Up → PC)
+let pcGuides = null;
+const PC_OS_LABELS = { windows_11: '🪟 Windows 11', macos: '🍎 macOS', chromeos: '🌐 ChromeOS' };
+function guideItemHTML(x) {
+  if (typeof x === 'string') return `<p>${esc(x)}</p>`;
+  const t = x.title || x.item || '';
+  const d = x.detail || '';
+  return `${t ? `<h3>${esc(t)}</h3>` : ''}${d ? `<p>${esc(d)}</p>` : ''}`;
+}
+function stepsListHTML(items) {
+  return items.map((x, i) =>
+    `<div class="gstep"><span class="stepnum">${i + 1}</span><div>${guideItemHTML(x)}</div></div>`).join('');
+}
+function checkListHTML(items) {
+  return items.map(x =>
+    `<div class="gstep"><span class="stepnum">✓</span><div>${guideItemHTML(x)}</div></div>`).join('');
+}
+async function startPcGuide() {
+  hideAllSections();
+  const el = document.getElementById('pc-guide');
+  el.style.display = 'block';
+  if (!pcGuides) {
+    el.innerHTML = `<div class="loading"><span class="dots">Loading guides</span></div>`;
+    pcGuides = await fetch('/api/laptop-guides').then(x => x.json());
+  }
+  renderPcMenu();
+}
+function renderPcMenu() {
+  const el = document.getElementById('pc-guide');
+  const sg = pcGuides.setup_guides;
+  const brandCount = Object.keys(sg.brand_layers || {}).length;
+  let h = `<button class="back" onclick="backToFlowPick()">← Back</button>
+    <h1>Set up your <span class="accent">PC</span></h1>
+    <p class="sub">First boot, brand tools, and — if it's for a kid — the parental-control path.</p>
+    <p class="picks-head">First boot, by system</p>`;
+  Object.keys(PC_OS_LABELS).forEach(k => {
+    if (sg.os_flows[k])
+      h += `<button class="opt" onclick="renderPcFormFactor('${k}')">${PC_OS_LABELS[k]}<small>Tower or laptop — one quick question first</small></button>`;
+  });
+  h += `<p class="picks-head">Brand setup tools</p>
+    <button class="opt" onclick="renderPcBrands()">🏷️ Pick your brand<small>${brandCount} brands — update utilities, drivers & BIOS, warranty</small></button>
+    <p class="picks-head">For families</p>
+    <button class="opt" onclick="renderPcKidMenu()">👨‍👩‍👧 Setting up for a kid<small>Child accounts, screen time, filters & approvals — by platform</small></button>`;
+  el.innerHTML = h;
+  window.scrollTo(0, 0);
+}
+let pcOsKey = null;
+function renderPcFormFactor(key) {
+  pcOsKey = key;
+  const el = document.getElementById('pc-guide');
+  const flow = pcGuides.setup_guides.os_flows[key];
+  el.innerHTML = `<button class="back" onclick="renderPcMenu()">← All setup topics</button>
+    <p class="q">Tower (desktop) or laptop?</p>
+    <button class="opt" onclick="renderPcOsFlow('${key}')">💻 Laptop<small>${esc(flow.os)} first-boot walkthrough</small></button>
+    <button class="opt" onclick="renderPcTowerSoon()">🖥️ Tower (desktop)<small>Desktop setup guides</small></button>`;
+  window.scrollTo(0, 0);
+}
+function renderPcTowerSoon() {
+  // No desktop setup guides yet — honest placeholder, no invented content.
+  const el = document.getElementById('pc-guide');
+  el.innerHTML = `<button class="back" onclick="renderPcFormFactor('${pcOsKey}')">← Back</button>
+    <h1>Desktop setup guides are <span class="accent">coming soon</span></h1>
+    <p class="sub">We're building our desktop catalog right now — when it lands, tower setup walkthroughs will live here. The laptop guides are ready today.</p>
+    <button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="backHome()">↺ Start over</button>`;
+  window.scrollTo(0, 0);
+}
+function renderPcOsFlow(key) {
+  const el = document.getElementById('pc-guide');
+  const flow = pcGuides.setup_guides.os_flows[key];
+  let h = `<button class="back" onclick="renderPcFormFactor('${key}')">← Back</button>
+    <h1>First boot — <span class="accent">${esc(flow.os)}</span></h1>`;
+  if (flow.applies_to) h += `<div class="note">${esc(flow.applies_to)}</div>`;
+  h += stepsListHTML(flow.steps);
+  const tokens = { windows_11: ['windows', 'all'], macos: ['macos', 'mac', 'all'],
+                   chromeos: ['chromeos', 'chrome', 'all'] }[key] || ['all'];
+  const fw = (pcGuides.setup_guides.first_week_checklist || [])
+    .filter(c => tokens.includes(String(c.applies_to || 'all').toLowerCase()));
+  if (fw.length) {
+    h += `<p class="picks-head">First-week checklist</p>` + checkListHTML(fw);
+  }
+  (flow.honest_notes || []).forEach(n => { h += `<div class="note">${esc(n)}</div>`; });
+  el.innerHTML = h;
+  window.scrollTo(0, 0);
+}
+function renderPcBrands() {
+  const el = document.getElementById('pc-guide');
+  const layers = pcGuides.setup_guides.brand_layers;
+  let h = `<button class="back" onclick="renderPcMenu()">← All setup topics</button>
+    <p class="q">Which brand?</p>`;
+  Object.keys(layers).forEach(k => {
+    h += `<button class="opt" onclick="renderPcBrand('${k}')">${esc(layers[k].brand || k)}</button>`;
+  });
+  el.innerHTML = h;
+  window.scrollTo(0, 0);
+}
+function renderPcBrand(key) {
+  const el = document.getElementById('pc-guide');
+  const layer = pcGuides.setup_guides.brand_layers[key];
+  let h = `<button class="back" onclick="renderPcBrands()">← All brands</button>
+    <h1>${esc(layer.brand)} <span class="accent">setup tools</span></h1>`;
+  const util = layer.utility;
+  if (util) {
+    const uname = typeof util === 'string' ? util : util.name;
+    const udesc = typeof util === 'string' ? '' : util.what_it_does;
+    if (uname) h += `<div class="card"><span class="rank">UPDATE UTILITY</span><h3>${esc(uname)}</h3>${udesc ? `<p class="why">${esc(udesc)}</p>` : ''}</div>`;
+  }
+  if (layer.driver_bios_channel)
+    h += `<div class="card"><span class="rank">DRIVERS &amp; BIOS</span><p class="why">${esc(layer.driver_bios_channel)}</p></div>`;
+  if (layer.warranty_registration)
+    h += `<div class="card"><span class="rank">WARRANTY</span><p class="why">${esc(layer.warranty_registration)}</p></div>`;
+  if (layer.setup_notes && layer.setup_notes.length)
+    h += `<p class="picks-head">Good to know</p><div class="card"><ul style="margin:4px 0;padding-left:18px;color:#cbd5e1;font-size:.9rem">${layer.setup_notes.map(n => `<li style="margin-bottom:6px">${esc(n)}</li>`).join('')}</ul></div>`;
+  el.innerHTML = h;
+  window.scrollTo(0, 0);
+}
+function renderPcKidMenu() {
+  const el = document.getElementById('pc-guide');
+  const par = pcGuides.parental_controls;
+  let h = `<button class="back" onclick="renderPcMenu()">← All setup topics</button>
+    <h1>Setting up <span class="accent">for a kid</span></h1>`;
+  if (par.core_principle) h += `<div class="note">${esc(par.core_principle)}</div>`;
+  h += `<p class="q">Which system is the laptop?</p>`;
+  Object.keys(par.platforms).forEach(k => {
+    h += `<button class="opt" onclick="renderPcKid('${k}')">${PC_OS_LABELS[k] || esc(par.platforms[k].platform)}<small>${esc(par.platforms[k].control_system || '')}</small></button>`;
+  });
+  el.innerHTML = h;
+  window.scrollTo(0, 0);
+}
+function renderPcKid(key) {
+  const el = document.getElementById('pc-guide');
+  const p = pcGuides.parental_controls.platforms[key];
+  let h = `<button class="back" onclick="renderPcKidMenu()">← Kid setup</button>
+    <h1>${esc(p.platform)} — <span class="accent">${esc(p.control_system || 'parental controls')}</span></h1>`;
+  if (p.account_setup && p.account_setup.length)
+    h += `<p class="picks-head">1 · Set up the child's account</p>` + stepsListHTML(p.account_setup);
+  if (p.enable_steps && p.enable_steps.length)
+    h += `<p class="picks-head">2 · Turn the controls on</p>` + stepsListHTML(p.enable_steps);
+  if (p.controls_available && p.controls_available.length)
+    h += `<p class="picks-head">What you can control</p>` + checkListHTML(p.controls_available);
+  if (p.first_setup_checklist && p.first_setup_checklist.length)
+    h += `<p class="picks-head">First-setup checklist</p>` + checkListHTML(p.first_setup_checklist);
+  if (p.honest_limits && p.honest_limits.length) {
+    h += `<p class="picks-head">Honest limits</p>`;
+    p.honest_limits.forEach(x => {
+      h += `<div class="note">${esc(typeof x === 'string' ? x : (x.detail || x.title || ''))}</div>`;
+    });
+  }
+  el.innerHTML = h;
+  window.scrollTo(0, 0);
 }
 
 fetch('/api/isps').then(x => x.json()).then(d => { isps = d; });

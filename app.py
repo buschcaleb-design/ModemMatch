@@ -87,6 +87,10 @@ def api_about():
                             "snapdragon, usage, kid, ecosystem} -> "
                             "{recommendations, notes, guides}. Prices are a "
                             "range: price (starting) and price_max."},
+            {"method": "GET", "path": "/api/laptop-guides",
+             "description": "Laptop setup-guide library: OS first-boot "
+                            "flows, per-brand setup layers, first-week "
+                            "checklist, and parental controls per platform."},
             {"method": "GET", "path": "/api/setup-guide/<isp_id>?gear=separate|combo",
              "description": "Networking setup walkthrough for an ISP."},
         ],
@@ -511,6 +515,18 @@ def api_recommend_laptops():
         "query": {"use": use, "os": os_pref, "screen": screen,
                   "budget": budget, "snapdragon": snap_answer,
                   "usage": usage},
+    })
+
+
+@app.route("/api/laptop-guides")
+def api_laptop_guides():
+    """Full laptop setup-guide library: OS first-boot flows, per-brand
+    setup layers, the first-week checklist, and parental controls per
+    platform (the 'Setting up for a kid' path). Powers the frontend's
+    Set Up -> PC browser; also here for other AIs to read."""
+    return jsonify({
+        "setup_guides": LAPTOP_GUIDES,
+        "parental_controls": LAPTOP_PARENTAL,
     })
 
 
