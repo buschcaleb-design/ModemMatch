@@ -1,0 +1,489 @@
+{
+ "equipment": [
+  {
+   "blurb": "The budget king. Handles plans up to 600 Mbps without breaking a sweat.",
+   "compatible_isps": [
+    "xfinity",
+    "spectrum",
+    "cox",
+    "mediacom",
+    "optimum"
+   ],
+   "docsis": "3.0",
+   "id": "mb7621",
+   "max_speed_mbps": 600,
+   "name": "Motorola MB7621",
+   "price": 80,
+   "type": "modem",
+   "performance": 6,
+   "stability": 8
+  },
+  {
+   "blurb": "DOCSIS 3.1 workhorse for gigabit plans. The one most people should buy.",
+   "compatible_isps": [
+    "xfinity",
+    "spectrum",
+    "cox",
+    "mediacom",
+    "optimum"
+   ],
+   "docsis": "3.1",
+   "id": "sb8200",
+   "max_speed_mbps": 1000,
+   "name": "Arris SURFboard SB8200",
+   "price": 150,
+   "type": "modem",
+   "performance": 9,
+   "stability": 9
+  },
+  {
+   "blurb": "Netgear's gigabit modem. Rock solid, tiny footprint.",
+   "compatible_isps": [
+    "xfinity",
+    "spectrum",
+    "cox"
+   ],
+   "docsis": "3.1",
+   "id": "cm1000",
+   "max_speed_mbps": 1000,
+   "name": "Netgear CM1000",
+   "price": 140,
+   "type": "modem",
+   "performance": 9,
+   "stability": 8
+  },
+  {
+   "blurb": "Premium DOCSIS 3.1 with link aggregation for the fastest plans.",
+   "compatible_isps": [
+    "xfinity",
+    "spectrum",
+    "cox",
+    "mediacom",
+    "optimum"
+   ],
+   "docsis": "3.1",
+   "id": "mb8600",
+   "max_speed_mbps": 1000,
+   "name": "Motorola MB8600",
+   "price": 160,
+   "type": "modem",
+   "performance": 10,
+   "stability": 9
+  },
+  {
+   "blurb": "Modem + router in one box. Simplest possible setup.",
+   "compatible_isps": [
+    "xfinity",
+    "spectrum",
+    "cox",
+    "mediacom",
+    "optimum"
+   ],
+   "docsis": "3.0",
+   "id": "mg7550",
+   "max_speed_mbps": 600,
+   "name": "Motorola MG7550",
+   "price": 150,
+   "type": "combo",
+   "wifi": "AC1900",
+   "performance": 6,
+   "stability": 7
+  },
+  {
+   "blurb": "Netgear's combo unit. Good app-based setup.",
+   "compatible_isps": [
+    "xfinity",
+    "spectrum",
+    "cox",
+    "mediacom",
+    "optimum"
+   ],
+   "docsis": "3.0",
+   "id": "c7000",
+   "max_speed_mbps": 600,
+   "name": "Netgear C7000",
+   "price": 180,
+   "type": "combo",
+   "wifi": "AC1900",
+   "performance": 6,
+   "stability": 7
+  },
+  {
+   "blurb": "Gigabit-ready combo with strong WiFi. One box, zero fuss.",
+   "compatible_isps": [
+    "xfinity",
+    "spectrum",
+    "cox",
+    "mediacom",
+    "optimum"
+   ],
+   "docsis": "3.1",
+   "id": "sbg8300",
+   "max_speed_mbps": 1000,
+   "name": "Arris SBG8300",
+   "price": 200,
+   "type": "combo",
+   "wifi": "AC2350",
+   "performance": 8,
+   "stability": 8
+  },
+  {
+   "blurb": "The go-to replacement for CenturyLink DSL rentals.",
+   "compatible_isps": [
+    "centurylink"
+   ],
+   "id": "c3000a",
+   "max_speed_mbps": 100,
+   "name": "Actiontec C3000A",
+   "price": 100,
+   "type": "dsl_modem",
+   "performance": 5,
+   "stability": 8
+  },
+  {
+   "blurb": "Best bang-for-buck WiFi 6 router. Covers most apartments and small homes.",
+   "compatible_isps": [
+    "xfinity",
+    "spectrum",
+    "cox",
+    "mediacom",
+    "optimum",
+    "att",
+    "centurylink",
+    "frontier"
+   ],
+   "id": "ax21",
+   "name": "TP-Link Archer AX21",
+   "price": 75,
+   "type": "router",
+   "wifi": "WiFi 6 AX1800",
+   "performance": 6,
+   "stability": 8
+  },
+  {
+   "blurb": "Step-up WiFi 6 with more range and device capacity.",
+   "compatible_isps": [
+    "xfinity",
+    "spectrum",
+    "cox",
+    "mediacom",
+    "optimum",
+    "att",
+    "centurylink",
+    "frontier"
+   ],
+   "id": "ax55",
+   "name": "TP-Link Archer AX55",
+   "price": 100,
+   "type": "router",
+   "wifi": "WiFi 6 AX3000",
+   "performance": 7,
+   "stability": 8
+  },
+  {
+   "blurb": "Asus reliability with great parental controls and security features.",
+   "compatible_isps": [
+    "xfinity",
+    "spectrum",
+    "cox",
+    "mediacom",
+    "optimum",
+    "att",
+    "centurylink",
+    "frontier"
+   ],
+   "id": "rtax58u",
+   "name": "Asus RT-AX58U",
+   "price": 130,
+   "type": "router",
+   "wifi": "WiFi 6 AX3000",
+   "performance": 8,
+   "stability": 9
+  },
+  {
+   "blurb": "For heavy households: 4K streaming on every TV plus gaming.",
+   "compatible_isps": [
+    "xfinity",
+    "spectrum",
+    "cox",
+    "mediacom",
+    "optimum",
+    "att",
+    "centurylink",
+    "frontier"
+   ],
+   "id": "rax43",
+   "name": "Netgear Nighthawk RAX43",
+   "price": 180,
+   "type": "router",
+   "wifi": "WiFi 6 AX4200",
+   "performance": 9,
+   "stability": 8
+  },
+  {
+   "blurb": "Mesh for dead zones. Two units blanket up to 4,000 sq ft.",
+   "compatible_isps": [
+    "xfinity",
+    "spectrum",
+    "cox",
+    "mediacom",
+    "optimum",
+    "att",
+    "centurylink",
+    "frontier"
+   ],
+   "id": "deco_x20",
+   "name": "TP-Link Deco X20 (2-pack)",
+   "price": 150,
+   "type": "mesh",
+   "wifi": "WiFi 6 AX1800 mesh",
+   "performance": 7,
+   "stability": 8
+  },
+  {
+   "blurb": "Three-unit mesh for big homes. No dead zone survives.",
+   "compatible_isps": [
+    "xfinity",
+    "spectrum",
+    "cox",
+    "mediacom",
+    "optimum",
+    "att",
+    "centurylink",
+    "frontier"
+   ],
+   "id": "deco_x55",
+   "name": "TP-Link Deco X55 (3-pack)",
+   "price": 230,
+   "type": "mesh",
+   "wifi": "WiFi 6 AX3000 mesh",
+   "performance": 8,
+   "stability": 8
+  },
+  {
+   "blurb": "Dead-simple mesh. Set it up from your phone in minutes.",
+   "compatible_isps": [
+    "xfinity",
+    "spectrum",
+    "cox",
+    "mediacom",
+    "optimum",
+    "att",
+    "centurylink",
+    "frontier"
+   ],
+   "id": "eero6",
+   "name": "Amazon Eero 6 (2-pack)",
+   "price": 160,
+   "type": "mesh",
+   "wifi": "WiFi 6 mesh",
+   "performance": 7,
+   "stability": 9
+  }
+ ],
+ "isps": [
+  {
+   "connection": "cable",
+   "id": "xfinity",
+   "name": "Xfinity (Comcast)",
+   "notes": "Own modem saves $180/yr. Faster plans (400Mbps+) may carry a $25/mo equipment fee.",
+   "rental_fee_monthly": 15
+  },
+  {
+   "connection": "cable",
+   "id": "spectrum",
+   "name": "Spectrum (Charter)",
+   "notes": "Modem is free; the $7/mo is for their router. Bring your own router to kill it.",
+   "rental_fee_monthly": 7
+  },
+  {
+   "connection": "cable",
+   "id": "cox",
+   "name": "Cox",
+   "notes": "Gateway rental ~$11/mo after promo periods.",
+   "rental_fee_monthly": 11
+  },
+  {
+   "connection": "cable",
+   "id": "mediacom",
+   "name": "Mediacom",
+   "notes": "Big in Iowa. Modem rental ~$12/mo.",
+   "rental_fee_monthly": 12
+  },
+  {
+   "connection": "cable",
+   "id": "optimum",
+   "name": "Optimum",
+   "notes": "Gateway included on some plans; check your bill.",
+   "rental_fee_monthly": 10
+  },
+  {
+   "connection": "fiber",
+   "id": "att",
+   "name": "AT&T",
+   "notes": "Gateway included at no extra cost, but you MUST use theirs. Add your own router behind it for better WiFi.",
+   "rental_fee_monthly": 0
+  },
+  {
+   "connection": "dsl",
+   "id": "centurylink",
+   "name": "CenturyLink / Lumen",
+   "notes": "No equipment fee on fiber plans. DSL plans can use your own modem.",
+   "rental_fee_monthly": 10
+  },
+  {
+   "connection": "fiber",
+   "id": "frontier",
+   "name": "Frontier",
+   "notes": "Fiber plans include a mesh router. DSL areas can bring their own modem.",
+   "rental_fee_monthly": 10
+  }
+ ],
+ "meta": {
+  "note": "Prices are typical street prices (USD). Rental fees verified Oct 2026. Activation numbers/URLs should be re-verified before public launch.",
+  "updated": "2026-10-10",
+  "version": "1.0"
+ },
+ "setup_guides": {
+  "xfinity": {
+   "online": {
+    "allowed": true,
+    "url": "xfinity.com/activate",
+    "steps": [
+     "Plug the coax cable into your new modem and power it on. Wait 5\u201310 minutes for the lights to go solid.",
+     "On your phone, go to xfinity.com/activate and sign in.",
+     "Follow the prompts to register your modem (you'll need the MAC address from the sticker on the modem).",
+     "Wait for the confirmation, then restart the modem once more."
+    ]
+   },
+   "phone": {
+    "number": "1-800-934-6489",
+    "have_ready": [
+     "Your Xfinity account number",
+     "The modem's MAC address (sticker on the bottom)"
+    ]
+   }
+  },
+  "spectrum": {
+   "online": {
+    "allowed": true,
+    "url": "spectrum.net/activate",
+    "steps": [
+     "Connect the coax to your modem, power it on, and wait for the online light to go solid (up to 10 minutes).",
+     "Go to spectrum.net/activate and sign in with your account.",
+     "Enter the modem's MAC address when asked and follow the prompts.",
+     "Reboot the modem when it tells you to."
+    ]
+   },
+   "phone": {
+    "number": "1-833-267-6094",
+    "have_ready": [
+     "Your Spectrum account number",
+     "The modem's MAC address (sticker on the bottom)"
+    ]
+   }
+  },
+  "cox": {
+   "online": {
+    "allowed": true,
+    "url": "cox.com/activate",
+    "steps": [
+     "Hook up the coax and power, wait for a solid online light.",
+     "Go to cox.com/activate, sign in, and add your new modem with its MAC address.",
+     "Reboot when prompted and confirm you're online."
+    ]
+   },
+   "phone": {
+    "number": "1-888-556-1193",
+    "have_ready": [
+     "Your Cox account number",
+     "The modem's MAC address (sticker on the bottom)"
+    ]
+   }
+  },
+  "mediacom": {
+   "online": {
+    "allowed": false,
+    "url": "",
+    "steps": []
+   },
+   "phone": {
+    "number": "1-855-633-4226",
+    "have_ready": [
+     "Your Mediacom account number",
+     "The modem's MAC address (sticker on the bottom)"
+    ]
+   }
+  },
+  "optimum": {
+   "online": {
+    "allowed": true,
+    "url": "optimum.com/activate",
+    "steps": [
+     "Connect coax and power, wait for the online light.",
+     "Go to optimum.com/activate, sign in, and register the modem's MAC address.",
+     "Reboot and confirm."
+    ]
+   },
+   "phone": {
+    "number": "1-866-347-4784",
+    "have_ready": [
+     "Your Optimum account number",
+     "The modem's MAC address (sticker on the bottom)"
+    ]
+   }
+  },
+  "att": {
+   "online": {
+    "allowed": true,
+    "url": "Smart Home Manager app",
+    "steps": [
+     "AT&T requires their gateway \u2014 connect it where the old one was and power it on.",
+     "Open the Smart Home Manager app and follow the setup prompts.",
+     "Once online, add your own router behind it (see advanced steps for passthrough)."
+    ]
+   },
+   "phone": {
+    "number": "1-800-288-2020",
+    "have_ready": [
+     "Your AT&T account number"
+    ]
+   }
+  },
+  "centurylink": {
+   "online": {
+    "allowed": true,
+    "url": "centurylink.com/activate",
+    "steps": [
+     "Connect the phone line (DSL) to the modem and power it on.",
+     "Go to centurylink.com/activate and follow the modem setup.",
+     "Enter your PPPoE credentials if asked (on your install sheet)."
+    ]
+   },
+   "phone": {
+    "number": "1-800-244-1111",
+    "have_ready": [
+     "Your CenturyLink account number",
+     "PPPoE username/password from your install info"
+    ]
+   }
+  },
+  "frontier": {
+   "online": {
+    "allowed": true,
+    "url": "frontier.com/activate",
+    "steps": [
+     "Connect your equipment and power it on.",
+     "Go to frontier.com/activate and follow the prompts.",
+     "Reboot once activation confirms."
+    ]
+   },
+   "phone": {
+    "number": "1-800-921-8101",
+    "have_ready": [
+     "Your Frontier account number"
+    ]
+   }
+  }
+ }
+}

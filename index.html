@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ModemMatch — Ditch the rental fee</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+         margin: 0; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 20px 16px 60px; }
+  h1 { font-size: 1.7rem; margin: 8px 0 4px; }
+  h1 .accent { color: #38bdf8; }
+  .sub { color: #94a3b8; margin: 0 0 24px; font-size: .95rem; }
+  .step { display: none; }
+  .step.active { display: block; animation: fade .25s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; } }
+  .q { font-size: 1.25rem; font-weight: 700; margin: 0 0 16px; }
+  .opt { display: block; width: 100%; text-align: left; background: #1e293b;
+         border: 2px solid #334155; color: #e2e8f0; border-radius: 14px;
+         padding: 16px; margin: 0 0 10px; font-size: 1rem; cursor: pointer; }
+  .opt small { display: block; color: #94a3b8; margin-top: 4px; font-size: .82rem; }
+  .opt:active { border-color: #38bdf8; background: #273449; }
+  .back { background: none; border: none; color: #64748b; font-size: .9rem;
+          margin-bottom: 12px; cursor: pointer; padding: 4px 0; }
+  .progress { height: 6px; background: #1e293b; border-radius: 3px; margin-bottom: 20px; }
+  .progress i { display: block; height: 100%; background: #38bdf8; border-radius: 3px;
+                transition: width .3s; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 14px;
+          padding: 16px; margin-bottom: 12px; }
+  .card .rank { display: inline-block; background: #38bdf8; color: #0f172a;
+                font-weight: 800; border-radius: 8px; padding: 2px 10px;
+                font-size: .8rem; margin-bottom: 8px; }
+  .card h3 { margin: 0 0 4px; font-size: 1.05rem; }
+  .card .price { color: #4ade80; font-weight: 800; font-size: 1.15rem; }
+  .card .permo { color: #94a3b8; font-weight: 400; font-size: .82rem; }
+  .sortrow { display: flex; gap: 8px; margin: 16px 0; }
+  .sort { flex: 1; background: #1e293b; border: 2px solid #334155; color: #cbd5e1;
+          border-radius: 12px; padding: 10px 4px; font-size: .82rem; cursor: pointer; }
+  .sort.on { border-color: #38bdf8; color: #fff; background: #273449; }
+  .more { display: block; width: 100%; background: #1e293b; border: 2px solid #334155;
+          color: #cbd5e1; border-radius: 14px; padding: 14px; font-size: .95rem;
+          cursor: pointer; margin-bottom: 4px; }
+  .card.combo { border: 2px solid #f59e0b; background: #1c1917; }
+  .card.combo .rank { background: #f59e0b; }
+  .stepnum { display: inline-flex; align-items: center; justify-content: center;
+             width: 28px; height: 28px; border-radius: 50%; background: #38bdf8;
+             color: #0f172a; font-weight: 800; font-size: .9rem; margin-right: 10px;
+             flex-shrink: 0; }
+  .gstep { display: flex; align-items: flex-start; background: #1e293b;
+           border: 1px solid #334155; border-radius: 14px; padding: 14px;
+           margin-bottom: 10px; }
+  .gstep h3 { margin: 0 0 4px; font-size: 1rem; }
+  .gstep p { margin: 0; color: #94a3b8; font-size: .88rem; }
+  .have { background: #052e16; border: 1px solid #16a34a; border-radius: 12px;
+          padding: 12px 14px; margin-bottom: 16px; font-size: .88rem; }
+  .have strong { color: #4ade80; }
+  .bignum { font-size: 1.3rem; font-weight: 800; color: #38bdf8; }
+  .vid { position: relative; padding-bottom: 56.25%; height: 0; border-radius: 14px;
+         overflow: hidden; margin-bottom: 12px; background: #000; }
+  .vid iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+  .vid.soon { display: flex; align-items: center; justify-content: center;
+              padding-bottom: 0; height: 120px; background: #1e293b;
+              border: 1px dashed #475569; color: #64748b; font-size: .9rem; }
+  .card .why { color: #cbd5e1; font-size: .9rem; margin: 8px 0 0; }
+  .card .blurb { color: #94a3b8; font-size: .85rem; margin: 4px 0 0; font-style: italic; }
+  .savings { background: #052e16; border: 1px solid #16a34a; border-radius: 14px;
+             padding: 16px; margin: 20px 0; }
+  .savings strong { color: #4ade80; }
+  .note { background: #1e293b; border-left: 3px solid #38bdf8; padding: 10px 14px;
+          font-size: .85rem; color: #94a3b8; margin-bottom: 8px; border-radius: 0 8px 8px 0; }
+  .restart { display: block; width: 100%; margin-top: 24px; background: #38bdf8;
+             color: #0f172a; font-weight: 800; border: none; border-radius: 14px;
+             padding: 16px; font-size: 1rem; cursor: pointer; }
+  .loading { text-align: center; padding: 60px 0; color: #94a3b8; }
+  .dots::after { content: ""; animation: dots 1s steps(3) infinite; }
+  @keyframes dots { 0% { content: ""; } 33% { content: "."; } 66% { content: ".."; } 100% { content: "..."; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="home">
+    <h1>Modem<span class="accent">Match</span></h1>
+    <p class="sub">Ditch your ISP's rental fee. We'll help you buy the right gear — and set it up.</p>
+    <button class="opt" onclick="startBuy()">🛒 Help me buy gear<small>Quick quiz → top picks → what you'll save</small></button>
+    <button class="opt" onclick="startSetup()">🔧 Help me set it up<small>Already have the gear? Jump straight to the setup guide</small></button>
+  </div>
+  <div id="isp-pick" style="display:none"></div>
+  <div id="quiz" style="display:none">
+    <div class="progress"><i id="bar" style="width:20%"></i></div>
+    <div id="steps"></div>
+  </div>
+  <div id="results" style="display:none"></div>
+  <div id="guide" style="display:none"></div>
+</div>
+<script>const stepsEl = document.getElementById('steps');
+const bar = document.getElementById('bar');
+const answers = {};
+let isps = [];
+
+const QUESTIONS = [
+  { key: 'isp', q: "Who's your internet provider?",
+    opts: () => isps.map(i => ({ v: i.id, t: i.name,
+      s: i.connection === 'fiber' ? 'Fiber' : i.connection === 'dsl' ? 'DSL' : 'Cable' })) },
+  { key: 'speed_tier', q: "How fast is your internet?",
+    opts: () => [
+      { v: 'under100', t: 'Under 100 Mbps — Basic', s: 'Browsing, email, one person streaming' },
+      { v: '100-300', t: '100–300 Mbps — Standard (most common)', s: 'HD streaming on a couple of TVs' },
+      { v: '300-600', t: '300–600 Mbps — Fast', s: '4K streaming, gaming, working from home' },
+      { v: '600-1000', t: '600 Mbps–1 Gbps — Gigabit', s: 'Big household, tons of devices at once' },
+      { v: 'unsure', t: 'Not sure / still shopping', s: "We'll go with the most common plan" } ] },
+  { key: 'rooms', q: "How many rooms?",
+    opts: () => [
+      { v: '1-2', t: '1 – 2 rooms' },
+      { v: '3-4', t: '3 – 4 rooms' },
+      { v: '5-6', t: '5 – 6 rooms' },
+      { v: '7plus', t: '7+ rooms' } ] },
+  { key: 'floors', q: "How many floors?",
+    opts: () => [
+      { v: '1', t: '1 floor' },
+      { v: '2', t: '2 floors' },
+      { v: '3plus', t: '3+ floors' } ] },
+  { key: 'yard', q: "Want WiFi out in the yard?",
+    opts: () => [
+      { v: 'no', t: 'No, inside is fine' },
+      { v: 'small', t: 'Small yard or patio', s: 'Grilling, porch sitting' },
+      { v: 'large', t: 'Large yard', s: 'Kids playing, workshop, pool area' } ] },
+  { key: 'garage', q: "Need WiFi in the garage?",
+    opts: () => [
+      { v: 'no', t: 'No' },
+      { v: 'yes', t: 'Yes', s: 'Smart garage door, workshop, EV charger' } ] },
+  { key: 'family_size', q: "How many people live there?",
+    opts: () => [
+      { v: '1', t: 'Just me' },
+      { v: '2', t: '2 people' },
+      { v: '3', t: '3 people' },
+      { v: '4', t: '4 people' },
+      { v: '5plus', t: '5+ people' } ] },
+  { key: 'tvs', q: "How many TVs connect to WiFi?",
+    opts: () => [
+      { v: '0', t: 'None' },
+      { v: '1', t: '1 TV' },
+      { v: '2', t: '2 TVs' },
+      { v: '3', t: '3 TVs' },
+      { v: '4plus', t: '4+ TVs' } ] },
+  { key: 'smart_home', q: "Smart home gadgets?",
+    opts: () => [
+      { v: 'none', t: 'None', s: 'Just phones, laptops, TVs' },
+      { v: 'some', t: 'A few', s: 'Robot vacuum, smart speaker, doorbell' },
+      { v: 'lots', t: 'Loaded', s: 'Lights, locks, cameras, the works' } ] },
+  { key: 'setup', q: "How do you want your setup?",
+    opts: () => [
+      { v: 'combo', t: 'All-in-one box', s: 'Easiest to set up and manage — one box, one app. Tradeoff: when it\'s time to upgrade, you replace the whole thing.' },
+      { v: 'separate', t: 'Separate modem + router', s: 'Most reliable, best performance. A bit more to manage, but you can upgrade each piece on its own.' },
+      { v: 'one_piece', t: 'Just one piece', s: 'I only need to replace part of my setup' } ] },
+  { key: 'which_piece', when: () => answers.setup === 'one_piece',
+    q: "Which piece do you need?",
+    opts: () => [
+      { v: 'modem_only', t: 'Just a modem', s: 'I already have a router I like' },
+      { v: 'router_only', t: 'Just a router', s: 'I already have a modem or gateway' } ] },
+];
+let step = 0;
+function visible() { return QUESTIONS.filter(q => !q.when || q.when()); }
+function render() {
+  const V = visible();
+  if (step > V.length - 1) step = V.length - 1;
+  const Q = V[step];
+  bar.style.width = ((step + 1) / (V.length + 1) * 100) + '%';
+  let h = `<button class="back" onclick="${step === 0 ? 'backHome()' : 'back()'}">← Back</button>`;
+  h += `<p class="q">${Q.q}</p>`;
+  Q.opts().forEach(o => {
+    h += `<button class="opt" onclick="pick('${Q.key}','${o.v}')">${o.t}${o.s ? `<small>${o.s}</small>` : ''}</button>`;
+  });
+  stepsEl.innerHTML = h;
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+}
+function pick(k, v) {
+  answers[k] = v;
+  const V = visible();
+  if (step < V.length - 1) { step++; render(); }
+  else finish();
+}
+function back() { if (step > 0) { step--; render(); } }
+
+let allPicks = [], sortMode = 'value', showAll = false, meta = {};
+
+function sortedPicks() {
+  const p = [...allPicks];
+  if (sortMode === 'cheapest') p.sort((a, b) => a.price - b.price);
+  else if (sortMode === 'stability') p.sort((a, b) => (b.stability - a.stability) || (a.price - b.price));
+  else p.sort((a, b) => (b.performance / b.price) - (a.performance / a.price));
+  return p;
+}
+function setSort(m) { sortMode = m; showAll = false; renderResults(); }
+function setTab(t) { activeTab = t; showAll = false; renderResults(); }
+let activeTab = 'modems';
+
+function sortButtonsHTML() {
+  return `<div class="sortrow">
+    <button class="sort${sortMode === 'value' ? ' on' : ''}" onclick="setSort('value')">💪 Best value</button>
+    <button class="sort${sortMode === 'stability' ? ' on' : ''}" onclick="setSort('stability')">🛡️ Most reliable</button>
+    <button class="sort${sortMode === 'cheapest' ? ' on' : ''}" onclick="setSort('cheapest')">💲 Cheapest</button>
+  </div>`;
+}
+
+function bestCombo() {
+  const ordered = sortedPicks();
+  return {
+    m: ordered.find(p => p.type === 'modem'),
+    rt: ordered.find(p => p.type === 'router' || p.type === 'mesh')
+  };
+}
+
+function comboCardHTML() {
+  const { m, rt } = bestCombo();
+  if (!m || !rt) return '';
+  const total = m.price + rt.price;
+  const saveBit = meta.fee > 0 ? ` <span class="permo">— saves you $${meta.fee * 36 - total} over 3 years</span>` : '';
+  const kind = sortMode === 'cheapest' ? 'cheapest' : sortMode === 'stability' ? 'most reliable' : 'highest-value';
+  return `<div class="card combo"><span class="rank">⭐ OUR COMBO PICK</span>
+    <h3>${m.name} + ${rt.name}</h3>
+    <div class="price">$${total}${saveBit}</div>
+    <p class="why">Our ${kind} modem paired with our ${kind} router for your home. Buy both, ditch the rental, done.</p></div>`;
+}
+
+function tabButtonsHTML(modems, routers) {
+  return `<div class="sortrow">
+    <button class="sort${activeTab === 'modems' ? ' on' : ''}" onclick="setTab('modems')">🔌 Modems (${modems.length})</button>
+    <button class="sort${activeTab === 'routers' ? ' on' : ''}" onclick="setTab('routers')">📶 Routers (${routers.length})</button>
+  </div>`;
+}
+
+function listHTML(picks) {
+  const shown = showAll ? picks : picks.slice(0, 5);
+  let h = '';
+  shown.forEach((p, i) => { h += cardHTML(p, i); });
+  if (!showAll && picks.length > 5)
+    h += `<button class="more" onclick="showAll=true;renderResults()">Show ${picks.length - 5} more ▼</button>`;
+  return h;
+}
+
+function cardHTML(p, i) {
+  const saveLine = p.saves_over_life > 0
+    ? `saves you $${p.saves_over_life} over ${p.life_years} years`
+    : `WiFi upgrade — no rental fee on your plan`;
+  return `<div class="card"><span class="rank">#${i + 1} ${p.type.replace('_', ' ').toUpperCase()}</span>
+    <h3>${p.name}</h3>
+    <div class="price">$${p.price} <span class="permo">— ${saveLine}</span></div>
+    <p class="why">${p.why}</p>
+    ${p.blurb ? `<p class="blurb">${p.blurb}</p>` : ''}</div>`;
+}
+
+function renderResults() {
+  const r = document.getElementById('results');
+  let h = `<h1>Your top <span class="accent">picks</span></h1>
+           <p class="sub">${meta.isp} · ${meta.conn} · ~${meta.devices} devices</p>`;
+  h += sortButtonsHTML();
+  if (meta.setup === 'separate') {
+    const modems = sortedPicks().filter(p => p.type === 'modem');
+    const routers = sortedPicks().filter(p => p.type === 'router' || p.type === 'mesh');
+    h += comboCardHTML();
+    h += tabButtonsHTML(modems, routers);
+    h += listHTML(activeTab === 'modems' ? modems : routers);
+  } else {
+    h += listHTML(sortedPicks());
+  }
+  meta.notes.forEach(n => { h += `<div class="note">${n}</div>`; });
+  h += `<button class="restart" onclick="showGuide()">🔧 Guide me through setup</button>`;
+  h += `<button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
+  r.innerHTML = h;
+  window.scrollTo(0, 0);
+}
+
+let guide = null, guideLevel = 'basic', guideMethod = 'online';
+
+let guideFrom = 'results';
+let setupGear = 'separate';
+let guideStep = 'activate';
+
+function backHome() {
+  ['isp-pick', 'quiz', 'results', 'guide'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('home').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+function startBuy() {
+  document.getElementById('home').style.display = 'none';
+  document.getElementById('quiz').style.display = 'block';
+  step = 0;
+  render();
+}
+// Setup flow: ISP -> gear type -> activation -> (Next) -> instructions
+function startSetup() {
+  document.getElementById('home').style.display = 'none';
+  const el = document.getElementById('isp-pick');
+  el.style.display = 'block';
+  let h = `<button class="back" onclick="backHome()">← Back</button>
+           <p class="q">Who's your internet provider?</p>`;
+  isps.forEach(i => {
+    const conn = i.connection === 'fiber' ? 'Fiber' : i.connection === 'dsl' ? 'DSL' : 'Cable';
+    h += `<button class="opt" onclick="pickGear('${i.id}')">${i.name}<small>${conn}</small></button>`;
+  });
+  el.innerHTML = h;
+  window.scrollTo(0, 0);
+}
+function pickGear(ispId) {
+  const el = document.getElementById('isp-pick');
+  el.innerHTML = `<button class="back" onclick="startSetup()">← Back</button>
+    <p class="q">What kind of setup do you have?</p>
+    <button class="opt" onclick="guideFrom='isp-pick';setupGear='separate';openGuide('${ispId}')">🔌 Separate modem + router<small>Two boxes. Best performance and reliability — a bit more to manage.</small></button>
+    <button class="opt" onclick="guideFrom='isp-pick';setupGear='combo';openGuide('${ispId}')">📦 All-in-one box<small>One box does both. Easiest to set up — but you replace the whole thing at upgrade time.</small></button>`;
+  window.scrollTo(0, 0);
+}
+async function showGuide() {
+  guideFrom = 'results';
+  document.getElementById('results').style.display = 'none';
+  openGuide(meta.isp_id);
+}
+async function openGuide(ispId) {
+  document.getElementById('isp-pick').style.display = 'none';
+  const g = document.getElementById('guide');
+  g.style.display = 'block';
+  g.innerHTML = `<div class="loading"><span class="dots">Loading your guide</span></div>`;
+  guide = await fetch('/api/setup-guide/' + ispId + '?gear=' + setupGear).then(x => x.json());
+  meta.isp = guide.isp; meta.isp_id = ispId;
+  guideStep = 'activate';
+  guideLevel = 'basic';
+  guideMethod = (guide.activation.online && guide.activation.online.allowed) ? 'online' : 'phone';
+  renderGuide();
+}
+function renderGuide() {
+  if (guideStep === 'activate') renderActivation();
+  else renderInstructions();
+}
+function guideSub() {
+  return `${guide.isp} · ${guide.gear === 'combo' ? 'All-in-one box' : 'Separate modem + router'}`;
+}
+function backTarget() {
+  // where the top back button goes from the activation screen
+  return guideFrom === 'results' ? 'backFromGuide()' : "pickGear('" + meta.isp_id + "')";
+}
+function backLabel() {
+  return guideFrom === 'results' ? '← Back to picks' : '← Back';
+}
+function renderActivation() {
+  const g = document.getElementById('guide');
+  const act = guide.activation;
+  let h = `<button class="back" onclick="${backTarget()}">${backLabel()}</button>
+    <h1>Activate your <span class="accent">modem</span></h1>
+    <p class="sub">${guideSub()}</p>`;
+  h += `<div class="sortrow">`;
+  if (act.online && act.online.allowed)
+    h += `<button class="sort${guideMethod === 'online' ? ' on' : ''}" onclick="guideMethod='online';renderGuide()">🌐 Do it online</button>`;
+  h += `<button class="sort${guideMethod === 'phone' ? ' on' : ''}" onclick="guideMethod='phone';renderGuide()">📞 Call them</button></div>`;
+  if (guideMethod === 'online' && act.online && act.online.allowed) {
+    h += `<div class="have">Go to <strong>${act.online.url}</strong> and follow these steps:</div>`;
+    act.online.steps.forEach((s, i) => {
+      h += `<div class="gstep"><span class="stepnum">${i + 1}</span><p>${s}</p></div>`;
+    });
+  } else {
+    h += `<div class="have">Call <strong class="bignum">${act.phone.number}</strong><br>Have ready:<br>• ${act.phone.have_ready.join('<br>• ')}</div>`;
+  }
+  h += `<button class="restart" onclick="guideStep='instructions';stepIdx=0;renderGuide()">Next: setup instructions →</button>`;
+  g.innerHTML = h;
+  window.scrollTo(0, 0);
+}
+let stepIdx = 0;
+function renderInstructions() {
+  const steps = guideLevel === 'basic' ? guide.basic : guide.advanced;
+  if (stepIdx >= steps.length) stepIdx = steps.length - 1;
+  if (stepIdx < 0) stepIdx = 0;
+  const s = steps[stepIdx];
+  const g = document.getElementById('guide');
+  let h = `<button class="back" onclick="guideStep='activate';renderGuide()">← Back to activation</button>
+    <h1>${guideLevel === 'basic' ? 'Basic' : 'Advanced'} <span class="accent">setup</span></h1>
+    <p class="sub">${guideSub()} · Step ${stepIdx + 1} of ${steps.length}</p>
+    <div class="sortrow">
+      <button class="sort${guideLevel === 'basic' ? ' on' : ''}" onclick="guideLevel='basic';stepIdx=0;renderInstructions()">🙂 Basic</button>
+      <button class="sort${guideLevel === 'advanced' ? ' on' : ''}" onclick="guideLevel='advanced';stepIdx=0;renderInstructions()">🧰 Advanced</button>
+    </div>
+    <div class="progress"><i style="width:${Math.round((stepIdx + 1) / steps.length * 100)}%"></i></div>
+    <div class="gstep"><span class="stepnum">${stepIdx + 1}</span><div><h3>${s.title}</h3><p>${s.body}</p></div></div>`;
+  if (s.video_id && s.video_id !== 'REPLACE_ME')
+    h += `<div class="vid"><iframe src="https://www.youtube-nocookie.com/embed/${s.video_id}?start=${s.video_start || 0}&rel=0" title="${s.title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`;
+  else
+    h += `<div class="vid soon">🎥 Walkthrough video coming soon</div>`;
+  h += `<div class="sortrow">`;
+  if (stepIdx > 0) h += `<button class="sort" onclick="stepIdx--;renderInstructions()">← Back</button>`;
+  if (stepIdx < steps.length - 1) h += `<button class="sort on" onclick="stepIdx++;renderInstructions()">Next →</button>`;
+  else h += `<button class="sort on" onclick="backHome()">Done ✓</button>`;
+  h += `</div>`;
+  g.innerHTML = h;
+  window.scrollTo(0, 0);
+}
+function backFromGuide() {
+  document.getElementById('guide').style.display = 'none';
+  if (guideFrom === 'results') {
+    document.getElementById('results').style.display = 'block';
+  } else {
+    backHome();
+  }
+  window.scrollTo(0, 0);
+}
+
+
+async function finish() {
+  document.getElementById('quiz').style.display = 'none';
+  const r = document.getElementById('results');
+  r.style.display = 'block';
+  r.innerHTML = `<div class="loading"><span class="dots">Finding your gear</span></div>`;
+  const payload = { ...answers };
+  if (payload.setup === 'one_piece') payload.setup = payload.which_piece || 'router_only';
+  delete payload.which_piece;
+  const res = await fetch('/api/recommend', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).then(x => x.json());
+
+  allPicks = res.recommendations;
+  meta = { isp: res.isp, conn: res.connection.toUpperCase(), devices: res.estimated_devices,
+           headline: res.savings.headline, notes: res.notes.filter(n => n),
+           fee: Math.round(res.savings.yearly_rental / 12), setup: payload.setup,
+           isp_id: payload.isp };
+  sortMode = 'value'; showAll = false; activeTab = 'modems';
+  renderResults();
+}
+
+fetch('/api/isps').then(x => x.json()).then(d => { isps = d; });
+</script>
+</body>
+</html>
