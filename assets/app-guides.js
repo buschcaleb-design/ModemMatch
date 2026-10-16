@@ -285,7 +285,11 @@ function renderPcFlowVideo(kind, key) {
 // (or first-setup) checklist is the flow's final screen.
 let wiz = null;
 function wizRender() {
-  if (wiz && wiz.themeBase) setOsTheme(wiz.themeBase, wiz.i >= 1 ? 2 : 1);
+  if (wiz && wiz.themeBase) {
+    const T = OS_THEMES[wiz.themeBase];
+    if (T && T.length > 2) setOsTheme(wiz.themeBase, null, wiz.screens.length > 1 ? wiz.i / (wiz.screens.length - 1) : 0);
+    else setOsTheme(wiz.themeBase, wiz.i >= 1 ? 2 : 1);
+  }
   const el = document.getElementById('pc-guide');
   const total = wiz.screens.length;
   const s = wiz.screens[wiz.i];
