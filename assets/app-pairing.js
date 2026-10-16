@@ -56,6 +56,7 @@ const PAIR_RES_OPTS = [
   { v: 'unsure', t: 'Not sure', s: "We'll assume standard screens — no pressure either way" } ];
 
 async function openPairing(type, id) {
+  if (!document.body.dataset.theme) setPageTheme('store');
   pairType = type;
   const cur = SECTION_IDS.find(s => s !== 'pairing' &&
     document.getElementById(s).style.display !== 'none');

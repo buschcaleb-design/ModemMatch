@@ -77,6 +77,7 @@ const LAPTOP_QUESTIONS = [
 ];
 function lvisible() { return LAPTOP_QUESTIONS.filter(q => !q.when || q.when()); }
 function startLaptopBuy() {
+  setPageTheme('laptop');
   ['home', 'results', 'guide', 'isp-pick', 'flow-pick', 'pc-guide'].forEach(id => document.getElementById(id).style.display = 'none');
   document.getElementById('quiz').style.display = 'block';
   Object.keys(lanswers).forEach(k => delete lanswers[k]);
@@ -317,6 +318,7 @@ const DESKTOP_QUESTIONS = [
 ];
 function dvisible() { return DESKTOP_QUESTIONS.filter(q => !q.when || q.when()); }
 function startDesktopQuizFromForm() {
+  setPageTheme('desktop');
   danswers.use = lanswers.use;
   danswers.os = lanswers.os;
   dstep = 0;

@@ -2,10 +2,16 @@
   /* Page themes (Caleb, 2026-10-16): the results screens dress for what the
      visitor is shopping for — gaming, office, creator, family. Dressing only:
      background, accent, card border and glow. Layout and text never change. */
-  body[data-theme="gaming"] { --bg: radial-gradient(1100px 550px at 50% -8%, rgba(124,58,237,.38), rgba(124,58,237,0) 60%), linear-gradient(180deg, #120826 0%, #08040f 100%); --accent: #c084fc; --card-border: #503a78; --glow: 0 0 22px rgba(168,85,247,.25); }
-  body[data-theme="office"] { --bg: linear-gradient(180deg, #14273c 0%, #0c1725 100%); --accent: #60a5fa; --card-border: #33506e; --glow: 0 0 0 rgba(0,0,0,0); }
-  body[data-theme="creator"] { --bg: radial-gradient(1000px 500px at 50% -8%, rgba(217,119,6,.32), rgba(217,119,6,0) 55%), linear-gradient(180deg, #1a110a 0%, #100a07 100%); --accent: #fbbf24; --card-border: #5e4630; --glow: 0 0 20px rgba(251,191,36,.20); }
-  body[data-theme="family"] { --bg: linear-gradient(180deg, #0f2c28 0%, #0a1c22 100%); --accent: #34d399; --card-border: #2c5a4e; --glow: 0 0 18px rgba(52,211,153,.18); }
+  /* Category themes: the page starts dressing the moment a path is picked —
+     gear wears the store, laptops and desktops each get their own room — then
+     the mission theme takes over at the results reveal. */
+  body[data-theme="store"] { --bg: repeating-linear-gradient(0deg, rgba(56,189,248,.035) 0 2px, rgba(56,189,248,0) 2px 56px), linear-gradient(180deg, #0e2233 0%, #0a141f 100%); --accent: #38bdf8; --card-border: #2c4a63; --glow: 0 0 0 rgba(0,0,0,0); }
+  body[data-theme="laptop"] { --bg: radial-gradient(1000px 480px at 50% -8%, rgba(125,211,252,.20), rgba(125,211,252,0) 55%), linear-gradient(180deg, #16232e 0%, #0d141c 100%); --accent: #7dd3fc; --card-border: #39536b; --glow: 0 0 16px rgba(125,211,252,.14); }
+  body[data-theme="desktop"] { --bg: radial-gradient(1000px 500px at 50% -8%, rgba(99,102,241,.30), rgba(99,102,241,0) 58%), linear-gradient(180deg, #100c24 0%, #07060f 100%); --accent: #818cf8; --card-border: #3d3670; --glow: 0 0 18px rgba(129,140,248,.20); }
+  body[data-theme="gaming"] { --bg: repeating-linear-gradient(0deg, rgba(192,132,252,.055) 0 2px, rgba(192,132,252,0) 2px 44px), repeating-linear-gradient(90deg, rgba(192,132,252,.055) 0 2px, rgba(192,132,252,0) 2px 44px), radial-gradient(1100px 550px at 50% -8%, rgba(124,58,237,.5), rgba(124,58,237,0) 62%), linear-gradient(180deg, #150830 0%, #08040f 100%); --accent: #c084fc; --card-border: #503a78; --glow: 0 0 22px rgba(168,85,247,.35); }
+  body[data-theme="office"] { --bg: linear-gradient(180deg, #1a3247 0%, #0e1c2b 100%); --accent: #60a5fa; --card-border: #33506e; --glow: 0 0 0 rgba(0,0,0,0); }
+  body[data-theme="creator"] { --bg: radial-gradient(1000px 500px at 50% -8%, rgba(217,119,6,.42), rgba(217,119,6,0) 55%), linear-gradient(180deg, #1a110a 0%, #100a07 100%); --accent: #fbbf24; --card-border: #5e4630; --glow: 0 0 20px rgba(251,191,36,.20); }
+  body[data-theme="family"] { --bg: linear-gradient(180deg, #123831 0%, #0a1f24 100%); --accent: #4ade80; --card-border: #2c5a4e; --glow: 0 0 18px rgba(52,211,153,.18); }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body { font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
          margin: 0; background: var(--bg); color: #e2e8f0; transition: background .5s ease; min-height: 100vh; }

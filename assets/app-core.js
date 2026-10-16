@@ -215,11 +215,13 @@ let setupGear = 'separate';
 let guideStep = 'activate';
 
 function backHome() {
+  setPageTheme('everyday');
   hideAllSections();
   document.getElementById('home').style.display = 'block';
   window.scrollTo(0, 0);
 }
 function startBuy() {
+  setPageTheme('store');
   document.getElementById('home').style.display = 'none';
   document.getElementById('flow-pick').style.display = 'none';
   document.getElementById('quiz').style.display = 'block';
