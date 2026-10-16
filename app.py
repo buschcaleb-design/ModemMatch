@@ -364,6 +364,12 @@ def api_recommend_laptops():
     kid: yes|no — yes adds parental-control setup guidance per platform.
     ecosystem: {wants, phone, tv, watch} — manufacturer names the buyer owns;
       same-brand laptops get a boost with the reason shown.
+    ext_screens: 0|1|2 — external screens they'll plug in; ext_resolution:
+      1080p|1440p|4k|unsure — the externals' resolution. Scored at CLASS
+      level only: Apple chip classes have known native external counts
+      (a shortfall surfaces the dock route, never a specific dock), and
+      1440p+/multi-screen loads nudge the graphics class. No per-model
+      port or max-resolution claims — the catalog doesn't hold them yet.
     Returns ranked top-10 with price ranges, why strings, setup guides.
     """
     a = request.get_json(force=True, silent=True) or {}
@@ -374,6 +380,13 @@ def api_recommend_laptops():
     snap_answer = a.get("snapdragon", "unsure")
     usage = a.get("usage", "light")
     kid = a.get("kid", "no") == "yes"
+    ext_ans = str(a.get("ext_screens", "0"))
+    ext_n = {"0": 0, "1": 1, "2": 2}.get(ext_ans, 0)
+    ext_res = a.get("ext_resolution", "unsure")
+    # Resolution pressure for laptops starts at 1440p; a 1080p external
+    # (or an unsure answer) applies none.
+    ext_req = (_display_requirement(ext_n, ext_res)
+               if ext_n and ext_res != "1080p" else 0)
     eco = a.get("ecosystem") or {}
     eco_wants = bool(eco.get("wants"))
     eco_owned = {k: (eco.get(k) or "").strip() for k in ("phone", "tv", "watch")}
@@ -447,6 +460,17 @@ def api_recommend_laptops():
         if snap_answer == "no" and l["snapdragon"]:
             s += 10
             why_bits.append("Snapdragon powered — the battery-life lane")
+        if ext_n:
+            native = _laptop_native_externals(l)
+            if native is not None and ext_n > native:
+                s -= 12
+            if ext_req:
+                g = _gpu_perf(l.get("gpu"), None)[0]
+                if g is not None:
+                    if g >= ext_req:
+                        s += 6
+                    else:
+                        s -= min(12, 6 * -(-(ext_req - g) // 20))
         eco_note = None
         if eco_wants:
             matched = []
@@ -550,6 +574,27 @@ def api_recommend_laptops():
                     "Intel/AMD inside — the compatibility-safe lane for "
                     "specific Windows programs, older printers, and "
                     "anti-cheat games.")
+        if ext_n:
+            native = _laptop_native_externals(l)
+            if native is not None and ext_n > native:
+                # The class falls short of the ask natively — per
+                # Caleb's design call, the answer is a dock pairing
+                # (no specific dock named; that data pass comes later).
+                bullets.append(
+                    f"Drives {EXT_WORD[native]} on its own; a dock can "
+                    "add the second.")
+            elif ext_req:
+                g = _gpu_perf(l.get("gpu"), None)[0]
+                ext_desc = (f"{ext_n} external {RES_LABEL[ext_res]} "
+                            f"screen{'s' if ext_n > 1 else ''}")
+                if g is not None and g >= ext_req:
+                    bullets.append(f"Graphics class with headroom for "
+                                   f"{ext_desc}.")
+                elif g is not None:
+                    bullets.append(
+                        f"Graphics class is on the light side for "
+                        f"{ext_desc} — everyday work is fine; heavy "
+                        "gaming at that resolution would strain it.")
         if eco_note:
             bullets.append(eco_note)
         if l["platform"] == "ChromeOS" and \
@@ -658,6 +703,19 @@ def api_recommend_laptops():
         (cat_platform is None or l["platform"] == cat_platform)
         for l in LAPTOPS)
 
+    # If every pick whose class we can judge falls short of the external
+    # screen count natively, say so once at results level (the dock
+    # route is in the short picks' Why bullets). Unknown classes stay
+    # silent — no claim either way.
+    if ext_n and ranked:
+        known = [n for n in (_laptop_native_externals(l)
+                             for _, l, _, _ in ranked) if n is not None]
+        if known and max(known) < ext_n:
+            notes.append(
+                "That many external screens is past what these laptop "
+                "classes drive on their own — where a pick falls short, "
+                "its Why notes the dock route that adds the rest.")
+
     return jsonify({
         "recommendations": recs,
         "notes": notes,
@@ -666,7 +724,8 @@ def api_recommend_laptops():
         "filter_facts": {"two_in_one_available": two_in_one_available},
         "query": {"use": use, "os": os_pref, "screen": screen,
                   "budget": budget, "snapdragon": snap_answer,
-                  "usage": usage},
+                  "usage": usage, "ext_screens": ext_ans,
+                  "ext_resolution": ext_res},
     })
 
 
@@ -685,8 +744,8 @@ _GPU_TIERS = [
     (r"gb10|grace blackwell", 86), (r"5070(?![0-9a-z])", 84),
     (r"9070(?! [0-9a-z])", 84), (r"9070 gre", 83), (r"5060 ti", 78),
     (r"rtx pro 2000|rtx 2000 ada", 70), (r"9060 xt", 71), (r"5060", 73),
-    (r"w7600", 68), (r"4060", 66), (r"5050", 64), (r"w7500", 60),
-    (r"w7400", 54), (r"3050 ti", 48), (r"3050", 43), (r"mx570", 40),
+    (r"w7600", 68), (r"4070", 76), (r"4060", 66), (r"5050", 64), (r"w7500", 60),
+    (r"w7400", 54), (r"4050", 56), (r"3050 ti", 48), (r"3050", 43), (r"mx570", 40),
     (r"a1000", 38), (r"6400", 28), (r"a400", 26), (r"gt ?730|gt ?1030", 12),
 ]
 _CPU_TIERS = [
@@ -777,6 +836,59 @@ def _desktop_perf(d):
             "ram": _ram_perf(d.get("ram_max_gb"), d.get("ram_min_gb"))}
 
 
+# ------------------------------------------------------- display demand
+# Class-level screen math for the quiz's screens/resolution questions
+# (Build 2026-10-15.12). We score the LOAD (screens × resolution)
+# against a machine's graphics CLASS — never per-model port counts or
+# per-model max resolutions, which the catalog doesn't hold yet.
+RES_LOAD = {"1080p": 1.0, "1440p": 1.78, "4k": 4.0}
+RES_LABEL = {"1080p": "1080p Full HD", "1440p": "1440p QHD",
+             "4k": "4K Ultra HD"}
+SCREEN_WORD = {1: "one screen", 2: "two screens", 3: "three screens"}
+EXT_WORD = {1: "one external screen", 2: "two external screens"}
+
+
+def _display_requirement(screens_n, resolution):
+    """Minimum graphics-class score (the 0-100 scale of the perf
+    signals) a machine should clear for this screen setup, from the
+    total pixel load. 0 = no pressure applied (one standard screen,
+    or the buyer isn't sure)."""
+    if resolution not in RES_LOAD or screens_n <= 0:
+        return 0
+    load = screens_n * RES_LOAD[resolution]
+    if load <= 1.0:
+        return 0
+    if load <= 2.0:
+        return 30
+    if load <= 4.0:
+        return 55
+    return 75
+
+
+def _laptop_native_externals(l):
+    """How many external displays this laptop's chip CLASS drives
+    natively, where that is a known class fact — else None (unknown:
+    no penalty, no claim, no dock line). Encoded class facts are
+    Apple-silicon only, read off the chip named in the cpu field:
+    base M1/M2/M3 → one external; base M4 → two; Pro class → two;
+    Max class → four. (The MacBook Pro 'family' listings span up to
+    Max, so they read at the family ceiling.) Windows/Chromebook
+    classes are NOT asserted: typical current machines drive at least
+    one external, but two-plus varies by model and the catalog holds
+    no per-model port data yet — silence over invention."""
+    if l["platform"] != "macOS":
+        return None
+    t = (l.get("cpu") or "").lower()
+    m = re.search(r"\bm([1-9])\b", t)
+    if not m:
+        return None
+    if "max" in t:
+        return 4
+    if "pro" in t:
+        return 2
+    return 1 if int(m.group(1)) <= 3 else 2
+
+
 # ---------------------------------------------------------------- desktops
 DESKTOP_PLATFORM_OF = {"windows": "Windows", "mac": "macOS",
                        "chromebook": "ChromeOS"}
@@ -819,6 +931,9 @@ def api_recommend_desktops():
     usage: light|heavy — browser+documents vs big apps+lots of files.
     kid: yes|no — yes adds parental-control setup guidance per platform.
     ecosystem: {wants, phone, tv, watch} — same-brand boost, reason shown.
+    screens: 1|2|3 — how many screens they'll plug in; resolution:
+      1080p|1440p|4k|unsure — together they set a graphics-class bar
+      (class-level signal only; soft boost/penalty, never a filter).
     Returns ranked top-10 with price ranges, why lists, setup guides.
     """
     a = request.get_json(force=True, silent=True) or {}
@@ -829,6 +944,10 @@ def api_recommend_desktops():
     snap_answer = a.get("snapdragon", "unsure")
     usage = a.get("usage", "light")
     kid = a.get("kid", "no") == "yes"
+    screens_ans = str(a.get("screens", "1"))
+    screens_n = {"1": 1, "2": 2, "3": 3}.get(screens_ans, 1)
+    resolution = a.get("resolution", "unsure")
+    req_gpu = _display_requirement(screens_n, resolution)
     eco = a.get("ecosystem") or {}
     eco_wants = bool(eco.get("wants"))
     eco_owned = {k: (eco.get(k) or "").strip() for k in ("phone", "tv", "watch")}
@@ -877,6 +996,13 @@ def api_recommend_desktops():
                 s += 8
         if use in ("gaming", "creative") and d["gpu_type"] in ("discrete", "both"):
             s += 8
+        if req_gpu:
+            g = _desktop_perf(d)["gpu"]
+            if g is not None:
+                if g >= req_gpu:
+                    s += 8
+                else:
+                    s -= min(18, 7 * -(-(req_gpu - g) // 20))
         eco_note = None
         if eco_wants:
             matched = []
@@ -969,6 +1095,18 @@ def api_recommend_desktops():
             elif d["gpu_type"] == "both":
                 bullets.append("Can be configured with dedicated graphics — "
                                "the kind games and creative apps are built for.")
+        if req_gpu:
+            g = _desktop_perf(d)["gpu"]
+            setup_desc = (f"{SCREEN_WORD[screens_n]} at "
+                          f"{RES_LABEL[resolution]}")
+            if g is not None and g >= req_gpu:
+                bullets.append(f"Graphics class suited to driving "
+                               f"{setup_desc}.")
+            elif g is not None:
+                bullets.append(
+                    f"Graphics class is on the light side for {setup_desc} "
+                    "— everyday work is fine; demanding games at that "
+                    "resolution would want a stronger graphics class.")
         if d["form_factor"] == "all-in-one" and d["display_inches"]:
             bullets.append(f"All-in-one: the {d['display_inches']}″ screen "
                            "is built in — no separate monitor to buy.")
@@ -1056,6 +1194,14 @@ def api_recommend_desktops():
             "summary": why, "ecosystem_note": eco_note,
             "setup": {"os_key": os_key, "brand_key": brand_key},
         })
+    if req_gpu and ranked and not any(
+            (_desktop_perf(d)["gpu"] or 0) >= req_gpu for _, d, _, _ in ranked):
+        notes.append(
+            f"{SCREEN_WORD[screens_n].capitalize()} at "
+            f"{RES_LABEL[resolution]} is a lot of pixels to push — no "
+            "desktop in these picks fully clears that graphics bar, so "
+            "we're showing the closest matches; the strongest graphics "
+            "classes are ranked toward the top.")
     if any(r["platform"] == "DGX OS" for r in recs):
         notes.append(
             "One pick runs NVIDIA DGX OS — a specialist AI-compute system "
@@ -1096,7 +1242,8 @@ def api_recommend_desktops():
         "kid": kid,
         "query": {"use": use, "os": os_pref, "case": case,
                   "budget": budget, "snapdragon": snap_answer,
-                  "usage": usage},
+                  "usage": usage, "screens": screens_ans,
+                  "resolution": resolution},
     })
 
 
