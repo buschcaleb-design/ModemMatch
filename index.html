@@ -1161,6 +1161,9 @@ function renderDisclaimers() {
   let h = `<button class="back" onclick="closeDisclaimers()">← Back</button>
     <h1>Disclaimers</h1>
     <p class="sub">The fine print, all in one place: what our data is based on, where it can differ from the screen in front of you, and what we couldn't verify. The guides themselves only keep the notes that change what you should do.</p>`;
+  h += discSection('What we don\'t cover yet', [
+    "ByteMatch covers whole computers and networking gear — not individual PC parts. We don't work with standalone components like CPUs, graphics cards, motherboards, or cases today. Parts may be added at a later date; when they are, they'll get the same research-first treatment as everything else here.",
+  ]);
   h += discSection('Prices & recommendations', [
     "Laptop prices are manufacturers' published list prices, checked in October 2026, and are shown as a range — the starting configuration through the highest configuration we could verify. Store prices, sales, and coupons will differ.",
     "We never quote a marketplace seller's price as a model's price, and a laptop with no verified manufacturer price is not listed at all. We would rather show fewer laptops than invent a number.",
