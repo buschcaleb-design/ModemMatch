@@ -582,7 +582,8 @@ def api_recommend_laptops():
                 # (no specific dock named; that data pass comes later).
                 bullets.append(
                     f"Drives {EXT_WORD[native]} on its own; a dock can "
-                    "add the second.")
+                    "add the second on models with a dock-capable USB-C "
+                    "or Thunderbolt port.")
             elif ext_req:
                 g = _gpu_perf(l.get("gpu"), None)[0]
                 ext_desc = (f"{ext_n} external {RES_LABEL[ext_res]} "
@@ -714,7 +715,8 @@ def api_recommend_laptops():
             notes.append(
                 "That many external screens is past what these laptop "
                 "classes drive on their own — where a pick falls short, "
-                "its Why notes the dock route that adds the rest.")
+                "its Why notes the dock route that can add the rest, on "
+                "models with a dock-capable USB-C or Thunderbolt port.")
 
     return jsonify({
         "recommendations": recs,
