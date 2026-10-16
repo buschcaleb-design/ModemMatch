@@ -56,8 +56,8 @@
           "Required diagnostic data cannot be turned completely off in consumer Settings in the way optional diagnostic data can; the documented review action is to turn optional data / tailored experiences off if you do not want them."
         ],
         "disclaimers": [
-          "Workarounds for a local account exist online, but they are not Microsoft's documented consumer flow, so this guide does not give a hack tutorial for them.",
-          "Pro for work or school is different from Pro for personal use: organisation setup can involve joining a work or school account / domain instead of a personal Microsoft account, but the consumer Microsoft Support pages consulted here do not document that OOBE path step by step, so the exact screens are unsettled in this guide and will depend on the organisation.",
+          "Workarounds for a local account exist online, but they are not Microsoft's documented consumer flow, so these guides do not give a hack tutorial for them.",
+          "Pro for work or school is different from Pro for personal use: organisation setup can involve joining a work or school account / domain instead of a personal Microsoft account, but the consumer Microsoft Support pages consulted for these guides do not document that OOBE path step by step, so the exact screens are unsettled in these guides and will depend on the organisation.",
           "PC naming during OOBE is unsettled in the official pages consulted: it appears on some versions/builds and not others, so it is presented as 'if offered' rather than as a guaranteed step.",
           "Privacy page labels vary by Windows 11 build: the advertising ID and related personalisation controls have appeared under Privacy & security > General and, on newer builds, under Recommendations & offers / personalised offers pages. Use the labels shown on the device."
         ],
@@ -116,7 +116,7 @@
         "honest_notes": [],
         "disclaimers": [
           "Apple does not publish one single support page that lists every current Setup Assistant screen in order for all Mac laptops; this flow combines Apple's model Setup Assistant guides with Apple's separate Software Update and FileVault support pages, so screen order can differ slightly by macOS version.",
-          "Touch ID, Apple Pay, Siri / Apple Intelligence, Screen Time and FileVault prompts vary by model, chip, region and macOS version — this guide marks them as 'if offered' instead of guaranteeing them.",
+          "Touch ID, Apple Pay, Siri / Apple Intelligence, Screen Time and FileVault prompts vary by model, chip, region and macOS version — these guides mark them as 'if offered' instead of guaranteeing them.",
           "Migration Assistant sources and wording vary by version (another Mac, PC, Time Machine backup or startup disk); the settled point from Apple is that transferring is optional during setup and can also be done later.",
           "Whether FileVault is presented as a setup screen or is already on / needs turning on in System Settings was not settled for every model by the Apple pages consulted; the safe documented action is to check Privacy & Security > FileVault after setup."
         ],
