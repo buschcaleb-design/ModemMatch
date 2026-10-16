@@ -235,6 +235,7 @@ function pairShelfHTML() {
   }
   const shelf = mons[pairTier] || [];
   let h = `<p class="picks-head">Screens at ${PAIR_TIER_LABEL[pairTier]}</p>`;
+  h += `<p class="sortline">How this shelf is stocked: every monitor's specs come from its maker's own spec sheet, and every price was seen at Best Buy or the maker's own store — no marketplace sellers, no scraped price listings. Prices checked October 2026.</p>`;
   h += `<button class="back" onclick="pairTier=null;refreshPairStage()">← Pick a different resolution</button>`;
   if (!shelf.length)
     return h + `<div class="note">🖥️ The ${PAIR_TIER_LABEL[pairTier]} shelf is still being stocked — try another resolution.</div>`;
