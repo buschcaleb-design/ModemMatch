@@ -677,6 +677,7 @@ def api_recommend_laptops():
             "platform": l["platform"], "display_inches": l["display_inches"],
             "cpu": l["cpu"], "ram_text": l["ram_text"],
             "storage_text": l["storage_text"], "gpu": l["gpu"],
+            **_spec_shorts(l),
             "weight_text": l["weight_text"],
             "architecture": l["architecture"], "snapdragon": l["snapdragon"],
             "formerly": l["formerly"], "source_url": l["source_url"],
@@ -1197,6 +1198,7 @@ def api_recommend_desktops():
             "display_inches": d["display_inches"],
             "cpu": d["cpu"], "ram_text": d["ram_text"],
             "storage_text": d["storage_text"], "gpu": d["gpu"],
+            **_spec_shorts(d),
             "gpu_type": d["gpu_type"],
             "ram_min_gb": d["ram_min_gb"], "ram_max_gb": d["ram_max_gb"],
             # Sort-mode signals (Build .11): relative class scores parsed
@@ -1294,6 +1296,7 @@ def _laptop_public(l):
         "platform": l["platform"], "display_inches": l["display_inches"],
         "cpu": l["cpu"], "ram_text": l["ram_text"],
         "storage_text": l["storage_text"], "gpu": l["gpu"],
+        **_spec_shorts(l),
         "weight_text": l["weight_text"],
         "architecture": l["architecture"], "snapdragon": l["snapdragon"],
         "formerly": l["formerly"], "source_url": l["source_url"],
@@ -1329,6 +1332,7 @@ def _desktop_public(d):
         "display_inches": d["display_inches"],
         "cpu": d["cpu"], "ram_text": d["ram_text"],
         "storage_text": d["storage_text"], "gpu": d["gpu"],
+        **_spec_shorts(d),
         "gpu_type": d["gpu_type"], "dimensions": d["dimensions"],
         "volume_liters": d["volume_liters"],
         "weight_text": d["weight_text"],
@@ -1459,6 +1463,208 @@ def api_pairing(kind, mid):
             "monitors": monitors,
         })
     return jsonify({"error": "kind must be laptop or desktop"}), 404
+
+
+# ------------------------------------------------------------- spec summary
+# Build 2026-10-15.14: result cards show compact spec chips instead of
+# the catalog's verbose variant prose (Caleb: "16–64 GB of memory and
+# so forth instead of the big blurb"). Data-driven and conservative:
+# memory/storage ranges come from the census's structured min/max
+# fields where they exist, else from capacities stated in the text;
+# CPU/GPU headlines keep the maker's named processors and any stated
+# core/VRAM span. A spec that can't be summarized safely falls back
+# to the original text with parenthetical asides removed — numbers
+# are never invented. The verbatim text still ships as cpu/ram_text/
+# storage_text/gpu and the card discloses it in full.
+import re as _re
+
+_APPLE_CHIP_RE = _re.compile(r"Apple (M\d+(?: (?:Pro|Max|Ultra))?)")
+_CORE_RE = _re.compile(r"(\d+)\s*-core")
+
+
+def _fmt_capacity(gb):
+    if gb is None:
+        return None
+    if gb >= 1000:
+        # The two censuses recorded TB differently (1024-based in the
+        # laptop data, 1000-based in the desktop data) — display the
+        # whole-TB figure either convention actually means.
+        for div in (1024, 1000):
+            tb = gb / div
+            if abs(tb - round(tb)) < 0.01:
+                return f"{int(round(tb))} TB"
+        return f"{gb / 1024.0:g} TB"
+    return f"{int(gb)} GB" if float(gb).is_integer() else f"{gb:g} GB"
+
+
+def _fmt_range(lo, hi, suffix=""):
+    if lo is None:
+        return None
+    if hi and hi != lo:
+        if lo < 1000 and hi < 1000:
+            return f"{int(lo)}–{int(hi)} GB{suffix}"
+        return f"{_fmt_capacity(lo)}–{_fmt_capacity(hi)}{suffix}"
+    return f"{_fmt_capacity(lo)}{suffix}"
+
+
+def _strip_asides(text):
+    """Original text minus parenthetical asides, lightly cleaned."""
+    if not text:
+        return None
+    t = _re.sub(r"\([^)]*\)", "", text)
+    t = _re.sub(r",?\s*cTDP \d+\s*W", "", t)
+    t = _re.sub(r"\s+options$", "", t.strip())
+    t = _re.sub(r"\s+", " ", t)
+    t = _re.sub(r"\s+([,;])", r"\1", t).strip(" ,;·")
+    return t or None
+
+
+def _truncate(text, limit=92):
+    if not text or len(text) <= limit:
+        return text
+    cut = text[:limit].rsplit(" ", 1)[0].rstrip(" ,;/")
+    return cut + "…"
+
+
+def _text_capacities(text):
+    """Capacities stated in prose ('16GB', '1TB'). Module combos like
+    '2x8GB' are not totals and are removed before scanning."""
+    if not text:
+        return []
+    t = _re.sub(r"\d+\s*[x×]\s*\d+\s*(GB|TB)", "", text, flags=_re.I)
+    return [float(n) * (1000 if u.upper() == "TB" else 1)
+            for n, u in _re.findall(r"(\d+(?:\.\d+)?)\s*(GB|TB)", t,
+                                    flags=_re.I)]
+
+
+def _core_range(text):
+    nums = [int(n) for n in _CORE_RE.findall(text or "")]
+    if not nums:
+        return None
+    lo, hi = min(nums), max(nums)
+    return f"{lo}–{hi} cores" if hi != lo else f"{lo} cores"
+
+
+def _apple_names(text):
+    names = []
+    for m in _APPLE_CHIP_RE.finditer(text or ""):
+        if m.group(1) not in names:
+            names.append(m.group(1))
+    return names
+
+
+def _ram_short(rec):
+    text = rec.get("ram_text") or ""
+    suffix = " unified memory" if "unified" in text.lower() else ""
+    lo, hi = rec.get("ram_min_gb"), rec.get("ram_max_gb")
+    if lo:
+        return _fmt_range(lo, hi, suffix)
+    caps = _text_capacities(text)
+    if caps:
+        return _fmt_range(min(caps), max(caps), suffix)
+    return _strip_asides(text)
+
+
+def _storage_short(rec):
+    text = rec.get("storage_text") or ""
+    suffix = " SSD" if ("SSD" in text and "HDD" not in text) else ""
+    lo, hi = rec.get("storage_min_gb"), rec.get("storage_max_gb")
+    if lo:
+        return _fmt_range(lo, hi, suffix)
+    caps = _text_capacities(text)
+    if caps:
+        return _fmt_range(min(caps), max(caps), suffix)
+    return _strip_asides(text)
+
+
+def _cpu_short(rec):
+    text = rec.get("cpu") or ""
+    if not text:
+        return None
+    chips = _apple_names(text)
+    if chips:
+        out = "Apple " + " / ".join(chips)
+        cores = _core_range(text)
+        return out + (f" · {cores}" if cores else "")
+    t = _strip_asides(text)
+    if t and len(t) > 68 and ";" in t:
+        # Very long multi-part prose: the first segment is the headline
+        # family statement; the rest stays in the full-specs disclosure.
+        first = t.split(";")[0].strip()
+        if len(first) >= 20:
+            t = first
+    if t and len(t) >= 8 and len(t) <= 68:
+        return _re.sub(r"\s+[Pp]rocessor\b", "", t)
+    # Long SKU lists collapse to family + tier numbers, when a single
+    # family clearly dominates the string.
+    fams = [("Intel Core Ultra", r"Ultra (\d)"), ("Intel Core", r"Core i(\d)"),
+            ("AMD Ryzen", r"Ryzen (\d)")]
+    present = [(name, pat) for name, pat in fams if name in text]
+    if len(present) > 1:  # 'Intel Core' is a substring of the Ultra name
+        present = [p for p in present if p[0] != "Intel Core"]
+    if len(present) == 1:
+        name, pat = present[0]
+        tiers = sorted({int(x) for x in _re.findall(pat, text)})
+        if len(tiers) >= 2:
+            return f"{name} {' / '.join(str(x) for x in tiers)}"
+    base = t if (t and len(t) >= 8) else text
+    return _truncate(_re.sub(r"\s+[Pp]rocessor\b", "", base or ""))
+
+
+def _gpu_short(rec):
+    text = rec.get("gpu") or ""
+    if not text:
+        return None
+    chips = _apple_names(text)
+    if not chips and _CORE_RE.search(text):
+        # e.g. a MacBook GPU field that reads "8-core GPU, configurable
+        # to 10-core" — the chip family is named in the CPU field.
+        chips = _apple_names(rec.get("cpu") or "")
+    if chips:
+        out = "Apple " + " / ".join(chips)
+        cores = _core_range(text)
+        return out + (f" · {cores}" if cores else "")
+    t = _strip_asides(text)
+    if t and len(t) <= 68:
+        return t
+    # Long discrete lists collapse to brand groups of model tokens.
+    tokens = [(m.start(), m.group(1), m.group(2))
+              for m in _re.finditer(r"\b(RTX|RX) (\d+(?: Ti| XT)?)", text)]
+    if len(tokens) >= 2:
+        groups, cur_brand, cur = [], None, []
+        for pos, fam, model in tokens:
+            before = text[:pos]
+            brand = ("AMD" if fam == "RX" else "NVIDIA")
+            if "AMD Radeon" in before and before.rfind("AMD Radeon") > \
+                    before.rfind("NVIDIA"):
+                brand = "AMD"
+            elif "NVIDIA" in before and before.rfind("NVIDIA") > \
+                    before.rfind("AMD Radeon"):
+                brand = "NVIDIA"
+            label = f"{brand} {'Radeon RX' if brand == 'AMD' else 'GeForce RTX'}"
+            if label != cur_brand:
+                if cur:
+                    groups.append((cur_brand, cur))
+                cur_brand, cur = label, [model]
+            elif model not in cur:
+                cur.append(model)
+        if cur:
+            groups.append((cur_brand, cur))
+        out = " · ".join(f"{b} {' / '.join(ts)}" for b, ts in groups)
+        vram = sorted({int(v) for v in
+                       _re.findall(r"(\d+)\s*GB", text) if int(v) < 100})
+        if len(vram) >= 2:
+            out += f" · {vram[0]}–{vram[-1]} GB VRAM"
+        elif vram:
+            out += f" · {vram[0]} GB VRAM"
+        return _truncate(out, 120)
+    return _truncate(t or text)
+
+
+def _spec_shorts(rec):
+    return {"cpu_short": _cpu_short(rec), "gpu_short": _gpu_short(rec),
+            "ram_short": _ram_short(rec),
+            "storage_short": _storage_short(rec)}
 
 
 @app.route("/api/laptop-guides")
