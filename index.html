@@ -128,7 +128,7 @@
 <div class="wrap">
   <div id="home">
     <h1>Byte<span class="accent">Match</span></h1>
-    <p class="sub">Buy the right gear — and set it up. Networking gear that kills the rental fee, plus laptops matched to how you'll actually use them.</p>
+    <p class="sub">Buy the right gear — and set it up. Networking gear that kills the rental fee, plus laptops and desktops matched to how you'll actually use them.</p>
     <button class="opt" onclick="chooseFlow('buy')">🛒 Buy New Gear<small>Quick quiz → top picks matched to your home or how you'll use a laptop</small></button>
     <button class="opt" onclick="chooseFlow('setup')">🔧 Set Up New Gear<small>Already have the gear? Step-by-step setup guides</small></button>
   </div>
@@ -144,7 +144,7 @@
   <div id="model-lookup" style="display:none"></div>
   <div id="disclaimers" style="display:none"></div>
   <button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>
-  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.9 &middot; If a page looks outdated, read this stamp back to us</p>
+  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.10 &middot; If a page looks outdated, read this stamp back to us</p>
 </div>
 <script>const stepsEl = document.getElementById('steps');
 const bar = document.getElementById('bar');
@@ -168,7 +168,7 @@ function renderFlowPick() {
   el.innerHTML = `<button class="back" onclick="backHome()">← Back</button>
     <p class="q">${buying ? 'What are you buying?' : 'What are you setting up?'}</p>
     <button class="opt" onclick="routeFlow('internet')">🌐 Internet<small>${buying ? 'Modems, routers & mesh — ditch the ISP rental fee' : 'Activate and set up your modem or router, step by step'}</small></button>
-    <button class="opt" onclick="routeFlow('pc')">💻 PC<small>${buying ? "Laptops matched to how you'll actually use them" : 'First-boot walkthroughs, brand setup tools & kid setup'}</small></button>
+    <button class="opt" onclick="routeFlow('pc')">💻 PC<small>${buying ? "Laptops & desktops matched to how you'll actually use them" : 'First-boot walkthroughs, brand setup tools & kid setup'}</small></button>
     <p class="orline">— or —</p>
     <button class="opt" onclick="startModelLookup()">🔎 Know your model?<small>Type the name — or the model number off the box — and jump straight to it</small></button>`;
   window.scrollTo(0, 0);
@@ -599,19 +599,10 @@ function lrender() {
 }
 function lpick(k, v) {
   lanswers[k] = v;
-  if (k === 'form' && v === 'tower') { renderTowerSoonBuy(); return; }
+  if (k === 'form' && v === 'tower') { startDesktopQuizFromForm(); return; }
   const V = lvisible();
   if (lstep < V.length - 1) { lstep++; lrender(); }
   else finishLaptops();
-}
-function renderTowerSoonBuy() {
-  // No desktops catalog yet (census hasn't run) — honest placeholder, no invented picks.
-  stepsEl.innerHTML = `<button class="back" onclick="lrender()">← Back</button>
-    <h1>Desktops are <span class="accent">coming soon</span></h1>
-    <p class="sub">We're building our desktop catalog right now, model by model — the same way we built the laptop one. We won't recommend machines we haven't researched yet, so there's nothing honest to show you here today.</p>
-    <div class="note">Want a laptop instead? Go back and pick Laptop — that catalog is ready.</div>
-    <button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
-  window.scrollTo(0, 0);
 }
 function lback() { if (lstep > 0) { lstep--; lrender(); } }
 
@@ -744,6 +735,204 @@ async function finishLaptops() {
   }).then(x => x.json());
   lshowAll = false; ltwoInOne = false; lbattery = false;
   renderLaptopResults();
+}
+
+// ---------------------------------------------------------------- desktops
+// The desktop quiz mirrors the laptop quiz's design — same questions, one
+// fork (Caleb's rule): the size question asks CASE SIZE, not screen size.
+// Entry is the laptop quiz's form step: picking Tower carries the use/OS
+// answers over and continues here.
+const danswers = {};
+let dstep = 0;
+const DESKTOP_QUESTIONS = [
+  { key: 'case', q: "How big a case?",
+    opts: () => [
+      { v: 'mini', t: '📦 Mini PC', s: 'Tiny box — sits on the desk or mounts behind a monitor' },
+      { v: 'sff', t: 'Small form factor', s: 'Compact tower — still a real desktop' },
+      { v: 'tower', t: 'Tower', s: 'The classic desk tower (mini & mid towers)' },
+      { v: 'full', t: 'Full tower', s: 'Big case — maximum room for parts and cooling' },
+      { v: 'aio', t: 'All-in-one', s: 'Screen built into the computer — no separate monitor' },
+      { v: 'any', t: 'No preference' } ] },
+  { key: 'budget', q: "What's the budget?",
+    opts: () => [
+      { v: 'under500', t: 'Under $500' },
+      { v: '500-900', t: '$500 – $900' },
+      { v: '900-1400', t: '$900 – $1,400' },
+      { v: '1400plus', t: 'Over $1,400' },
+      { v: 'any', t: 'No limit / not sure', s: "We'll rank by fit" } ] },
+  { key: 'snapdragon', when: () => danswers.os !== 'mac' && danswers.os !== 'chromebook',
+    q: "Do you need to run specific Windows programs, older printers or accessories, or competitive online games?",
+    opts: () => [
+      { v: 'no', t: 'No', s: 'Browser, Office, Zoom, streaming — mainstream stuff' },
+      { v: 'yes', t: 'Yes, I have must-run stuff', s: "Every desktop in our catalog is Intel/AMD — you're covered either way" },
+      { v: 'unsure', t: 'Not sure', s: "Same answer — desktops here are all Intel/AMD" } ] },
+  { key: 'usage', q: "How will it mostly be used, day to day?",
+    opts: () => [
+      { v: 'light', t: 'Mostly browser and documents', s: 'Web apps, email, a few tabs' },
+      { v: 'heavy', t: 'Big apps and lots of files', s: 'Huge photo libraries, video, many programs at once' } ] },
+  { key: 'kid', q: "Is this desktop for a kid?",
+    opts: () => [
+      { v: 'no', t: 'No' },
+      { v: 'yes', t: 'Yes', s: "We'll include the parental-control setup path with your picks" } ] },
+  { key: 'eco_wants', q: "Do you want your devices to work together?",
+    opts: () => [
+      { v: 'yes', t: 'Yes', s: 'Phone, TV, smartwatch, and computer playing nice together' },
+      { v: 'no', t: 'No / don\'t care', s: 'Just the best desktop for the job' } ] },
+  { key: 'eco_phone', when: () => danswers.eco_wants === 'yes',
+    q: "What brand is your phone?", opts: () => BRAND_OPTS },
+  { key: 'eco_tv', when: () => danswers.eco_wants === 'yes',
+    q: "What brand is your TV?", opts: () => BRAND_OPTS },
+  { key: 'eco_watch', when: () => danswers.eco_wants === 'yes',
+    q: "What brand is your smartwatch?", opts: () => BRAND_OPTS },
+];
+function dvisible() { return DESKTOP_QUESTIONS.filter(q => !q.when || q.when()); }
+function startDesktopQuizFromForm() {
+  danswers.use = lanswers.use;
+  danswers.os = lanswers.os;
+  dstep = 0;
+  drender();
+  window.scrollTo(0, 0);
+}
+function backToFormQuestion() {
+  const V = lvisible();
+  const i = V.findIndex(q => q.key === 'form');
+  if (i >= 0) lstep = i;
+  lrender();
+}
+function drender() {
+  const V = dvisible();
+  if (dstep > V.length - 1) dstep = V.length - 1;
+  const Q = V[dstep];
+  bar.style.width = ((dstep + 3) / (V.length + 3) * 100) + '%';
+  let h = `<button class="back" onclick="${dstep === 0 ? 'backToFormQuestion()' : 'dback()'}">← Back</button>`;
+  h += `<p class="q">${Q.q}</p>`;
+  Q.opts().forEach(o => {
+    h += `<button class="opt" onclick="dpick('${Q.key}','${o.v}')">${o.t}${o.s ? `<small>${o.s}</small>` : ''}</button>`;
+  });
+  stepsEl.innerHTML = h;
+}
+function dpick(k, v) {
+  danswers[k] = v;
+  const V = dvisible();
+  if (dstep < V.length - 1) { dstep++; drender(); }
+  else finishDesktops();
+}
+function dback() { if (dstep > 0) { dstep--; drender(); } }
+
+let desktopRes = null, dshowAll = false;
+function desktopBadge(p) {
+  if (p.platform === 'macOS') return ['Apple silicon', ''];
+  if (p.platform === 'DGX OS') return ['NVIDIA DGX', ''];
+  if (p.platform === 'ChromeOS') return ['Chromebook', 'x86'];
+  return ['Intel / AMD', 'x86'];
+}
+function desktopWhyHTML(p) {
+  const bullets = Array.isArray(p.why) ? p.why : [];
+  if (!bullets.length) return '';
+  return `<details class="setupbox"><summary>💡 Why we picked this desktop</summary>
+    <ul class="whylist">${bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul></details>`;
+}
+async function goDesktopSetup() {
+  // Land in the PC guides browser on the Tower path, with the top
+  // pick's OS preselected. (A pick with no OS flow of its own — the
+  // DGX specialist — lands on the general setup menu instead.)
+  const top = desktopRes && desktopRes.recommendations && desktopRes.recommendations[0];
+  guideBrand = (top && top.setup && top.setup.brand_key) || null;
+  await startPcGuide();
+  if (top && top.setup && top.setup.os_key &&
+      pcGuides.setup_guides.os_flows[top.setup.os_key])
+    renderPcTower(top.setup.os_key);
+  else
+    renderPcMenu();
+}
+function desktopCardHTML(p, i, isTop, rankLabel) {
+  const [badge, badgeCls] = desktopBadge(p);
+  const chips = [];
+  chips.push(`🖥️ ${esc(p.form_factor_label)}`);
+  if (p.display_inches) chips.push(`📺 ${p.display_inches}″ screen built in`);
+  if (p.cpu) chips.push(esc(p.cpu));
+  if (p.ram_text) chips.push('🧠 ' + esc(p.ram_text));
+  if (p.storage_text) chips.push('💾 ' + esc(p.storage_text));
+  if (p.gpu) chips.push('🎨 ' + esc(p.gpu));
+  const maxBit = p.price_max
+    ? ` <span class="permo">— up to $${p.price_max.toLocaleString()} fully loaded${p.max_config_note ? ' (' + esc(p.max_config_note) + ')' : ''}</span>` : '';
+  return `<div class="card${isTop ? ' combo' : ''}"><span class="rank">${rankLabel || (isTop ? '⭐ OUR TOP DESKTOP PICK' : '#' + (i + 1) + ' DESKTOP')}</span>
+    <h3>${esc(p.name)}</h3>
+    <div class="price">from $${p.price.toLocaleString()}${maxBit}</div>
+    <p class="permo" style="color:#94a3b8;font-size:.78rem;margin:2px 0 0">Prices via ${esc(p.price_source || 'manufacturer')}, checked Oct 2026</p>
+    <div class="chips"><span class="badge ${badgeCls}">${badge}</span>${chips.map(c => `<span class="chip">${c}</span>`).join('')}</div>
+    ${p.price_note ? `<p class="warnline">⚠️ ${esc(p.price_note)}</p>` : ''}
+    ${p.formerly ? `<p class="why">ℹ️ Formerly the ${esc(p.formerly)} — same family, new name.</p>` : ''}
+    <p class="why">${esc(p.summary || (Array.isArray(p.why) ? (p.why[0] || '') : p.why) || '')}</p>
+    ${p.ecosystem_note ? `<p class="why">🔗 ${esc(p.ecosystem_note)}</p>` : ''}
+    ${desktopWhyHTML(p)}
+    <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
+}
+function renderDesktopResults() {
+  const r = document.getElementById('results');
+  const picks = desktopRes.recommendations;
+  const q = desktopRes.query;
+  const useLabel = { school: 'School', everyday: 'Everyday use', work: 'Work', gaming: 'Gaming', creative: 'Creative work' }[q.use] || q.use;
+  const caseLabel = { mini: 'Mini PC', sff: 'Small form factor', tower: 'Tower', full: 'Full tower', aio: 'All-in-one' }[q.case] || 'Any case';
+  let h = `<h1>Your top <span class="accent">desktop picks</span></h1>
+           <p class="sub">${useLabel} · ${q.os === 'any' ? 'Any system' : q.os} · ${caseLabel} · prices shown as a range (starting → fully loaded)</p>`;
+  if (!picks.length) {
+    h += `<div class="note">No desktops matched those answers — a fresh start with a few different answers may turn some up.</div>`;
+  } else {
+    h += desktopCardHTML(picks[0], 0, true);
+    const rest = picks.slice(1);
+    if (rest.length) {
+      h += `<p class="picks-head">Your other matches</p>`;
+      const shown = dshowAll ? rest : rest.slice(0, 4);
+      shown.forEach((p, i) => { h += desktopCardHTML(p, i + 1, false); });
+      if (!dshowAll && rest.length > 4)
+        h += `<button class="more" onclick="dshowAll=true;renderDesktopResults()">Show ${rest.length - 4} more ▼</button>`;
+    }
+  }
+  desktopRes.notes.forEach(n => { h += `<div class="note">${esc(n)}</div>`; });
+  h += `<button class="opt setupcta" onclick="goDesktopSetup()">🔧 Set up your new desktop<small>First boot, brand setup tools${desktopRes.kid ? ', and parental controls' : ''} — step by step, on the setup page</small></button>`;
+  h += `<button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>`;
+  h += `<button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
+  r.innerHTML = h;
+  window.scrollTo(0, 0);
+}
+async function finishDesktops() {
+  document.getElementById('quiz').style.display = 'none';
+  const r = document.getElementById('results');
+  r.style.display = 'block';
+  r.innerHTML = `<div class="loading"><span class="dots">Finding your desktops</span></div>`;
+  const payload = {
+    use: danswers.use, os: danswers.os, case: danswers.case,
+    budget: danswers.budget, snapdragon: danswers.snapdragon || 'unsure',
+    usage: danswers.usage, kid: danswers.kid,
+    ecosystem: { wants: danswers.eco_wants === 'yes',
+      phone: danswers.eco_phone || '', tv: danswers.eco_tv || '',
+      watch: danswers.eco_watch || '' }
+  };
+  desktopRes = await fetch('/api/recommend-desktops', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).then(x => x.json());
+  dshowAll = false;
+  renderDesktopResults();
+}
+function renderDesktopModelCard(m) {
+  hideAllSections();
+  const r = document.getElementById('results');
+  r.style.display = 'block';
+  // The setup button reads the top pick out of desktopRes — point it here.
+  desktopRes = { recommendations: [m], notes: [], kid: false,
+                 query: { use: 'everyday', os: 'any', case: 'any',
+                          budget: 'any', snapdragon: 'unsure', usage: 'light' } };
+  dshowAll = false;
+  r.innerHTML = `<button class="back" onclick="startModelLookup()">← Search again</button>
+    <h1>Your <span class="accent">model</span></h1>
+    ${desktopCardHTML(m, 0, true, '🔎 YOUR MODEL')}
+    <button class="opt setupcta" onclick="goDesktopSetup()">🔧 Set up your new desktop<small>First boot, brand setup tools — step by step, on the setup page</small></button>
+    <button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>
+    <button class="opt" onclick="startLaptopBuy()">💻 Not the one? Take the buying quiz<small>Answer a few questions and we'll match you</small></button>
+    <button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
+  window.scrollTo(0, 0);
 }
 
 // ------------------------------------------- PC setup guides (Set Up → PC)
@@ -932,16 +1121,24 @@ function renderPcFormFactor(key) {
   el.innerHTML = `<button class="back" onclick="renderPcMenu()">← All setup topics</button>
     <p class="q">Tower (desktop) or laptop?</p>
     <button class="opt" onclick="renderPcOsChoice('${key}')">💻 Laptop<small>${esc(flow.os)} first-boot walkthrough</small></button>
-    <button class="opt" onclick="renderPcTowerSoon()">🖥️ Tower (desktop)<small>Desktop setup guides</small></button>`;
+    <button class="opt" onclick="renderPcTower('${key}')">🖥️ Tower (desktop)<small>Desktop setup — same ${esc(flow.os)} first boot</small></button>`;
   window.scrollTo(0, 0);
 }
-function renderPcTowerSoon() {
-  // No desktop setup guides yet — honest placeholder, no invented content.
+function renderPcTower(key) {
+  // Desktop setup is OS-level: a tower's first boot is the operating
+  // system's own walkthrough, screen for screen the same as a laptop's —
+  // so the Tower path continues into the same OS flow (video or step by
+  // step) instead of dead-ending. Brand layers stay as they are: the
+  // utilities they describe (SupportAssist, Vantage, and friends) are
+  // the brands' general PC tools, laptops and desktops alike.
+  pcOsKey = key;
   const el = document.getElementById('pc-guide');
-  el.innerHTML = `<button class="back" onclick="renderPcFormFactor('${pcOsKey}')">← Back</button>
-    <h1>Desktop setup guides are <span class="accent">coming soon</span></h1>
-    <p class="sub">We're building our desktop catalog right now — when it lands, tower setup walkthroughs will live here. The laptop guides are ready today.</p>
-    <button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="backHome()">↺ Start over</button>`;
+  const flow = pcGuides.setup_guides.os_flows[key];
+  el.innerHTML = `<button class="back" onclick="renderPcFormFactor('${key}')">← Back</button>
+    <h1>Desktop setup — <span class="accent">${esc(flow.os)}</span></h1>
+    <p class="sub">Good news: a desktop's first boot is the operating system's own walkthrough — the same screens a laptop shows. Plug in a monitor, keyboard, and mouse, power it on, and follow the ${esc(flow.os)} guide. One honest difference: most towers don't include a screen (all-in-ones are the exception — theirs is built in).</p>
+    <button class="opt" onclick="renderPcOsChoice('${key}')">Continue to the ${esc(flow.os)} setup<small>🎬 Watch the video, or 👣 step by step — your pick on the next screen</small></button>
+    <button class="opt" onclick="renderPcBrands()">🏷️ Brand setup tools<small>The update &amp; warranty utilities are the same ones the brands ship for all their PCs</small></button>`;
   window.scrollTo(0, 0);
 }
 // --------------------------------- setup entry: video or step by step
@@ -1169,16 +1366,26 @@ async function modelSearch(v) {
   modelMatches = d.matches || [];
   if (!modelMatches.length) {
     const buying = flowType === 'buy';
-    box.innerHTML = `<div class="note">We don't have that model in our catalog yet — we're adding laptops as we research them, and ${buying ? 'the quiz' : 'the setup topics'} can still get you where you're going.</div>
-      <button class="opt" onclick="${buying ? 'startLaptopBuy()' : 'startPcGuide()'}">${buying ? '💻 Take the laptop quiz instead' : '🔧 Browse the setup topics'}</button>`;
+    box.innerHTML = `<div class="note">We don't have that model in our catalog yet — we're adding computers as we research them, and ${buying ? 'the quiz' : 'the setup topics'} can still get you where you're going.</div>
+      <button class="opt" onclick="${buying ? 'startLaptopBuy()' : 'startPcGuide()'}">${buying ? '💻 Take the buying quiz instead' : '🔧 Browse the setup topics'}</button>`;
     return;
   }
   box.innerHTML = modelMatches.map((m, i) =>
-    `<button class="opt" onclick="pickModel(${i})">${esc(m.name)}<small>${esc(m.brand)} · ${esc(m.platform)} · from $${m.price.toLocaleString()}</small></button>`).join('');
+    `<button class="opt" onclick="pickModel(${i})">${esc(m.name)}<small>${m.type === 'desktop'
+      ? `${esc(m.brand)} · Desktop · ${esc(m.form_factor_label)} · ${esc(m.platform)} · from $${m.price.toLocaleString()}`
+      : `${esc(m.brand)} · ${esc(m.platform)} · from $${m.price.toLocaleString()}`}</small></button>`).join('');
 }
 async function pickModel(i) {
   const m = modelMatches[i];
   if (!m) return;
+  if (m.type === 'desktop') {
+    if (flowType === 'buy') renderDesktopModelCard(m);
+    else { guideBrand = (m.setup && m.setup.brand_key) || null;
+           await startPcGuide();
+           if (m.setup && m.setup.os_key) renderPcTower(m.setup.os_key);
+           else renderPcMenu(); }
+    return;
+  }
   if (flowType === 'buy') renderModelCard(m);
   else { guideBrand = (m.setup && m.setup.brand_key) || null;
          await startPcGuide(); renderPcFormFactor(m.setup.os_key); }
@@ -1241,8 +1448,8 @@ function renderDisclaimers() {
     "ByteMatch covers whole computers and networking gear — not individual PC parts. We don't work with standalone components like CPUs, graphics cards, motherboards, or cases today. Parts may be added at a later date; when they are, they'll get the same research-first treatment as everything else here.",
   ]);
   h += discSection('Prices & recommendations', [
-    "Laptop prices are manufacturers' published list prices, checked in October 2026, and are shown as a range — the starting configuration through the highest configuration we could verify. Store prices, sales, and coupons will differ.",
-    "We never quote a marketplace seller's price as a model's price, and a laptop with no verified manufacturer price is not listed at all. We would rather show fewer laptops than invent a number.",
+    "Computer prices (laptops and desktops) are manufacturers' published list prices, checked in October 2026, and are shown as a range — the starting configuration through the highest configuration we could verify. When only a starting price could be verified, that's all we show — no implied maximum. Store prices, sales, and coupons will differ.",
+    "We never quote a marketplace seller's price as a model's price, and a computer with no verified manufacturer price is not listed at all. We would rather show fewer computers than invent a number.",
     "Recommendations are ranked from your quiz answers and the manufacturers' published specs for each model. Prices and specs were checked when our catalog was built and can change without notice.",
   ]);
   h += discSection('Networking', [
