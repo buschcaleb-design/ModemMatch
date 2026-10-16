@@ -423,7 +423,7 @@ function drender() {
   h += '<div class="opt-grid">';
   Q.opts().forEach(o => {
     const icon = pcIconFor(Q.key, o.v);
-    const wide = (o.s || '').length > 55 ? ' wide' : '';
+    const wide = ''; /* Caleb's rule: quiz buttons all the same size — nothing spans wide */
     if (icon) {
       const t = o.t.replace(/^[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]\s*/u, '');
       h += `<button class="opt has-icon${wide}" onclick="dpick('${Q.key}','${o.v}')"><span class="opt-ic">${icon}</span><span class="opt-txt">${t}${o.s ? `<small>${o.s}</small>` : ''}</span></button>`;
