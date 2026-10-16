@@ -260,7 +260,7 @@ function pairShelfHTML() {
   return h;
 }
 const MON_SIZE_RANGE = { small: 'Small · under 27″', office: 'Office · 27–32″', large: 'Large · over 32″', widescreen: 'Widescreen · ultrawide' };
-function monSizeText(m) { return MON_SIZE_RANGE[m.size_class] || ''; }
+function monSizeText(m) { return m.size_label || MON_SIZE_RANGE[m.size_class] || ''; }
 function monSizeHTML(m) {
   const t = monSizeText(m);
   return t ? ` <span style="font-size:.95rem;font-weight:400;color:#cbd5e1;white-space:nowrap">${t}</span>` : '';
