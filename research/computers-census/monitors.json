@@ -396,6 +396,102 @@
         "ppi": 108.8,
         "quality_class": "color",
         "quality_basis": "published wide gamut (98% DCI-P3); factory-calibration claim in the spec sheet."
+      },
+      {
+        "aspect": "32:9",
+        "brand": "Samsung",
+        "brightness_nits": 250,
+        "checked_date": "2026-10-16",
+        "color_gamut": {
+          "dci_p3_percent": 99,
+          "srgb_percent": null
+        },
+        "factory_calibrated": null,
+        "flags": [
+          "USB-C trap: the USB-C port is an upstream data link for the USB hub only - Samsung's interface list has video only via DisplayPort, HDMI and Micro HDMI. It is not a video input and offers no meaningful laptop charging.",
+          "VESA mounting needs the included adapter bracket - the back panel has no native VESA holes (confirmed by Samsung's own answer in the Best Buy Q&A).",
+          "Brightness is 250 cd/m2 typical (200 min); the roughly 1,000-nit HDR figure is a small-window (3% APL) peak.",
+          "No KVM switch in Samsung's spec table, so one keyboard/mouse set cannot be switched between two computers the way the Dell hub monitors do it.",
+          "Built-in speakers are fitted; Samsung's spec table does not headline a wattage.",
+          "Spec-sourcing note: Samsung's US product page could not be fetched during the sweep; values are from Samsung's published spec table/manual for the G93SD series and Samsung's regional product page, cross-checked against the Best Buy listing."
+        ],
+        "hdr": "HDR10 / HDR10+ Gaming",
+        "inputs": {
+          "displayport": "DisplayPort 1.4 x1",
+          "hdmi": "1x HDMI 2.1, plus 1x Micro HDMI 2.1",
+          "kvm": false,
+          "usb_hub": true,
+          "usbc_note": "USB-C TRAP: data-only upstream link for the USB hub - no DisplayPort Alt Mode video and no meaningful power delivery. Video is via DisplayPort, HDMI or Micro HDMI only.",
+          "usbc_video_input": false
+        },
+        "name": "Samsung Odyssey OLED G9 (G93SD) - LS49DG934SNXGO",
+        "panel_type": "OLED (QD-OLED)",
+        "ppi": 108.5,
+        "price_source": {
+          "name": "Best Buy",
+          "url": "https://www.bestbuy.com/product/samsung-49-odyssey-oled-g9-g93sd-dual-qhd-240hz-0-03ms-g-sync-compatible-curved-glare-free-gaming-monitor-silver/J3ZYG2Z8Y3"
+        },
+        "price_usd": 999.99,
+        "quality_basis": "OLED panel (QD-OLED) per Samsung's spec table; premium rests on the OLED rule - Samsung lists HDR10/HDR10+ Gaming but no VESA DisplayHDR class for this model.",
+        "quality_class": "premium",
+        "refresh_hz": 240,
+        "refresh_note": "240Hz native at 5120x1440 per Samsung spec; 0.03ms response time; 1800R curvature.",
+        "resolution": "5120x1440",
+        "role": "gaming-leaning (super-ultrawide OLED)",
+        "size_class": "widescreen",
+        "size_in": 49,
+        "speakers": true,
+        "spec_source_url": "https://www.samsung.com/sa_en/monitors/gaming/odyssey-oled-g9-g93sd-49-inch-oled-dual-qhd-ls49dg932smxue/",
+        "vesa_mount": true,
+        "why": "Two 27-inch QHD screens fused into one 49-inch QD-OLED with no center bezel: 240Hz, 0.03ms and 99% DCI-P3 for racing, flight sims and sprawling timelines."
+      },
+      {
+        "aspect": "21:9",
+        "brand": "ASUS",
+        "brightness_nits": 300,
+        "checked_date": "2026-10-16",
+        "color_gamut": {
+          "dci_p3_percent": null,
+          "rec709_percent": 100,
+          "srgb_percent": 100
+        },
+        "factory_calibrated": true,
+        "flags": [
+          "Gamut trap avoided: ASUS publishes no DCI-P3 coverage percentage for this model - it offers a DCI-P3 preset mode only. Published gamut is 100% sRGB (overview also states 100% Rec.709), so dci_p3_percent is null, not a guess.",
+          "60Hz panel: this is a creator/docking pick, not a high-refresh gaming monitor.",
+          "No KVM switch in ASUS's spec table (PIP/PBP only), despite the docking feature set.",
+          "Speakers are 2W x2 per the ASUS spec table.",
+          "HDMI ports are v2.0; fine for 3440x1440 at 60Hz, but there is no HDMI 2.1 headroom."
+        ],
+        "hdr": "HDR10",
+        "inputs": {
+          "displayport": "DisplayPort 1.4 x2 (1 in, 1 out for MST daisy-chaining)",
+          "hdmi": "2x HDMI v2.0",
+          "kvm": false,
+          "usb_hub": true,
+          "usbc_note": "TRUE USB-C VIDEO INPUT: USB-C x1 with DisplayPort Alt Mode, data and Power Delivery up to 96W. The hub adds 1x USB-C and 2x USB-A downstream (USB 3.2 Gen 1) plus an RJ45 Ethernet port.",
+          "usbc_video_input": true
+        },
+        "name": "ASUS ProArt Display PA34VCNV",
+        "panel_type": "IPS",
+        "ppi": 109.4,
+        "price_source": {
+          "name": "ASUS (maker store)",
+          "url": "https://www.asus.com/us/displays-desktops/monitors/proart/proart-display-pa34vcnv/"
+        },
+        "price_usd": 599,
+        "quality_basis": "Factory-calibration claim in the spec sheet (Calman Verified, factory pre-calibrated Delta E < 2, calibration report included).",
+        "quality_class": "color",
+        "refresh_hz": 60,
+        "refresh_note": "60Hz maximum per ASUS spec; no overclock figure published. 3800R curvature.",
+        "resolution": "3440x1440",
+        "role": "creator-leaning / work docking pick (ultrawide value)",
+        "size_class": "widescreen",
+        "size_in": 34.1,
+        "speakers": true,
+        "spec_source_url": "https://www.asus.com/displays-desktops/monitors/proart/proart-display-pa34vcnv/techspec/",
+        "vesa_mount": true,
+        "why": "The creator ultrawide value pick: factory-calibrated IPS with Delta E < 2, 100% sRGB and Rec.709, a 96W USB-C dock with Ethernet and daisy-chaining, at a mid-range price."
       }
     ],
     "4k": [
@@ -574,6 +670,151 @@
         "ppi": 163.2,
         "quality_class": "color",
         "quality_basis": "factory-calibration claim in the spec sheet."
+      },
+      {
+        "aspect": "16:9",
+        "brand": "Dell",
+        "brightness_nits": 350,
+        "checked_date": "2026-10-16",
+        "color_gamut": {
+          "dci_p3_percent": null,
+          "srgb_percent": 95
+        },
+        "factory_calibrated": true,
+        "flags": [
+          "USB-C look-alike trap: only one of the four USB-C upstream ports carries video (DisplayPort Alt Mode, up to 90W PD); the other three are data-only KVM ports per Dell's port list.",
+          "Factory-calibration claim: Dell's spec table lists Calibration Accuracy Delta E < 2.",
+          "Speakers are 2x 8W per Dell's spec table.",
+          "Dell lists the HDMI 2.1 ports as TMDS; DisplayPort and the USB-C video port are the full-bandwidth paths.",
+          "Dell publishes no DCI-P3 coverage for this model (95% sRGB) despite the UltraSharp creator branding."
+        ],
+        "hdr": null,
+        "inputs": {
+          "displayport": "DisplayPort 1.4 x2",
+          "hdmi": "2x HDMI 2.1 (TMDS)",
+          "kvm": true,
+          "usb_hub": true,
+          "usbc_note": "TRUE USB-C VIDEO INPUT on one port: USB-C upstream with DisplayPort 1.4 Alt Mode and Power Delivery up to 90W. TRAP: three additional USB-C upstream ports are data-only (for KVM switching) and carry no video. Hub also includes 4x USB-A downstream, 1x USB-C downstream (15W) and an RJ45 Ethernet port (1GbE).",
+          "usbc_video_input": true
+        },
+        "name": "Dell UltraSharp 43 4K USB-C Hub Monitor - U4323QE",
+        "panel_type": "IPS",
+        "ppi": 103.6,
+        "price_source": {
+          "name": "Dell (maker store)",
+          "url": "https://www.dell.com/en-us/shop/monitors/apd/dell-ultrasharp-43-4k-usb-c-hub-monitor-u4323qe/u4323qe_monitor/-"
+        },
+        "price_usd": 1199.99,
+        "quality_basis": "High pixel density for its size (103.6 ppi) with an IPS panel; Dell publishes 95% sRGB only, with no DCI-P3 figure, so it does not meet the 'color' band's wide-gamut evidence standard.",
+        "quality_class": "sharp",
+        "refresh_hz": 60,
+        "refresh_note": "60Hz native at 3840x2160 per Dell spec; no overclock figure published.",
+        "resolution": "3840x2160",
+        "role": "large-format 4K work / docking pick",
+        "size_class": "large",
+        "size_in": 42.5,
+        "speakers": true,
+        "spec_source_url": "https://www.dell.com/en-us/shop/monitors/apd/dell-ultrasharp-43-4k-usb-c-hub-monitor-u4323qe/u4323qe_monitor/-",
+        "vesa_mount": true,
+        "why": "A 42.5-inch 4K IPS screen that is also the dock: real USB-C video with 90W charging, KVM, Ethernet and built-in speakers, so one big panel can replace a dual-monitor setup."
+      },
+      {
+        "aspect": "21:9",
+        "brand": "Dell",
+        "brightness_nits": 450,
+        "checked_date": "2026-10-16",
+        "color_gamut": {
+          "dci_p3_percent": 99,
+          "rec709_percent": 100,
+          "srgb_percent": 100
+        },
+        "factory_calibrated": true,
+        "flags": [
+          "Two look-alike upstream ports: Thunderbolt 4 (video + data, up to 140W charging) and a separate USB-C upstream that Dell specifies as data only. Plugging the laptop into the USB-C port gives a black screen.",
+          "Brightness is 450 cd/m2 typical; the 600 cd/m2 figure is HDR peak only.",
+          "Factory calibration: Dell's What's Included lists a factory calibration report, and the gamut spec states Delta E < 2 (average) across DCI-P3, Display P3, sRGB and BT.709.",
+          "Speakers are 2x 9W per Dell's spec table; curvature is 2500R.",
+          "Retailer spec error: Micro Center's spec block lists the aspect ratio as 16:9; Dell's spec table says 21:9 (5120x2160).",
+          "Price spread: Dell's own US listing data showed $2,399.99 / Sold Out when crawled, while Micro Center showed $1,899.99 in stock on the check date; the Micro Center price is recorded."
+        ],
+        "hdr": "VESA DisplayHDR 600",
+        "inputs": {
+          "displayport": "DisplayPort 1.4 x1 (DSC)",
+          "hdmi": "1x HDMI 2.1 (FRL, up to 5120x2160 at 120Hz)",
+          "kvm": true,
+          "usb_hub": true,
+          "usbc_note": "TRUE THUNDERBOLT VIDEO INPUT: Thunderbolt 4 upstream is specified by Dell as Video + Data with DisplayPort 1.4 Alt Mode and Power Delivery up to 140W EPR; a Thunderbolt 4 downstream port (15W) supports daisy-chaining. TRAP: a separate USB-C upstream port is data-only (SuperSpeed USB 10 Gbps, USB 3.2 Gen 2) and carries no video. Hub adds 5x USB-A downstream, 2x USB-C downstream (15W) and an RJ45 Ethernet port (2.5GbE).",
+          "usbc_video_input": true
+        },
+        "name": "Dell UltraSharp 40 Curved Thunderbolt Hub Monitor - U4025QW",
+        "panel_type": "IPS Black",
+        "ppi": 140,
+        "price_source": {
+          "name": "Micro Center",
+          "url": "https://www.microcenter.com/product/678791/dell-u4025qw-397-5k-wqhd-(5120-x-2160)-120hz-wide-curved-screen-monitor?storeid=051"
+        },
+        "price_usd": 1899.99,
+        "quality_basis": "Top published gamut (99% DCI-P3) plus a spec'd HDR class (VESA DisplayHDR 600); factory calibration report included per Dell.",
+        "quality_class": "premium",
+        "refresh_hz": 120,
+        "refresh_note": "120Hz native at 5120x2160 per Dell spec (DisplayPort 1.4 with DSC, HDMI 2.1 FRL, or Thunderbolt 4).",
+        "resolution": "5120x2160",
+        "role": "creator-leaning / work docking pick (widescreen flagship)",
+        "size_class": "widescreen",
+        "size_in": 39.7,
+        "speakers": true,
+        "spec_source_url": "https://www.dell.com/en-us/shop/monitors/apd/dell-ultrasharp-40-curved-thunderbolt-hub-monitor-u4025qw/u4025qw_monitor/-",
+        "vesa_mount": true,
+        "why": "The widescreen dock flagship: 5K2K IPS Black at 120Hz with 99% DCI-P3, DisplayHDR 600, Thunderbolt 4 with up to 140W charging, KVM and 2.5GbE Ethernet in one curved 40-inch panel."
+      },
+      {
+        "aspect": "21:9",
+        "brand": "LG",
+        "brightness_nits": 275,
+        "checked_date": "2026-10-16",
+        "color_gamut": {
+          "dci_p3_percent": 98.5,
+          "srgb_percent": null
+        },
+        "factory_calibrated": null,
+        "flags": [
+          "Retailer spec errors: Best Buy's spec block lists 'Panel Type: IPS' for this OLED monitor, and labels the gamut 'Color Gamut (NTSC) 98.5 percent' - LG's spec is an OLED panel with DCI-P3 98.5%.",
+          "USB-C wattage contradiction on the same Best Buy page: 65W in the product description versus 90W in LG-supplied feature copy. LG's own materials say 90W; 90W is recorded.",
+          "The DisplayPort 2.1 port is UHBR13.5 (54 Gbps), not full UHBR20 - full 5120x2160 at 165Hz with 10-bit HDR needs DSC (per LG's own support answer in the Best Buy Q&A).",
+          "Brightness is 275 cd/m2 typical; the headline 1,300-nit figure is a small-window peak.",
+          "Price spread: a Best Buy Marketplace listing (sold and shipped by Beach Camera) showed $1,299.99, while Best Buy's own listing showed $1,999.99 on the check date; the Best Buy direct price is recorded.",
+          "Marketed as 45-inch; the viewable panel is 44.5 inches per LG's spec.",
+          "Speakers are 10W x2 per LG's spec table; 800R curvature."
+        ],
+        "hdr": "VESA DisplayHDR True Black 400",
+        "inputs": {
+          "displayport": "DisplayPort 2.1 x1 (UHBR13.5)",
+          "hdmi": "2x HDMI 2.1",
+          "kvm": false,
+          "usb_hub": true,
+          "usbc_note": "TRUE USB-C VIDEO INPUT: USB-C x1 carries video, data and Power Delivery (90W per LG's spec; the retailer page contradicts itself at 65W in one section - see flags). Hub adds 2x USB-A 3.0 downstream.",
+          "usbc_video_input": true
+        },
+        "name": "LG UltraGear 45GX950A-B",
+        "panel_type": "OLED",
+        "ppi": 125,
+        "price_source": {
+          "name": "Best Buy",
+          "url": "https://www.bestbuy.com/site/lg-ultragear-45-oled-dual-mode-5k2k-wuhd-165hz-wfhd-330hz-0-03ms-g-sync-freesync-premium-pro-gaming-monitor-black/6619492.p?skuId=6619492"
+        },
+        "price_usd": 1999.99,
+        "quality_basis": "OLED panel per LG's spec table (also 98.5% DCI-P3 with a spec'd HDR class, VESA DisplayHDR True Black 400).",
+        "quality_class": "premium",
+        "refresh_hz": 165,
+        "refresh_note": "165Hz native at 5120x2160; Dual Mode switches to 2560x1080 at 330Hz. 0.03ms response time.",
+        "resolution": "5120x2160",
+        "role": "gaming-leaning (5K2K OLED flagship)",
+        "size_class": "widescreen",
+        "size_in": 44.5,
+        "speakers": true,
+        "spec_source_url": "https://www.lg.com/us/monitors/lg-45gx950a-b-gaming-monitor",
+        "vesa_mount": true,
+        "why": "The biggest OLED canvas here: a 45-inch-class 5K2K panel at 165Hz (or 330Hz in Dual Mode) with DisplayHDR True Black 400 and 98.5% DCI-P3 - a sim cockpit and a giant editing desk in one."
       }
     ]
   }

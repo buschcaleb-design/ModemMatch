@@ -197,6 +197,24 @@ def size_class_for(m):
     return "large"
 
 
+def tech_for(panel):
+    """Panel technology family for the shelf's technology filter (Caleb,
+    2026-10-16): OLED / Mini-LED / IPS / VA / TN, from the maker's panel
+    string. Falls back to the raw string so nothing is silently binned."""
+    p = (panel or "").upper()
+    if "OLED" in p:
+        return "OLED"
+    if "MINI" in p:
+        return "Mini-LED"
+    if "IPS" in p:
+        return "IPS"
+    if re.search(r"\bVA\b", p):
+        return "VA"
+    if re.search(r"\bTN\b", p):
+        return "TN"
+    return panel or "Unspecified"
+
+
 monitors_out = {}
 for tier, items in monitors_doc["tiers"].items():
     monitors_out[tier] = [{
@@ -205,6 +223,7 @@ for tier, items in monitors_doc["tiers"].items():
         "brand": m["brand"],
         "size_in": m["size_in"],
         "size_class": size_class_for(m),
+        "tech": tech_for(m["panel_type"]),
         "resolution": m["resolution"],
         "quality_class": m["quality_class"],
         "role": m["role"],
