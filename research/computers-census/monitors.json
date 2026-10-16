@@ -627,6 +627,52 @@
         "spec_source_url": "https://www.lenovo.com/us/en/p/accessories-and-software/monitors/professional/63dbrar1us",
         "vesa_mount": null,
         "why": "A 49-inch IPS Black super-ultrawide built as a full docking station: Thunderbolt 4 with 100W charging, Ethernet, eKVM, and a Thunderbolt output to daisy-chain a second screen. Caleb found the US listing the morning sweep had to give up on."
+      },
+      {
+        "aspect": "32:9",
+        "brand": "CRUA",
+        "brightness_nits": 250,
+        "checked_date": "2026-10-16",
+        "color_gamut": {
+          "dci_p3_percent": null,
+          "srgb_percent": 120
+        },
+        "factory_calibrated": null,
+        "flags": [
+          "Thin maker documentation: CRUA publishes marketing bullets, not a spec table - port counts are unspecified, and there is no DCI-P3 figure or HDR class. Recorded exactly as published, nothing inferred.",
+          "No USB-C mentioned anywhere in the maker's materials - video is HDMI 2.1 / DisplayPort 1.4 only.",
+          "Walmart shows $599.99 but that listing is CRUA's own marketplace storefront there (fulfilled by Walmart); the shelf price is the maker's direct store price.",
+          "Caleb's call (2026-10-16): the 240Hz model shelves on its confirmed VA panel; its 165Hz sibling stays off because CRUA does not state its panel type."
+        ],
+        "hdr": null,
+        "inputs": {
+          "displayport": "DisplayPort 1.4 (count unspecified by maker)",
+          "hdmi": "HDMI 2.1 (count unspecified by maker)",
+          "kvm": false,
+          "usb_hub": false,
+          "usbc_note": "No USB-C in the maker's materials - HDMI/DisplayPort only.",
+          "usbc_video_input": false
+        },
+        "name": "CRUA CR490QW 49-inch Curved Ultrawide",
+        "panel_type": "VA",
+        "ppi": 108.5,
+        "price_source": {
+          "name": "CRUA (maker store)",
+          "url": "https://crua-monitor.com/products/cr490qw-dqhd-240hz"
+        },
+        "price_usd": 699.99,
+        "quality_basis": "Same density as the shelf's 27-inch 1440p sharp band (108.5 PPI) and a maker-published 120% sRGB; no DCI-P3 or HDR class published, so no color or premium claim - sharp band, consistent with the Dell G2724D and ASUS TUF 1440p records.",
+        "quality_class": "sharp",
+        "refresh_hz": 240,
+        "refresh_note": "240Hz at 5120x1440; 1500R curvature; AMD FreeSync; 3000:1 contrast.",
+        "resolution": "5120x1440",
+        "role": "gaming-leaning (super-ultrawide)",
+        "size_class": "widescreen",
+        "size_in": 49,
+        "speakers": true,
+        "spec_source_url": "https://crua-monitor.com/products/cr490qw-dqhd-240hz",
+        "vesa_mount": true,
+        "why": "A 49-inch 5120x1440 curved VA panel at 240Hz for $699.99 direct from the maker - the fastest super-ultrawide on the shelf for the money. HDMI/DisplayPort only; there is no USB-C."
       }
     ],
     "4k": [
