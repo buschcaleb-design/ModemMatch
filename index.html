@@ -78,6 +78,16 @@
   .setupbox .gstep p { font-size: .84rem; }
   .setupbox ul { margin: 4px 0 8px; padding-left: 18px; color: #94a3b8; font-size: .85rem; }
   .setupbox ul.whylist li { color: #cbd5e1; margin-bottom: 5px; }
+  .morebox { margin-top: 10px; border-top: 1px solid #334155; padding-top: 8px; }
+  .morebox summary { cursor: pointer; color: #38bdf8; font-weight: 700; font-size: .88rem; }
+  .morebox p { margin: 8px 0 0; color: #94a3b8; font-size: .85rem; }
+  .diagram { margin: 10px 0 2px; }
+  .diagram svg { display: block; width: 100%; height: auto; background: #0f172a;
+                 border: 1px solid #334155; border-radius: 12px; }
+  .diagram figcaption { color: #64748b; font-size: .75rem; margin-top: 6px; font-style: italic; }
+  .discbtn { display: block; margin: 18px auto 0; background: none; border: none;
+             color: #64748b; font-size: .8rem; cursor: pointer; text-decoration: underline; }
+  .discbtn:hover { color: #94a3b8; }
   .setupcta { margin-top: 20px; border-color: #38bdf8 !important; }
   .picks-head { font-size: 1.15rem; font-weight: 700; margin: 22px 0 10px; }
   .card .blurb { color: #94a3b8; font-size: .85rem; margin: 4px 0 0; font-style: italic; }
@@ -126,7 +136,9 @@
   <div id="guide" style="display:none"></div>
   <div id="pc-guide" style="display:none"></div>
   <div id="model-lookup" style="display:none"></div>
-  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.6 &middot; If a page looks outdated, read this stamp back to us</p>
+  <div id="disclaimers" style="display:none"></div>
+  <button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>
+  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.7 &middot; If a page looks outdated, read this stamp back to us</p>
 </div>
 <script>const stepsEl = document.getElementById('steps');
 const bar = document.getElementById('bar');
@@ -137,7 +149,7 @@ let isps = [];
 // First screen: Buy New Gear / Set Up New Gear. Second: Internet / PC.
 // Then route into the matching existing flow.
 let flowType = 'buy';   // 'buy' | 'setup'
-const SECTION_IDS = ['home', 'flow-pick', 'isp-pick', 'quiz', 'results', 'guide', 'pc-guide', 'model-lookup'];
+const SECTION_IDS = ['home', 'flow-pick', 'isp-pick', 'quiz', 'results', 'guide', 'pc-guide', 'model-lookup', 'disclaimers'];
 function hideAllSections() {
   SECTION_IDS.forEach(id => document.getElementById(id).style.display = 'none');
 }
@@ -160,7 +172,8 @@ function routeFlow(kind) {
   if (flowType === 'buy') {
     if (kind === 'internet') startBuy(); else startLaptopBuy();
   } else {
-    if (kind === 'internet') startSetup(); else startPcGuide();
+    if (kind === 'internet') startSetup();
+    else { guideBrand = null; startPcGuide(); }   // generic entry: no model context
   }
 }
 
@@ -624,6 +637,7 @@ async function goLaptopSetup() {
   // Results screen is for deciding; the setup page is for doing. Land in
   // the PC guides browser with the top pick's OS preselected.
   const top = laptopRes && laptopRes.recommendations && laptopRes.recommendations[0];
+  guideBrand = (top && top.setup && top.setup.brand_key) || null;
   await startPcGuide();
   if (top && top.setup && top.setup.os_key &&
       pcGuides.setup_guides.os_flows[top.setup.os_key])
@@ -700,6 +714,7 @@ function renderLaptopResults() {
   }
   laptopRes.notes.forEach(n => { h += `<div class="note">${esc(n)}</div>`; });
   h += `<button class="opt setupcta" onclick="goLaptopSetup()">🔧 Set up your new laptop<small>First boot, brand setup tools${laptopRes.kid ? ', and parental controls' : ''} — step by step, on the setup page</small></button>`;
+  h += `<button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>`;
   h += `<button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
   r.innerHTML = h;
   window.scrollTo(0, 0);
@@ -727,20 +742,151 @@ async function finishLaptops() {
 
 // ------------------------------------------- PC setup guides (Set Up → PC)
 let pcGuides = null;
+// Brand context for guide diagrams: set when the user arrives from a
+// specific laptop (a quiz top pick or a looked-up model); null when they
+// browse the guides generically. Diagrams use it to show the general look
+// for THEIR model's brand (e.g. Lenovo Vantage, Dell SupportAssist).
+let guideBrand = null;
 const PC_OS_LABELS = { windows_11: '🪟 Windows 11', macos: '🍎 macOS', chromeos: '🌐 ChromeOS' };
-function guideItemHTML(x) {
+function brandUtilityShort(key) {
+  const layer = pcGuides && pcGuides.setup_guides.brand_layers[key];
+  if (!layer || !layer.utility) return null;
+  let u = typeof layer.utility === 'string' ? layer.utility : layer.utility.name;
+  if (!u || /^none\b/i.test(u)) return null;
+  u = u.split(' (')[0].split(' +')[0].split(' — ')[0].trim();
+  return u || null;
+}
+function brandDisplayName(key) {
+  const layer = pcGuides && pcGuides.setup_guides.brand_layers[key];
+  return (layer && layer.brand) || null;
+}
+function substTokens(s, ctx) {
+  if (typeof s !== 'string') return s;
+  const util = (ctx && ctx.brand && brandUtilityShort(ctx.brand)) || "the maker's update utility";
+  const brand = (ctx && ctx.brand && brandDisplayName(ctx.brand)) || 'your maker';
+  return s.replaceAll('{utility}', util).replaceAll('{brand}', brand);
+}
+function resolveDiagram(spec, ctx) {
+  if (!spec) return null;
+  ctx = ctx || {};
+  const out = {};
+  Object.keys(spec).forEach(k => {
+    if (k !== 'os_variants' && k !== 'brand_variants' && k !== 'caption') out[k] = spec[k];
+  });
+  const ov = (spec.os_variants && ctx.os && spec.os_variants[ctx.os]) || {};
+  const bv = (spec.brand_variants && ctx.brand && spec.brand_variants[ctx.brand]) || {};
+  Object.assign(out, ov, bv);
+  ['window_title'].forEach(k => { if (out[k]) out[k] = substTokens(out[k], ctx); });
+  ['path', 'sidebar'].forEach(k => {
+    if (Array.isArray(out[k])) out[k] = out[k].map(x => substTokens(x, ctx));
+  });
+  if (Array.isArray(out.rows))
+    out.rows = out.rows.map(r => ({ ...r, label: substTokens(r.label, ctx),
+                                    action: r.action ? substTokens(r.action, ctx) : r.action }));
+  if (bv.utility_row)
+    out.rows = (out.rows || []).concat([{ ...bv.utility_row,
+      label: substTokens(bv.utility_row.label, ctx) }]);
+  return out;
+}
+function diagramCaption(spec, ctx) {
+  if (spec && spec.caption) return spec.caption;
+  const b = ctx && ctx.brand && brandDisplayName(ctx.brand);
+  return b ? `The general look for your ${b} — exact screens vary by version.`
+           : 'Illustration — your screen may look slightly different.';
+}
+// Simple schematic illustrations (NOT screenshots): a stylized window with
+// the relevant path/option highlighted and labeled, faithful at a general
+// level to how these settings/utilities are laid out.
+function wrapSvgText(s, n) {
+  const words = String(s).split(' '); const lines = []; let cur = '';
+  words.forEach(w => {
+    if ((cur + ' ' + w).trim().length > n && cur) { lines.push(cur); cur = w; }
+    else cur = (cur + ' ' + w).trim();
+  });
+  if (cur) lines.push(cur);
+  return lines.slice(0, 3);
+}
+function diagramSVG(rawSpec, ctx) {
+  const spec = resolveDiagram(rawSpec, ctx);
+  if (!spec) return '';
+  const W = 320;
+  const head = `<rect x="1" y="1" width="${W - 2}" height="26" rx="10" fill="#273449"/>
+    <circle cx="16" cy="14" r="4" fill="#f87171"/><circle cx="30" cy="14" r="4" fill="#fbbf24"/><circle cx="44" cy="14" r="4" fill="#4ade80"/>
+    <text x="58" y="18" font-size="10.5" font-weight="700" fill="#e2e8f0">${esc(spec.window_title || '')}</text>`;
+  let body = '', H = 120;
+  if (spec.kind === 'battery') {
+    const pct = Math.max(5, Math.min(100, spec.fill_pct || 80));
+    const bw = 170, fill = Math.round(bw * pct / 100);
+    const rows = (spec.rows || []).map((r, i) =>
+      `<text x="24" y="${132 + i * 17}" font-size="9.5" fill="${r.highlight ? '#7dd3fc' : '#94a3b8'}">${r.highlight ? '▸ ' : '· '}${esc(r.label)}</text>`).join('');
+    body = `<rect x="24" y="52" width="${bw}" height="40" rx="6" fill="none" stroke="#64748b" stroke-width="2"/>
+      <rect x="${24 + bw}" y="64" width="6" height="16" rx="2" fill="#64748b"/>
+      <rect x="27" y="55" width="${fill - 6}" height="34" rx="4" fill="#4ade80" opacity="0.75"/>
+      <line x1="${27 + fill - 3}" y1="44" x2="${27 + fill - 3}" y2="98" stroke="#fbbf24" stroke-width="1.6" stroke-dasharray="4 3"/>
+      <text x="${27 + fill - 3}" y="40" font-size="9" fill="#fbbf24" text-anchor="middle">${esc((spec.limit_label || 'Charge limit') + ' ' + pct + '%')}</text>
+      <text x="${24 + bw + 18}" y="76" font-size="11" font-weight="700" fill="#e2e8f0">${pct}%</text>
+      ${rows}`;
+    H = 140 + (spec.rows || []).length * 17;
+  } else if (spec.kind === 'flow') {
+    const boxes = spec.boxes || [];
+    const bw = 94, gap = (W - 24 - boxes.length * bw) / Math.max(1, boxes.length - 1);
+    body = boxes.map((b, i) => {
+      const x = 12 + i * (bw + gap);
+      const lines = wrapSvgText(b.label, 15);
+      const labelSvg = lines.map((ln, j) =>
+        `<tspan x="${x + bw / 2}" dy="${j === 0 ? 0 : 12}">${esc(ln)}</tspan>`).join('');
+      const arrow = i < boxes.length - 1
+        ? `<text x="${x + bw + gap / 2}" y="76" font-size="13" fill="#38bdf8" text-anchor="middle">→</text>` : '';
+      return `<rect x="${x}" y="48" width="${bw}" height="56" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2"/>
+        <text y="${66 - (lines.length - 1) * 6}" font-size="9.5" font-weight="700" fill="#e2e8f0" text-anchor="middle">${labelSvg}</text>
+        <text x="${x + bw / 2}" y="96" font-size="7.8" fill="#94a3b8" text-anchor="middle">${esc(b.sub || '')}</text>${arrow}`;
+    }).join('');
+    H = 118;
+  } else {  // 'screen'
+    const sb = Array.isArray(spec.sidebar) && spec.sidebar.length ? spec.sidebar : null;
+    const mainX = sb ? 104 : 14, mainW = W - mainX - 12;
+    let y = 40;
+    let inner = '';
+    if (Array.isArray(spec.path) && spec.path.length) {
+      inner += `<text x="14" y="${y + 4}" font-size="9" fill="#7dd3fc">${esc(spec.path.join('  ›  '))}</text>`;
+      y += 20;
+    }
+    if (sb) {
+      inner += sb.map((s, i) =>
+        `<rect x="12" y="${y + i * 21}" width="82" height="18" rx="5" fill="${i === sb.length - 1 ? '#273449' : 'none'}"/>
+         <text x="18" y="${y + i * 21 + 13}" font-size="8.6" fill="${i === sb.length - 1 ? '#e2e8f0' : '#94a3b8'}">${esc(s)}</text>`).join('');
+    }
+    inner += (spec.rows || []).map((r, i) => {
+      const ry = y + i * 27;
+      return `<rect x="${mainX}" y="${ry}" width="${mainW}" height="23" rx="6" fill="${r.highlight ? 'rgba(56,189,248,.14)' : '#1e293b'}" stroke="${r.highlight ? '#38bdf8' : '#334155'}"/>
+        <text x="${mainX + 8}" y="${ry + 15}" font-size="9.3" fill="#e2e8f0">${esc(r.label)}</text>
+        ${r.action ? `<text x="${mainX + mainW - 8}" y="${ry + 15}" font-size="8.6" font-weight="700" fill="#38bdf8" text-anchor="end">${esc(r.action)}</text>` : ''}`;
+    }).join('');
+    body = inner;
+    H = y + (spec.rows || []).length * 27 + 8;
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Schematic illustration">${head}${body}</svg>`;
+}
+function moreInfoHTML(x, ctx) {
+  if (!x || typeof x !== 'object' || (!x.more_info && !x.diagram)) return '';
+  return `<details class="morebox"><summary>More info</summary>
+    ${x.more_info ? `<p>${esc(x.more_info)}</p>` : ''}
+    ${x.diagram ? `<figure class="diagram">${diagramSVG(x.diagram, ctx)}<figcaption>${esc(diagramCaption(x.diagram, ctx))}</figcaption></figure>` : ''}
+  </details>`;
+}
+function guideItemHTML(x, ctx) {
   if (typeof x === 'string') return `<p>${esc(x)}</p>`;
   const t = x.title || x.item || '';
   const d = x.detail || '';
-  return `${t ? `<h3>${esc(t)}</h3>` : ''}${d ? `<p>${esc(d)}</p>` : ''}`;
+  return `${t ? `<h3>${esc(t)}</h3>` : ''}${d ? `<p>${esc(d)}</p>` : ''}${moreInfoHTML(x, ctx)}`;
 }
 function stepsListHTML(items) {
   return items.map((x, i) =>
     `<div class="gstep"><span class="stepnum">${i + 1}</span><div>${guideItemHTML(x)}</div></div>`).join('');
 }
-function checkListHTML(items) {
+function checkListHTML(items, ctx) {
   return items.map(x =>
-    `<div class="gstep"><span class="stepnum">✓</span><div>${guideItemHTML(x)}</div></div>`).join('');
+    `<div class="gstep"><span class="stepnum">✓</span><div>${guideItemHTML(x, ctx)}</div></div>`).join('');
 }
 async function startPcGuide() {
   hideAllSections();
@@ -837,8 +983,9 @@ function renderPcOsFlow(key) {
     .filter(c => tokens.includes(String(c.applies_to || 'all').toLowerCase()));
   let finalHtml = '';
   if (fw.length)
-    finalHtml += `<p class="picks-head" style="margin-top:0">First-week checklist</p>` + checkListHTML(fw);
+    finalHtml += `<p class="picks-head" style="margin-top:0">First-week checklist</p>` + checkListHTML(fw, { os: key, brand: guideBrand });
   (flow.honest_notes || []).forEach(n => { finalHtml += `<div class="note">${esc(n)}</div>`; });
+  finalHtml += `<button class="opt" onclick="openDisclaimers()">📄 Disclaimers<small>The fine print for all our guides — coverage notes and version caveats, in one place</small></button>`;
   if (finalHtml) screens.push({ html: finalHtml });
   wiz = { title: `<h1>First boot — <span class="accent">${esc(flow.os)}</span></h1>`,
           backAction: `renderPcFormFactor('${key}')`, backLabel: 'Back',
@@ -908,6 +1055,7 @@ function renderPcKid(key) {
       finalHtml += `<div class="note">${esc(typeof x === 'string' ? x : (x.detail || x.title || ''))}</div>`;
     });
   }
+  finalHtml += `<button class="opt" onclick="openDisclaimers()">📄 Disclaimers<small>The fine print for all our guides — coverage notes and version caveats, in one place</small></button>`;
   if (finalHtml) screens.push({ html: finalHtml });
   wiz = { title: `<h1>${esc(p.platform)} — <span class="accent">${esc(p.control_system || 'parental controls')}</span></h1>`,
           backAction: 'renderPcKidMenu()', backLabel: 'Kid setup',
@@ -956,7 +1104,8 @@ async function pickModel(i) {
   const m = modelMatches[i];
   if (!m) return;
   if (flowType === 'buy') renderModelCard(m);
-  else { await startPcGuide(); renderPcFormFactor(m.setup.os_key); }
+  else { guideBrand = (m.setup && m.setup.brand_key) || null;
+         await startPcGuide(); renderPcFormFactor(m.setup.os_key); }
 }
 function renderModelCard(m) {
   hideAllSections();
@@ -971,9 +1120,72 @@ function renderModelCard(m) {
     <h1>Your <span class="accent">model</span></h1>
     ${laptopCardHTML(m, 0, true, '🔎 YOUR MODEL')}
     <button class="opt setupcta" onclick="goLaptopSetup()">🔧 Set up your new laptop<small>First boot, brand setup tools — step by step, on the setup page</small></button>
+    <button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>
     <button class="opt" onclick="startLaptopBuy()">💻 Not the one? Take the laptop quiz<small>Answer a few questions and we'll match you</small></button>
     <button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
   window.scrollTo(0, 0);
+}
+
+// ------------------------------------------------------------- disclaimers
+// All the coverage notes and version caveats from across the guides live
+// on ONE page, so flows don't end in a stack of blue boxes. Back returns
+// to exactly the view (and wizard step) the user came from: we only toggle
+// section visibility, so the previous section's DOM and state are intact.
+let discReturn = { section: 'home', y: 0 };
+async function openDisclaimers() {
+  if (!pcGuides) {
+    try { pcGuides = await fetch('/api/laptop-guides').then(x => x.json()); }
+    catch (e) { /* page still renders its static sections */ }
+  }
+  const cur = SECTION_IDS.find(id => id !== 'disclaimers' &&
+    document.getElementById(id).style.display !== 'none');
+  discReturn = { section: cur || 'home', y: window.scrollY || 0 };
+  renderDisclaimers();
+  hideAllSections();
+  document.getElementById('disclaimers').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+function closeDisclaimers() {
+  hideAllSections();
+  const el = document.getElementById(discReturn.section);
+  if (el) el.style.display = 'block';
+  window.scrollTo(0, discReturn.y);
+}
+function discSection(title, items) {
+  if (!items || !items.length) return '';
+  return `<p class="picks-head">${esc(title)}</p>` +
+    items.map(n => `<div class="note">${esc(typeof n === 'string' ? n : (n.detail || n.title || ''))}</div>`).join('');
+}
+function renderDisclaimers() {
+  const el = document.getElementById('disclaimers');
+  let h = `<button class="back" onclick="closeDisclaimers()">← Back</button>
+    <h1>Disclaimers</h1>
+    <p class="sub">The fine print, all in one place: what our data is based on, where it can differ from the screen in front of you, and what we couldn't verify. The guides themselves only keep the notes that change what you should do.</p>`;
+  h += discSection('Prices & recommendations', [
+    "Laptop prices are manufacturers' published list prices, checked in October 2026, and are shown as a range — the starting configuration through the highest configuration we could verify. Store prices, sales, and coupons will differ.",
+    "We never quote a marketplace seller's price as a model's price, and a laptop with no verified manufacturer price is not listed at all. We would rather show fewer laptops than invent a number.",
+    "Recommendations are ranked from your quiz answers and the manufacturers' published specs for each model. Prices and specs were checked when our catalog was built and can change without notice.",
+  ]);
+  h += discSection('Networking', [
+    "Rental fees and savings figures come from each provider's published equipment fees in our data, checked in October 2026. Promotions, bundles, and regional pricing can change what you actually pay — your own bill is the source of truth.",
+    "Modem and router compatibility is checked against each provider's published approved-device information. A provider can change its list at any time, so confirm on the provider's site before you buy.",
+  ]);
+  const sg = pcGuides && pcGuides.setup_guides;
+  if (sg && sg.os_flows) {
+    const labels = { windows_11: 'Setup guides — Windows 11', macos: 'Setup guides — macOS', chromeos: 'Setup guides — ChromeOS' };
+    Object.keys(labels).forEach(k => {
+      if (sg.os_flows[k]) h += discSection(labels[k], sg.os_flows[k].disclaimers);
+    });
+  }
+  const par = pcGuides && pcGuides.parental_controls;
+  if (par && par.platforms) {
+    const all = [];
+    Object.keys(par.platforms).forEach(k => {
+      (par.platforms[k].disclaimers || []).forEach(n => all.push(n));
+    });
+    h += discSection('Parental controls', all);
+  }
+  el.innerHTML = h;
 }
 
 fetch('/api/isps').then(x => x.json()).then(d => { isps = d; });
