@@ -582,6 +582,51 @@
         "spec_source_url": "https://www.msi.com/Monitor/MPG-491CQP-QD-OLED/Specification",
         "vesa_mount": true,
         "why": "A 49-inch QD-OLED super-ultrawide - about three monitors of desk - with true blacks, 144Hz, and one-cable USB-C video with 90W charging, for $200 less than Samsung's OLED G9."
+      },
+      {
+        "aspect": "32:9",
+        "brand": "Lenovo",
+        "brightness_nits": 350,
+        "checked_date": "2026-10-16",
+        "color_gamut": {
+          "dci_p3_percent": 98,
+          "srgb_percent": 100
+        },
+        "factory_calibrated": null,
+        "flags": [
+          "No HDR support is listed anywhere in Lenovo's Tech Specs for this model - that absence, not the gamut, is what keeps it out of the premium band.",
+          "VESA mounting is not listed in Lenovo's Tech Specs tab (stand is height-adjustable with tilt/swivel/lift); mount support is unconfirmed from the maker's table.",
+          "Thunderbolt 4 OUT port (27W) can daisy-chain a second monitor - rare on this shelf."
+        ],
+        "hdr": null,
+        "inputs": {
+          "displayport": "DisplayPort 1.4 x1",
+          "hdmi": "HDMI 2.1 x2",
+          "kvm": true,
+          "usb_hub": true,
+          "usbc_note": "Thunderbolt 4 input with video plus up to 100W power delivery, and a Thunderbolt 4 output for daisy-chaining; built-in RJ-45 Ethernet and eKVM.",
+          "usbc_video_input": true
+        },
+        "name": "Lenovo ThinkVision P49w-30",
+        "panel_type": "IPS Black",
+        "ppi": 108.5,
+        "price_source": {
+          "name": "Lenovo (maker store)",
+          "url": "https://www.lenovo.com/us/en/p/accessories-and-software/monitors/professional/63dbrar1us"
+        },
+        "price_usd": 1279.0,
+        "quality_basis": "Lenovo publishes 98% DCI-P3 with average Delta E under 2 - wide-gamut, calibrated-grade color - but lists no HDR support at all, so it does not meet the premium band's HDR-class requirement; color band.",
+        "quality_class": "color",
+        "refresh_hz": 60,
+        "refresh_note": "60Hz; 4ms extreme / 6ms normal; 2000:1 contrast (IPS Black); 3800R curvature.",
+        "resolution": "5120x1440",
+        "role": "productivity (super-ultrawide docking)",
+        "size_class": "widescreen",
+        "size_in": 49,
+        "speakers": true,
+        "spec_source_url": "https://www.lenovo.com/us/en/p/accessories-and-software/monitors/professional/63dbrar1us",
+        "vesa_mount": null,
+        "why": "A 49-inch IPS Black super-ultrawide built as a full docking station: Thunderbolt 4 with 100W charging, Ethernet, eKVM, and a Thunderbolt output to daisy-chain a second screen. Caleb found the US listing the morning sweep had to give up on."
       }
     ],
     "4k": [
@@ -1041,6 +1086,52 @@
         "spec_source_url": "https://www.samsung.com/us/monitors/high-resolution/37-inch-viewfinity-s8-s80ud-4k-uhd-hdr10-high-resolution-monitor-with-usb-c-and-ergonomic-stand-sku-ls37d800uanxza/",
         "vesa_mount": true,
         "why": "A 37-inch 4K panel - Large class without the 43-inch price - with a built-in dock: USB-C 90W charging, Ethernet, and a KVM switch, so one cable runs a laptop's screen, network, and peripherals."
+      },
+      {
+        "aspect": "16:9",
+        "brand": "LG",
+        "brightness_nits": 300,
+        "checked_date": "2026-10-16",
+        "color_gamut": {
+          "dci_p3_percent": 90,
+          "srgb_percent": null
+        },
+        "factory_calibrated": null,
+        "flags": [
+          "Smart monitor: runs webOS with streaming apps built in, so it doubles as a small smart TV with no computer attached.",
+          "No DisplayPort input at all - HDMI 2.0 (x2 per LG's feature text) and USB-C are the video paths.",
+          "USB-C wording: LG's spec table lists USB-C data transmission and 65W power delivery without naming 'DisplayPort Alt Mode'; the model is sold as a USB-C laptop monitor and the video path is recorded on that basis.",
+          "HDMI count (2) comes from LG's feature description; the spec table itself lists only 'HDMI: Yes'."
+        ],
+        "hdr": "HDR10",
+        "inputs": {
+          "displayport": null,
+          "hdmi": "HDMI 2.0 x2",
+          "kvm": false,
+          "usb_hub": true,
+          "usbc_note": "USB-C with 65W power delivery; the laptop connection for video + data + charging.",
+          "usbc_video_input": true
+        },
+        "name": "LG 37U730SA-W Smart Monitor",
+        "panel_type": "IPS",
+        "ppi": 120.7,
+        "price_source": {
+          "name": "LG (maker store)",
+          "url": "https://www.lg.com/us/monitors/lg-37u730sa-w-4k-uhd-monitor"
+        },
+        "price_usd": 599.99,
+        "quality_basis": "LG publishes 90% DCI-P3 - below the 95% color-band bar - so its quality story is 4K density at 36.5 inches (120.7 PPI): sharp band.",
+        "quality_class": "sharp",
+        "refresh_hz": 60,
+        "refresh_note": "60Hz; 5ms GTG; 1000:1 contrast.",
+        "resolution": "3840x2160",
+        "role": "productivity / smart monitor (large desk)",
+        "size_class": "large",
+        "size_in": 36.5,
+        "speakers": true,
+        "spec_source_url": "https://www.lg.com/us/monitors/lg-37u730sa-w-4k-uhd-monitor",
+        "vesa_mount": true,
+        "why": "A 37-inch 4K IPS panel - Large class - that is also a webOS smart TV: streaming apps with no computer attached, plus one-cable USB-C (65W) for a laptop. Caleb found this one on LG's store."
       }
     ]
   }
