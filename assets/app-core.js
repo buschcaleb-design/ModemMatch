@@ -362,3 +362,15 @@ async function finish() {
   sortMode = 'value'; showAll = false; activeTab = 'modems';
   renderResults();
 }
+
+// Page themes (Caleb, 2026-10-16): results screens dress for the shopping
+// mission — gaming picks get the gaming room, work picks the office, and so
+// on. Dressing only (CSS variables on <body>); Start over reloads to default.
+function themeForUse(use, kid) {
+  if (kid) return 'family';
+  return { gaming: 'gaming', work: 'office', creative: 'creator', school: 'family' }[use] || 'everyday';
+}
+function setPageTheme(name) {
+  if (name && name !== 'everyday') document.body.dataset.theme = name;
+  else delete document.body.dataset.theme;
+}

@@ -203,6 +203,7 @@ function renderLaptopResults() {
   }
   const picks = currentLaptopPicks();
   const q = laptopRes.query;
+  setPageTheme(themeForUse(q.use, laptopRes.kid));
   const useLabel = { school: 'School', everyday: 'Everyday use', work: 'Work', gaming: 'Gaming', creative: 'Creative work' }[q.use] || q.use;
   let h = `<h1>Your top <span class="accent">laptop picks</span></h1>
            <p class="sub">${useLabel} · ${q.os === 'any' ? 'Any system' : q.os} · prices shown as a range (starting → fully loaded)</p>`;
@@ -451,6 +452,7 @@ function renderDesktopResults() {
   const r = document.getElementById('results');
   const picks = sortedDesktopPicks();
   const q = desktopRes.query;
+  setPageTheme(themeForUse(q.use, desktopRes.kid));
   const useLabel = { school: 'School', everyday: 'Everyday use', work: 'Work', gaming: 'Gaming', creative: 'Creative work' }[q.use] || q.use;
   const caseLabel = { mini: 'Mini PC', sff: 'Small form factor', tower: 'Tower', full: 'Full tower', aio: 'All-in-one' }[q.case] || 'Any case';
   let h = `<h1>Your top <span class="accent">desktop picks</span></h1>
