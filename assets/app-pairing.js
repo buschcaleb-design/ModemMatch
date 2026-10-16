@@ -8,7 +8,7 @@ let pairReturn = { section: 'results', y: 0 };
 let pairScreens = { count: null, resolution: 'unsure', have: null };
 let pairAsked = { count: false, res: false };
 let pairTier = null, pairChassis = null;
-let pairSizeFilter = 'all', pairQualityFilter = 'all';
+let pairSizeFilter = 'all', pairQualityFilter = 'all', pairTechFilter = 'all';
 let pairQty = {};
 function pairSetup() {
   return pairData ? findSetupForComputer(pairType, pairData.id) : null;
@@ -61,7 +61,7 @@ async function openPairing(type, id) {
     document.getElementById(s).style.display !== 'none');
   pairReturn = { section: cur || 'results', y: window.scrollY || 0 };
   pairStage = 'screens'; pairChassis = null;
-  pairSizeFilter = 'all'; pairQualityFilter = 'all';
+  pairSizeFilter = 'all'; pairQualityFilter = 'all'; pairTechFilter = 'all';
   pairQty = {};
   pairScreens = { count: null, resolution: 'unsure', have: null };
   pairAsked = { count: false, res: false };
@@ -149,17 +149,18 @@ function pairSetCount(v) {
 function pairSetRes(v) {
   pairScreens.resolution = v; pairAsked.res = true;
   pairTier = PAIR_TIER_LABEL[v] ? v : null;
-  pairSizeFilter = 'all'; pairQualityFilter = 'all';
+  pairSizeFilter = 'all'; pairQualityFilter = 'all'; pairTechFilter = 'all';
   refreshPairStage();
 }
 function pairSetHave(b) { pairScreens.have = b; refreshPairStage(); }
 function pairSetTier(t) {
-  pairTier = t; pairSizeFilter = 'all'; pairQualityFilter = 'all';
+  pairTier = t; pairSizeFilter = 'all'; pairQualityFilter = 'all'; pairTechFilter = 'all';
   refreshPairStage();
 }
 function pairSetChassis(c) { pairChassis = c; refreshPairStage(); }
 function pairFilterSize(v) { pairSizeFilter = v; refreshPairStage(); }
 function pairFilterQuality(v) { pairQualityFilter = v; refreshPairStage(); }
+function pairFilterTech(v) { pairTechFilter = v; refreshPairStage(); }
 function pairChangeAnswers() { pairAsked = { count: false, res: false }; refreshPairStage(); }
 
 function pairScreensHTML() {
@@ -243,9 +244,16 @@ function pairShelfHTML() {
     `<button class="sort${pairSizeFilter === v ? ' on' : ''}" onclick="pairFilterSize('${v}')">${t}</button>`).join('')}</div>`;
   h += `<div class="sortrow wrap">${quals.map(([v, t]) =>
     `<button class="sort${pairQualityFilter === v ? ' on' : ''}" onclick="pairFilterQuality('${v}')">${t}</button>`).join('')}</div>`;
+  const techs = [...new Set(shelf.map(m => m.tech).filter(Boolean))].sort();
+  if (techs.length > 1) {
+    const techOpts = [['all', 'All panel types'], ...techs.map(t => [t, t])];
+    h += `<div class="sortrow wrap">${techOpts.map(([v, t]) =>
+      `<button class="sort${pairTechFilter === v ? ' on' : ''}" onclick="pairFilterTech('${v}')">${t}</button>`).join('')}</div>`;
+  }
   const shown = shelf.filter(m =>
     (pairSizeFilter === 'all' || m.size_class === pairSizeFilter) &&
-    (pairQualityFilter === 'all' || m.quality_class === pairQualityFilter));
+    (pairQualityFilter === 'all' || m.quality_class === pairQualityFilter) &&
+    (pairTechFilter === 'all' || m.tech === pairTechFilter));
   if (!shown.length)
     h += `<div class="note">No screens on this shelf match that combination yet — try clearing a filter.</div>`;
   shown.forEach(m => { h += monitorCardHTML(m); });
