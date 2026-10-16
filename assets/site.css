@@ -35,7 +35,9 @@
   body { font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
          margin: 0; background: var(--bg); color: var(--ink); transition: background .5s ease; min-height: 100vh; }
   body::before { content: ""; position: fixed; inset: 0; background-image: var(--motif);
-                 background-repeat: var(--motif-repeat, repeat); background-size: var(--motif-size, 560px 560px); background-position: var(--motif-pos, 0 0); pointer-events: none; z-index: 0; }
+                 background-repeat: var(--motif-repeat, repeat); background-size: var(--motif-size, 560px 560px); background-position: var(--motif-pos, 0 0); pointer-events: none; z-index: 0;
+                 -webkit-mask-image: radial-gradient(ellipse 88% 74% at 50% 42%, transparent 55%, rgba(0,0,0,.5) 72%, #000 88%);
+                 mask-image: radial-gradient(ellipse 88% 74% at 50% 42%, transparent 55%, rgba(0,0,0,.5) 72%, #000 88%); }
   .wrap { position: relative; z-index: 1; }
   .wrap { max-width: 560px; margin: 0 auto; padding: 20px 16px 60px; }
   h1 { font-size: 1.7rem; margin: 8px 0 4px; }
