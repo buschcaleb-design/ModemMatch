@@ -157,6 +157,7 @@ async function startPcGuide() {
   renderPcMenu();
 }
 function renderPcMenu() {
+  setPageTheme('everyday');
   const el = document.getElementById('pc-guide');
   const sg = pcGuides.setup_guides;
   const brandCount = Object.keys(sg.brand_layers || {}).length;
@@ -178,6 +179,7 @@ function renderPcMenu() {
 }
 let pcOsKey = null;
 function renderPcFormFactor(key) {
+  setOsTheme(key, 1);
   pcOsKey = key;
   const el = document.getElementById('pc-guide');
   const flow = pcGuides.setup_guides.os_flows[key];
@@ -188,6 +190,7 @@ function renderPcFormFactor(key) {
   window.scrollTo(0, 0);
 }
 function renderPcTower(key) {
+  setOsTheme(key, 1);
   // Desktop setup is OS-level: a tower's first boot is the operating
   // system's own walkthrough, screen for screen the same as a laptop's —
   // so the Tower path continues into the same OS flow (video or step by
@@ -229,6 +232,7 @@ function stepVisualHTML(item, ctx) {
   return `<div class="phsoon">📷 Photo coming soon</div>`;
 }
 function renderPcOsChoice(key) {
+  setOsTheme(key, 1);
   const flow = pcGuides.setup_guides.os_flows[key];
   const el = document.getElementById('pc-guide');
   el.innerHTML = `<button class="back" onclick="renderPcFormFactor('${key}')">← Back</button>
@@ -239,6 +243,7 @@ function renderPcOsChoice(key) {
   window.scrollTo(0, 0);
 }
 function renderPcKidChoice(key) {
+  setOsTheme(key, 1);
   const p = pcGuides.parental_controls.platforms[key];
   const el = document.getElementById('pc-guide');
   el.innerHTML = `<button class="back" onclick="renderPcKidMenu()">← Kid setup</button>
@@ -249,6 +254,7 @@ function renderPcKidChoice(key) {
   window.scrollTo(0, 0);
 }
 function renderPcFlowVideo(kind, key) {
+  if (kind === 'os') setOsTheme(key, 1);
   const isOs = kind === 'os';
   const flow = isOs ? pcGuides.setup_guides.os_flows[key]
                     : pcGuides.parental_controls.platforms[key];
@@ -279,6 +285,7 @@ function renderPcFlowVideo(kind, key) {
 // (or first-setup) checklist is the flow's final screen.
 let wiz = null;
 function wizRender() {
+  if (wiz && wiz.themeBase) setOsTheme(wiz.themeBase, wiz.i >= 1 ? 2 : 1);
   const el = document.getElementById('pc-guide');
   const total = wiz.screens.length;
   const s = wiz.screens[wiz.i];
@@ -322,7 +329,7 @@ function startPcOsWizard(key) {
   (flow.honest_notes || []).forEach(n => { finalHtml += `<div class="note">${esc(n)}</div>`; });
   finalHtml += `<button class="opt" onclick="openDisclaimers()">📄 Disclaimers<small>The fine print for all our guides — coverage notes and version caveats, in one place</small></button>`;
   if (finalHtml) screens.push({ html: finalHtml });
-  wiz = { title: `<h1>First boot — <span class="accent">${esc(flow.os)}</span></h1>`,
+  wiz = { themeBase: key, title: `<h1>First boot — <span class="accent">${esc(flow.os)}</span></h1>`,
           backAction: `renderPcOsChoice('${key}')`, backLabel: 'Back',
           doneAction: 'renderPcMenu()', doneLabel: '✓ Done — all setup topics',
           screens, i: 0 };
@@ -393,7 +400,7 @@ function startPcKidWizard(key) {
   }
   finalHtml += `<button class="opt" onclick="openDisclaimers()">📄 Disclaimers<small>The fine print for all our guides — coverage notes and version caveats, in one place</small></button>`;
   if (finalHtml) screens.push({ html: finalHtml });
-  wiz = { title: `<h1>${esc(p.platform)} — <span class="accent">${esc(p.control_system || 'parental controls')}</span></h1>`,
+  wiz = { themeBase: key, title: `<h1>${esc(p.platform)} — <span class="accent">${esc(p.control_system || 'parental controls')}</span></h1>`,
           backAction: `renderPcKidChoice('${key}')`, backLabel: 'Back',
           doneAction: 'renderPcMenu()', doneLabel: '✓ Done — all setup topics',
           screens, i: 0 };

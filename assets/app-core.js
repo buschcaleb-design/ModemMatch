@@ -230,6 +230,7 @@ function startBuy() {
 }
 // Setup flow: ISP -> gear type -> activation -> (Next) -> instructions
 function startSetup() {
+  setPageTheme('store');
   document.getElementById('home').style.display = 'none';
   document.getElementById('flow-pick').style.display = 'none';
   const el = document.getElementById('isp-pick');
@@ -375,4 +376,13 @@ function themeForUse(use, kid) {
 function setPageTheme(name) {
   if (name && name !== 'everyday') document.body.dataset.theme = name;
   else delete document.body.dataset.theme;
+}
+
+// Setup themes: each OS has a plain "first look" (stage 1) that evolves
+// into its full modern look (stage 2) as the setup wizard advances.
+const OS_THEMES = { windows_11: ['win-first', 'win11'], macos: ['mac-first', 'macos'],
+                    chromeos: ['chrome-first', 'chromeos'] };
+function setOsTheme(key, stage) {
+  const t = OS_THEMES[key];
+  if (t) setPageTheme(t[stage === 2 ? 1 : 0]);
 }
