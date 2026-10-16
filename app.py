@@ -35,6 +35,14 @@ LAPTOP_GUIDES = _guides_file.get("laptop_setup_guides",
                                  DB.get("laptop_setup_guides", {}))
 LAPTOP_PARENTAL = _guides_file.get("laptop_parental_controls",
                                    DB.get("laptop_parental_controls", {}))
+# Desktops live in their own file too (same pattern as the guides);
+# fall back to an embedded copy if the file is ever absent.
+_desktops_file = {}
+_desktops_path = os.path.join(BASE, "desktops.json")
+if os.path.exists(_desktops_path):
+    with open(_desktops_path) as f:
+        _desktops_file = json.load(f)
+DESKTOPS = _desktops_file.get("desktops", DB.get("desktops", []))
 
 SPEED_MIN = {
     "under100": 0, "100-300": 100, "300-600": 300,
@@ -64,14 +72,16 @@ def api_about():
             "ByteMatch helps people buy the right tech gear and set it up. "
             "Networking: answer a short quiz about your ISP and home and get "
             "ranked modem/router/mesh picks that replace an ISP rental, with "
-            "the savings math. Laptops: answer a short quiz (use, operating "
-            "system, screen size, budget, compatibility needs) and get ranked "
-            "laptop picks with starting and max-configuration prices, setup "
-            "guidance, and — for kids' laptops — parental-control setup."),
+            "the savings math. Computers: answer a short quiz (use, operating "
+            "system, screen size for laptops or case size for desktops, "
+            "budget, compatibility needs) and get ranked laptop or desktop "
+            "picks with starting and max-configuration prices, setup "
+            "guidance, and — for kids' computers — parental-control setup."),
         "categories": {
             "networking_gear": len(EQUIP),
             "isps": len(DB["isps"]),
             "laptops": len(LAPTOPS),
+            "desktops": len(DESKTOPS),
         },
         "endpoints": [
             {"method": "GET", "path": "/api/about",
@@ -90,6 +100,15 @@ def api_about():
                             "carries a summary plus a why list: the reasons "
                             "it was picked for those answers. Prices are a "
                             "range: price (starting) and price_max."},
+            {"method": "POST", "path": "/api/recommend-desktops",
+             "description": "Desktop picks. JSON: {use, os, case, budget, "
+                            "snapdragon, usage, kid, ecosystem} -> "
+                            "{recommendations, notes, guides}. Case is the "
+                            "case-size bucket: mini|sff|tower|full|aio. "
+                            "Each pick carries a summary plus a why list. "
+                            "Prices are a range: price (starting) and "
+                            "price_max (null when only a starting price "
+                            "could be verified)."},
             {"method": "GET", "path": "/api/laptop-guides",
              "description": "Laptop setup-guide library: OS first-boot "
                             "flows, per-brand setup layers, first-week "
@@ -97,8 +116,9 @@ def api_about():
             {"method": "GET", "path": "/api/laptop-search?q=<text>",
              "description": "'Know your model?' lookup: matches a typed "
                             "name, an old line name (formerly), or a "
-                            "model-number code from the name (CX34, "
-                            "DB04250) against the laptop catalog."},
+                            "model-number code (CX34, DB04250, EBT2250) "
+                            "against the laptop and desktop catalogs. Each "
+                            "match carries its type (laptop|desktop)."},
             {"method": "GET", "path": "/api/setup-guide/<isp_id>?gear=separate|combo",
              "description": "Networking setup walkthrough for an ISP."},
         ],
@@ -650,6 +670,324 @@ def api_recommend_laptops():
     })
 
 
+# ---------------------------------------------------------------- desktops
+DESKTOP_PLATFORM_OF = {"windows": "Windows", "mac": "macOS",
+                       "chromebook": "ChromeOS"}
+DESKTOP_CASE_LABEL = {"mini": "Mini PC", "sff": "Small form factor",
+                      "tower": "Tower", "full": "Full tower",
+                      "aio": "All-in-one"}
+DESKTOP_USE_CATEGORY = {"school": "everyday", "everyday": "everyday",
+                        "work": "business", "gaming": "gaming",
+                        "creative": "creator"}
+DESKTOP_USE_AFFINITY = {
+    "school": {"business": 5},
+    "everyday": {"business": 5},
+    "work": {"workstation": 12},
+    "gaming": {"creator": 8, "workstation": 5},
+    "creative": {"workstation": 12, "gaming": 6},
+}
+DESKTOP_CATEGORY_WHY = {
+    "gaming": "A gaming desktop first — dedicated graphics for play",
+    "creator": "Made for creative work — strong CPU/GPU for editing and rendering",
+    "business": "A business desktop — built for workdays, calls, and documents",
+    "everyday": "An everyday desktop for web, email, streaming, and documents",
+    "workstation": "A workstation — certified muscle for pro apps, CAD, and heavy compute",
+}
+
+
+@app.route("/api/recommend-desktops", methods=["POST"])
+def api_recommend_desktops():
+    """
+    Desktop picks. POST JSON:
+      {use, os, case, budget, snapdragon, usage, kid, ecosystem}
+    use: school|everyday|work|gaming|creative
+    os: windows|mac|chromebook|any
+    case: mini|sff|tower|full|aio|any — CASE SIZE (the desktop fork of the
+      size question; matched on the census form-factor classes, tower
+      covers mini-tower + mid-tower)
+    budget: under500|500-900|900-1400|1400plus|any  (matched on starting price)
+    snapdragon: no|yes|unsure — same compatibility question as laptops.
+      There are no Snapdragon desktops in the catalog (that lane is
+      laptop-only today), so every Windows pick is Intel/AMD.
+    usage: light|heavy — browser+documents vs big apps+lots of files.
+    kid: yes|no — yes adds parental-control setup guidance per platform.
+    ecosystem: {wants, phone, tv, watch} — same-brand boost, reason shown.
+    Returns ranked top-10 with price ranges, why lists, setup guides.
+    """
+    a = request.get_json(force=True, silent=True) or {}
+    use = a.get("use", "everyday")
+    os_pref = a.get("os", "any")
+    case = a.get("case", "any")
+    budget = a.get("budget", "any")
+    snap_answer = a.get("snapdragon", "unsure")
+    usage = a.get("usage", "light")
+    kid = a.get("kid", "no") == "yes"
+    eco = a.get("ecosystem") or {}
+    eco_wants = bool(eco.get("wants"))
+    eco_owned = {k: (eco.get(k) or "").strip() for k in ("phone", "tv", "watch")}
+    notes = []
+
+    pool = list(DESKTOPS)
+    # Hard filter: platform
+    platform = DESKTOP_PLATFORM_OF.get(os_pref)
+    if platform:
+        pool = [d for d in pool if d["platform"] == platform]
+    # Hard filters with graceful relaxation: case size, then budget
+    if case != "any":
+        in_case = [d for d in pool if d["case_bucket"] == case]
+        if len(in_case) >= 3:
+            pool = in_case
+    if budget != "any":
+        in_budget = [d for d in pool if _laptop_in_budget(d["price"], budget)]
+        if len(in_budget) >= 3:
+            pool = in_budget
+    # Ecosystem honesty notes (brand-level facts only) — same as laptops
+    phone_b, watch_b = eco_owned.get("phone", ""), eco_owned.get("watch", "")
+    if eco_wants and watch_b.lower() == "apple" and phone_b and phone_b.lower() != "apple":
+        notes.append("An Apple Watch only pairs with an iPhone — it won't "
+                     "connect to a " + phone_b + " phone, whichever desktop you pick.")
+    if eco_wants and watch_b.lower() == "samsung" and phone_b and phone_b.lower() != "samsung":
+        notes.append("A Galaxy Watch works with other Android phones, but a "
+                     "few health features (like ECG) need a Samsung phone.")
+
+    want_cat = DESKTOP_USE_CATEGORY.get(use, "everyday")
+    affinity = DESKTOP_USE_AFFINITY.get(use, {})
+
+    def score(d):
+        s, why_bits = 50.0, []
+        if d["desktop_category"] == want_cat:
+            s += 40
+            why_bits.append(DESKTOP_CATEGORY_WHY[want_cat])
+        elif d["desktop_category"] in affinity:
+            s += affinity[d["desktop_category"]]
+            why_bits.append(DESKTOP_CATEGORY_WHY[d["desktop_category"]])
+        if case != "any" and d["case_bucket"] == case:
+            s += 12
+        if usage == "heavy":
+            if d["ram_max_gb"] and d["ram_max_gb"] >= 16:
+                s += 8
+            if d["storage_max_gb"] and d["storage_max_gb"] >= 512:
+                s += 8
+        if use in ("gaming", "creative") and d["gpu_type"] in ("discrete", "both"):
+            s += 8
+        eco_note = None
+        if eco_wants:
+            matched = []
+            if phone_b and d["brand"].lower() == phone_b.lower():
+                s += 25
+                matched.append("phone")
+            if eco_owned["tv"] and d["brand"].lower() == eco_owned["tv"].lower():
+                s += 10
+                matched.append("TV")
+            if watch_b and d["brand"].lower() == watch_b.lower():
+                s += 10
+                matched.append("smartwatch")
+            if matched:
+                eco_note = (f"Same brand as your {' and '.join(matched)} "
+                            f"({d['brand']}) — one ecosystem: account, apps, "
+                            "and device perks line up best inside one brand's world.")
+        return s, why_bits, eco_note
+
+    budget_label = {"under500": "under $500", "500-900": "$500–$900",
+                    "900-1400": "$900–$1,400",
+                    "1400plus": "over $1,400"}.get(budget)
+    case_label = DESKTOP_CASE_LABEL.get(case)
+
+    def why_list_for(d, eco_note):
+        """Per-pick reasons for the 'Why we picked this desktop' dropdown.
+        Every bullet traces to a quiz answer or a data field — no filler."""
+        bullets = []
+        cat = d["desktop_category"]
+        frag = DESKTOP_CATEGORY_WHY.get(cat, "")
+        if frag and cat == want_cat:
+            bullets.append(f"For {use}: {frag[0].lower() + frag[1:]}.")
+        elif frag and cat in affinity:
+            bullets.append(f"Close match for {use}: {frag[0].lower() + frag[1:]}.")
+        if os_pref != "any":
+            bullets.append(f"Runs {d['platform']} — the system you asked for.")
+        if case != "any" and case_label:
+            if d["case_bucket"] == case:
+                bullets.append(f"{d['form_factor_label']} case — the size "
+                               f"you picked.")
+            else:
+                bullets.append(
+                    f"{d['form_factor_label']} case — outside the "
+                    f"{case_label} size you picked; we widened the net "
+                    "because few desktops matched everything you asked for.")
+        if budget != "any" and budget_label:
+            price = d["price"]
+            if _laptop_in_budget(price, budget):
+                spot = ""
+                spans = {"under500": (0, 500), "500-900": (500, 900),
+                         "900-1400": (900, 1400)}
+                if budget in spans:
+                    lo, hi = spans[budget]
+                    r = (price - lo) / (hi - lo)
+                    spot = (" — near the low end of that budget" if r <= 0.34
+                            else " — near the top of that budget" if r >= 0.67
+                            else " — mid-range in that budget")
+                bullets.append(f"Starts at {_fmt_price(price)} — inside your "
+                               f"{budget_label} budget{spot}.")
+            else:
+                bullets.append(
+                    f"Starts at {_fmt_price(price)} — outside your "
+                    f"{budget_label} budget; it stayed in because few "
+                    "desktops matched your other answers.")
+        if usage == "heavy":
+            strong = []
+            if d["ram_max_gb"] and d["ram_max_gb"] >= 16:
+                strong.append(f"up to {d['ram_max_gb']}GB RAM")
+            if d["storage_max_gb"] and d["storage_max_gb"] >= 512:
+                strong.append(f"up to {d['storage_max_gb']}GB storage")
+            if strong:
+                bullets.append("Headroom for big apps and lots of files: "
+                               "configures " + " and ".join(strong) + ".")
+        elif d["ram_min_gb"]:
+            b = f"Starts at {d['ram_min_gb']}GB RAM"
+            if d["storage_min_gb"]:
+                b += f" and {d['storage_min_gb']}GB storage"
+            bullets.append(b + " — plenty for browser, email, "
+                           "and document work.")
+        if d["platform"] == "Windows" and snap_answer in ("yes", "unsure") \
+                and not d["snapdragon"] and d["architecture"] == "x86":
+            bullets.append(
+                "Intel/AMD inside — the compatibility-safe lane for "
+                "specific Windows programs, older printers, and "
+                "anti-cheat games. (Snapdragon desktops don't exist yet — "
+                "that lane is laptops-only today.)")
+        if use in ("gaming", "creative"):
+            if d["gpu_type"] == "discrete":
+                bullets.append("Dedicated graphics on board — the kind "
+                               "games and creative apps are built for.")
+            elif d["gpu_type"] == "both":
+                bullets.append("Can be configured with dedicated graphics — "
+                               "the kind games and creative apps are built for.")
+        if d["form_factor"] == "all-in-one" and d["display_inches"]:
+            bullets.append(f"All-in-one: the {d['display_inches']}″ screen "
+                           "is built in — no separate monitor to buy.")
+        if eco_note:
+            bullets.append(eco_note)
+        if d.get("formerly"):
+            bullets.append(f"Rebrand note: this is {d['brand']}'s successor "
+                           f"to the {d['formerly']} — same family, "
+                           "new name.")
+        if d.get("price_note"):
+            bullets.append(d["price_note"])
+        if kid:
+            par = LAPTOP_PARENTAL.get("platforms", {}).get(
+                LAPTOP_OS_KEY.get(d["platform"], "")) or {}
+            cs = par.get("control_system")
+            if cs:
+                bullets.append(
+                    f"For your kid: {d['platform']} parental controls run "
+                    f"through {cs} — the setup page (button at the bottom "
+                    "of these results) walks through the child account, "
+                    "limits, and approvals.")
+            else:
+                bullets.append(
+                    "For your kid: this platform has built-in parental "
+                    "controls — the setup page (button at the bottom of "
+                    "these results) walks through them.")
+        return bullets
+
+    scored = []
+    for d in pool:
+        s, why_bits, eco_note = score(d)
+        why = ". ".join(why_bits) + "." if why_bits else "A solid all-rounder."
+        if usage == "heavy" and d["ram_max_gb"]:
+            why += (f" Specs go up to {d['ram_max_gb']}GB RAM"
+                    + (f" and {d['storage_max_gb']}GB storage"
+                       if d["storage_max_gb"] else "") + ".")
+        scored.append((s, d, why, eco_note))
+    scored.sort(key=lambda t: (-t[0], t[1]["price"]))
+
+    # Brand diversity: cap 3 per brand in the first pass, then backfill
+    ranked, deferred, per_brand = [], [], {}
+    for item in scored:
+        b = item[1]["brand"]
+        if per_brand.get(b, 0) < 3:
+            ranked.append(item)
+            per_brand[b] = per_brand.get(b, 0) + 1
+        else:
+            deferred.append(item)
+    ranked = (ranked + deferred)[:10]
+
+    recs, os_keys, brand_keys = [], set(), set()
+    for s, d, why, eco_note in ranked:
+        os_key = LAPTOP_OS_KEY.get(d["platform"])
+        brand_key = d["brand"].lower()
+        if os_key:
+            os_keys.add(os_key)
+        brand_keys.add(brand_key)
+        recs.append({
+            "id": d["id"], "name": d["name"], "brand": d["brand"],
+            "type": "desktop", "desktop_category": d["desktop_category"],
+            "platform": d["platform"], "os_detail": d["os_detail"],
+            "form_factor": d["form_factor"],
+            "form_factor_label": d["form_factor_label"],
+            "case_bucket": d["case_bucket"],
+            "model_number": d["model_number"],
+            "display_inches": d["display_inches"],
+            "cpu": d["cpu"], "ram_text": d["ram_text"],
+            "storage_text": d["storage_text"], "gpu": d["gpu"],
+            "gpu_type": d["gpu_type"],
+            "dimensions": d["dimensions"],
+            "volume_liters": d["volume_liters"],
+            "weight_text": d["weight_text"],
+            "architecture": d["architecture"], "snapdragon": d["snapdragon"],
+            "formerly": d["formerly"], "source_url": d["source_url"],
+            "price": d["price"], "price_max": d["price_max"],
+            "price_source": d["price_source"],
+            "max_config_note": d["max_config_note"],
+            "price_note": d["price_note"],
+            "score": round(s), "why": why_list_for(d, eco_note),
+            "summary": why, "ecosystem_note": eco_note,
+            "setup": {"os_key": os_key, "brand_key": brand_key},
+        })
+    if any(r["platform"] == "DGX OS" for r in recs):
+        notes.append(
+            "One pick runs NVIDIA DGX OS — a specialist AI-compute system "
+            "for local model work, not a general-purpose Windows/Mac "
+            "machine. It's in the catalog for exactly that job.")
+
+    # Setup guidance for exactly the platforms/brands in these results
+    guides = {"os_flows": {}, "brand_layers": {},
+              "first_week_checklist": [], "parental": None}
+    for k in os_keys:
+        if k in LAPTOP_GUIDES.get("os_flows", {}):
+            guides["os_flows"][k] = LAPTOP_GUIDES["os_flows"][k]
+    for k in brand_keys:
+        if k in LAPTOP_GUIDES.get("brand_layers", {}):
+            guides["brand_layers"][k] = LAPTOP_GUIDES["brand_layers"][k]
+    plat_tokens = set()
+    for r in recs:
+        ok = LAPTOP_OS_KEY.get(r["platform"])
+        if ok:
+            plat_tokens |= {"windows_11": {"windows", "all"},
+                            "macos": {"macos", "mac", "all"},
+                            "chromeos": {"chromeos", "chrome", "all"}}[ok]
+    for c in LAPTOP_GUIDES.get("first_week_checklist", []):
+        if str(c.get("applies_to", "all")).lower() in plat_tokens:
+            guides["first_week_checklist"].append(c)
+    if kid:
+        guides["parental"] = {
+            "core_principle": LAPTOP_PARENTAL.get("core_principle"),
+            "platforms": {k: LAPTOP_PARENTAL.get("platforms", {}).get(k)
+                          for k in os_keys
+                          if LAPTOP_PARENTAL.get("platforms", {}).get(k)},
+        }
+
+    return jsonify({
+        "recommendations": recs,
+        "notes": notes,
+        "guides": guides,
+        "kid": kid,
+        "query": {"use": use, "os": os_pref, "case": case,
+                  "budget": budget, "snapdragon": snap_answer,
+                  "usage": usage},
+    })
+
+
 def _squash(s):
     """Lowercase, alphanumerics only — for forgiving model matching."""
     return re.sub(r"[^a-z0-9]", "", (s or "").lower())
@@ -688,14 +1026,53 @@ def _laptop_public(l):
     }
 
 
+def _desktop_public(d):
+    """The fields the result cards use, for a directly-looked-up desktop.
+    Facts only (category + case + spec ceiling) — no quiz-based reasons
+    are invented for a model the user named."""
+    frag = DESKTOP_CATEGORY_WHY.get(d["desktop_category"], "")
+    summary = (frag + ".") if frag else "A solid all-rounder."
+    summary += f" {d['form_factor_label']} case."
+    if d["ram_max_gb"]:
+        summary += (f" Specs go up to {d['ram_max_gb']}GB RAM"
+                    + (f" and {d['storage_max_gb']}GB storage"
+                       if d["storage_max_gb"] else "") + ".")
+    return {
+        "id": d["id"], "name": d["name"], "brand": d["brand"],
+        "type": "desktop", "desktop_category": d["desktop_category"],
+        "platform": d["platform"], "os_detail": d["os_detail"],
+        "form_factor": d["form_factor"],
+        "form_factor_label": d["form_factor_label"],
+        "case_bucket": d["case_bucket"],
+        "model_number": d["model_number"],
+        "display_inches": d["display_inches"],
+        "cpu": d["cpu"], "ram_text": d["ram_text"],
+        "storage_text": d["storage_text"], "gpu": d["gpu"],
+        "gpu_type": d["gpu_type"], "dimensions": d["dimensions"],
+        "volume_liters": d["volume_liters"],
+        "weight_text": d["weight_text"],
+        "architecture": d["architecture"], "snapdragon": d["snapdragon"],
+        "formerly": d["formerly"], "source_url": d["source_url"],
+        "price": d["price"], "price_max": d["price_max"],
+        "price_source": d["price_source"],
+        "max_config_note": d["max_config_note"],
+        "price_note": d["price_note"],
+        "score": 0, "why": [], "summary": summary, "ecosystem_note": None,
+        "setup": {"os_key": LAPTOP_OS_KEY.get(d["platform"]),
+                  "brand_key": d["brand"].lower()},
+    }
+
+
 @app.route("/api/laptop-search")
 def api_laptop_search():
-    """'Know your model?' lookup. GET ?q= — matches the typed text against
-    model names, the old line names (formerly: a user typing 'Inspiron'
-    finds the renamed Dell Plus), and the model-number codes carried in
-    names (the 'CX34' / 'DB04250' / 'B14W' style tokens). NOTE: the laptop
-    data has no dedicated model-number/SKU field — codes are matched from
-    the tokens present in names."""
+    """'Know your model?' lookup (route name kept from the laptop launch).
+    GET ?q= — matches the typed text against model names, the old line
+    names (formerly: a user typing 'Inspiron' finds the renamed Dell
+    lines), and model-number codes. Searches BOTH catalogs: laptops
+    (codes matched from name tokens — the laptop data has no dedicated
+    model-number field) and desktops (codes matched from names AND the
+    census model_number field, e.g. EBT2250). Each match carries its
+    type: 'laptop' or 'desktop'."""
     q = (request.args.get("q") or "").strip()
     if len(q) < 2:
         return jsonify({"matches": []})
@@ -718,9 +1095,29 @@ def api_laptop_search():
             tier = 3          # the old line name (formerly)
         else:
             continue
-        hits.append((tier, l["price"], l))
+        hits.append((tier, l["price"], _laptop_public(l)))
+    for d in DESKTOPS:
+        name_s = _squash(d["name"])
+        form_s = _squash(d.get("formerly") or "")
+        code_s = _squash(d.get("model_number") or "")
+        name_toks = _word_tokens(d["name"])
+        code_toks = _word_tokens(d.get("model_number") or "")
+        all_toks = set(name_toks) | set(code_toks) \
+            | set(_word_tokens(d.get("formerly") or "")) \
+            | set(_word_tokens(d["brand"]))
+        if qs and (qs in name_toks or qs in code_toks or qs == code_s):
+            tier = 0          # exact model-code token: EBT2250, PN42, 90YA…
+        elif qs and qs in name_s:
+            tier = 1
+        elif qtoks and all(any(t in tok for tok in all_toks) for t in qtoks):
+            tier = 2
+        elif qs and qs in form_s:
+            tier = 3
+        else:
+            continue
+        hits.append((tier, d["price"], _desktop_public(d)))
     hits.sort(key=lambda t: (t[0], t[1]))
-    return jsonify({"matches": [_laptop_public(l) for _, _, l in hits[:8]]})
+    return jsonify({"matches": [pub for _, _, pub in hits[:8]]})
 
 
 @app.route("/api/laptop-guides")
