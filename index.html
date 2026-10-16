@@ -147,7 +147,7 @@
   <div id="model-lookup" style="display:none"></div>
   <div id="disclaimers" style="display:none"></div>
   <button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>
-  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.11 &middot; If a page looks outdated, read this stamp back to us</p>
+  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.12 &middot; If a page looks outdated, read this stamp back to us</p>
 </div>
 <script>const stepsEl = document.getElementById('steps');
 const bar = document.getElementById('bar');
@@ -547,6 +547,18 @@ const LAPTOP_QUESTIONS = [
       { v: '15-16', t: '15–16 inch', s: 'Most people pick this' },
       { v: '17plus', t: '17 inch or bigger', s: 'Desk-bound, big canvas' },
       { v: 'any', t: 'No preference' } ] },
+  { key: 'ext_screens', q: "Will you plug in extra screens?",
+    opts: () => [
+      { v: '0', t: 'Just the laptop screen', s: 'No extra monitors' },
+      { v: '1', t: '+1 extra screen', s: 'One monitor plugged in at a desk' },
+      { v: '2', t: '+2 or more extra screens', s: 'A full desk setup' } ] },
+  { key: 'ext_resolution', when: () => lanswers.ext_screens && lanswers.ext_screens !== '0',
+    q: "What resolution are the extra screens?",
+    opts: () => [
+      { v: '1080p', t: '1080p — Full HD', s: 'Sharp for work and most games' },
+      { v: '1440p', t: '1440p — QHD', s: 'Crisper; the gaming sweet spot' },
+      { v: '4k', t: '4K — Ultra HD', s: 'Sharpest picture; needs a stronger graphics card' },
+      { v: 'unsure', t: 'Not sure', s: "We'll assume standard screens — no pressure either way" } ] },
   { key: 'budget', q: "What's the budget?",
     opts: () => [
       { v: 'under500', t: 'Under $500' },
@@ -728,6 +740,8 @@ async function finishLaptops() {
     use: lanswers.use, os: lanswers.os, screen: lanswers.screen,
     budget: lanswers.budget, snapdragon: lanswers.snapdragon || 'unsure',
     usage: lanswers.usage, kid: lanswers.kid,
+    ext_screens: lanswers.ext_screens || '0',
+    ext_resolution: lanswers.ext_resolution || 'unsure',
     ecosystem: { wants: lanswers.eco_wants === 'yes',
       phone: lanswers.eco_phone || '', tv: lanswers.eco_tv || '',
       watch: lanswers.eco_watch || '' }
@@ -756,6 +770,17 @@ const DESKTOP_QUESTIONS = [
       { v: 'full', t: 'Full tower', s: 'Big case — maximum room for parts and cooling' },
       { v: 'aio', t: 'All-in-one', s: 'Screen built into the computer — no separate monitor' },
       { v: 'any', t: 'No preference' } ] },
+  { key: 'screens', q: "How many screens will you plug in?",
+    opts: () => [
+      { v: '1', t: '1 screen', s: 'Just one monitor' },
+      { v: '2', t: '2 screens', s: 'Side by side — the classic desk setup' },
+      { v: '3', t: '3 or more screens', s: 'A full command center' } ] },
+  { key: 'resolution', q: "What resolution are the screens?",
+    opts: () => [
+      { v: '1080p', t: '1080p — Full HD', s: 'Sharp for work and most games' },
+      { v: '1440p', t: '1440p — QHD', s: 'Crisper; the gaming sweet spot' },
+      { v: '4k', t: '4K — Ultra HD', s: 'Sharpest picture; needs a stronger graphics card' },
+      { v: 'unsure', t: 'Not sure', s: "We'll assume standard screens — no pressure either way" } ] },
   { key: 'budget', q: "What's the budget?",
     opts: () => [
       { v: 'under500', t: 'Under $500' },
@@ -956,6 +981,7 @@ async function finishDesktops() {
     use: danswers.use, os: danswers.os, case: danswers.case,
     budget: danswers.budget, snapdragon: danswers.snapdragon || 'unsure',
     usage: danswers.usage, kid: danswers.kid,
+    screens: danswers.screens || '1', resolution: danswers.resolution || 'unsure',
     ecosystem: { wants: danswers.eco_wants === 'yes',
       phone: danswers.eco_phone || '', tv: danswers.eco_tv || '',
       watch: danswers.eco_watch || '' }
