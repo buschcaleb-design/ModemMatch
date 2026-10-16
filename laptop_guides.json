@@ -7,39 +7,48 @@
         "steps": [
           {
             "detail": "On the first setup screens, pick your country or region, language, and keyboard layout when prompted. Setup may offer a second keyboard layout; add one only if you use it, otherwise skip that prompt.",
-            "title": "Choose region and keyboard"
+            "title": "Choose region and keyboard",
+            "photo": null
           },
           {
             "detail": "Choose your Wi-Fi network and enter its password, or plug in Ethernet if the laptop has it or you have an adapter. An internet connection is part of documented first setup for consumer editions (see honest_notes), and it is also needed for updates and some features.",
-            "title": "Connect to a network"
+            "title": "Connect to a network",
+            "photo": null
           },
           {
             "detail": "Sign in with an existing Microsoft account, or create one during setup if prompted. Signing in is what Microsoft documents as bringing your files, settings and Microsoft services with you to the new device. Complete any extra verification the account asks for.",
-            "title": "Sign in with a Microsoft account"
+            "title": "Sign in with a Microsoft account",
+            "photo": null
           },
           {
             "detail": "Some Windows 11 versions and manufacturers show a screen to name the device during setup. If you see it, use a short, recognisable name. If you do not see it, do not worry — the name can be changed later in Settings. See honest_notes: Microsoft's consumer support pages consulted for this guide do not settle this step.",
-            "title": "Name the PC, if setup offers it"
+            "title": "Name the PC, if setup offers it",
+            "photo": null
           },
           {
             "detail": "Setup presents privacy choices for the device (historically including things such as location, diagnostic data, inking and typing improvement, and tailored experiences). Read each screen instead of tapping through, and choose the more private option if you do not want that data use. You can change these choices later in Settings.",
-            "title": "Make the privacy choices shown during setup"
+            "title": "Make the privacy choices shown during setup",
+            "photo": null
           },
           {
             "detail": "Follow any remaining prompts (for example PIN / Windows Hello if offered for your model, and any manufacturer or Microsoft service offers). Decline offers you do not want. Setup finishes at the Windows desktop.",
-            "title": "Finish setup and reach the desktop"
+            "title": "Finish setup and reach the desktop",
+            "photo": null
           },
           {
             "detail": "Open Start > Settings > Windows Update and select Check for updates. Install what is offered, restart when asked, then go back and check again. Repeat until Windows Update reports no further updates are offered. Keep the laptop plugged in and online while this runs.",
-            "title": "Run Windows Update until current"
+            "title": "Run Windows Update until current",
+            "photo": null
           },
           {
             "detail": "Worth reviewing after setup: Start > Settings > Privacy & security. Check Location (which apps may use your location), Diagnostics & feedback (turn off optional diagnostic data and tailored experiences if you do not want them), and the advertising ID / personalisation page — labelled General on some builds and Recommendations & offers on newer builds — where you can turn off letting apps show personalised ads using your advertising ID. Also review app permissions for Camera, Microphone, Contacts and Calendar, and turn off individual apps you do not want to have access. Note: Microsoft says these permission lists mainly cover Microsoft Store apps; desktop apps may not appear in them and control access in their own settings.",
-            "title": "Review privacy settings in Settings"
+            "title": "Review privacy settings in Settings",
+            "photo": null
           },
           {
             "detail": "Microsoft Support documents creating a USB recovery drive after setup: search the taskbar for 'Create a recovery drive', open the tool, keep 'Back up system files to the recovery drive' selected, choose a USB drive and select Create. Creating it erases that USB drive, so use a blank one or move its files first.",
-            "title": "Optional: make a recovery drive"
+            "title": "Optional: make a recovery drive",
+            "photo": null
           }
         ],
         "honest_notes": [
@@ -51,7 +60,8 @@
           "Pro for work or school is different from Pro for personal use: organisation setup can involve joining a work or school account / domain instead of a personal Microsoft account, but the consumer Microsoft Support pages consulted here do not document that OOBE path step by step, so the exact screens are unsettled in this guide and will depend on the organisation.",
           "PC naming during OOBE is unsettled in the official pages consulted: it appears on some versions/builds and not others, so it is presented as 'if offered' rather than as a guaranteed step.",
           "Privacy page labels vary by Windows 11 build: the advertising ID and related personalisation controls have appeared under Privacy & security > General and, on newer builds, under Recommendations & offers / personalised offers pages. Use the labels shown on the device."
-        ]
+        ],
+        "video_url": null
       },
       "macos": {
         "os": "macOS",
@@ -59,39 +69,48 @@
         "steps": [
           {
             "detail": "Turn the Mac on. Setup Assistant starts the first time. Choose your country or region — Apple uses this to set language and time zone. Accessibility options are available early in setup if you need them (for example VoiceOver guidance).",
-            "title": "Start Setup Assistant and choose country or region"
+            "title": "Start Setup Assistant and choose country or region",
+            "photo": null
           },
           {
             "detail": "Choose your Wi-Fi network and enter its password if asked. If you are using wired Ethernet, choose Other Network Options instead. You can change the network later from the Wi-Fi menu / System Settings.",
-            "title": "Connect to Wi-Fi"
+            "title": "Connect to Wi-Fi",
+            "photo": null
           },
           {
             "detail": "Setup Assistant offers Migration Assistant during setup. If this is a first Mac or you want a clean start, choose the option not to transfer information now. If you are moving from another Mac, a PC, a Time Machine backup or another disk, choose that source and follow the prompts. If you skip it, you can still transfer later with Migration Assistant in Applications > Utilities.",
-            "title": "Decide whether to transfer information"
+            "title": "Decide whether to transfer information",
+            "photo": null
           },
           {
             "detail": "Sign in with your Apple Account (the account formerly called Apple ID) if prompted, and complete any verification. Apple notes some setup items can be skipped and done later — its guide gives Apple Pay and Screen Time as examples where choosing 'Set up later' can make sense during first setup.",
-            "title": "Sign in with your Apple Account"
+            "title": "Sign in with your Apple Account",
+            "photo": null
           },
           {
             "detail": "Read and agree to the macOS Terms and Conditions when shown. Create the local computer (administrator) account for the Mac — full name, account name and a strong password you will remember. This password is also important for FileVault (see below).",
-            "title": "Agree to Terms and Conditions and create your computer account"
+            "title": "Agree to Terms and Conditions and create your computer account",
+            "photo": null
           },
           {
             "detail": "Work through the choice screens Setup Assistant shows on your model/version, which can include Location Services / time zone, sharing analytics / crash and usage data with Apple and developers, Screen Time, Siri, and appearance. Choose 'Set up later' / decline sharing where that is what you want; these choices can be changed later in System Settings.",
-            "title": "Make Siri, analytics and other choice screens"
+            "title": "Make Siri, analytics and other choice screens",
+            "photo": null
           },
           {
             "detail": "On models with Touch ID, Setup Assistant can offer fingerprint setup during first setup, and Apple Pay setup if you add a supported card. Both vary by model, and Apple Pay needs a verified card, so it is reasonable to choose 'Set up later' and finish these in System Settings after setup if you prefer.",
-            "title": "Set up Touch ID and Apple Pay, if your model offers them"
+            "title": "Set up Touch ID and Apple Pay, if your model offers them",
+            "photo": null
           },
           {
             "detail": "FileVault may be offered during setup. Apple documents it as an extra security layer: on Macs with Apple silicon or a T2 chip the data is already encrypted automatically, and turning FileVault on means someone cannot decrypt or access the data without the login password. If you turn it on, choose how to unlock the disk if you forget your password — allow your iCloud / Apple Account to unlock it, or create a recovery key. If you choose a recovery key, copy it exactly and keep it somewhere safe away from the Mac and not only on the encrypted disk. If FileVault was not offered in Setup Assistant, check it in Apple menu > System Settings > Privacy & Security > FileVault.",
-            "title": "Turn on FileVault if offered, or check it right after setup"
+            "title": "Turn on FileVault if offered, or check it right after setup",
+            "photo": null
           },
           {
             "detail": "Open Apple menu > System Settings > General > Software Update. Software Update checks automatically and only offers updates compatible with your Mac. If updates are shown, click Update Now (or Upgrade Now for a newer major macOS version), enter the administrator password if asked, and let the Mac restart if needed. In the same place you can review Automatic Updates options, including downloading updates and installing macOS and security updates automatically.",
-            "title": "Update macOS after setup"
+            "title": "Update macOS after setup",
+            "photo": null
           }
         ],
         "honest_notes": [],
@@ -100,7 +119,8 @@
           "Touch ID, Apple Pay, Siri / Apple Intelligence, Screen Time and FileVault prompts vary by model, chip, region and macOS version — this guide marks them as 'if offered' instead of guaranteeing them.",
           "Migration Assistant sources and wording vary by version (another Mac, PC, Time Machine backup or startup disk); the settled point from Apple is that transferring is optional during setup and can also be done later.",
           "Whether FileVault is presented as a setup screen or is already on / needs turning on in System Settings was not settled for every model by the Apple pages consulted; the safe documented action is to check Privacy & Security > FileVault after setup."
-        ]
+        ],
+        "video_url": null
       },
       "chromeos": {
         "os": "ChromeOS",
@@ -108,31 +128,38 @@
         "steps": [
           {
             "detail": "If the battery is separate, install it first, then press the power button. Have your Google Account username and password and internet access ready — Google lists those as what you need for setup.",
-            "title": "Turn on the Chromebook"
+            "title": "Turn on the Chromebook",
+            "photo": null
           },
           {
             "detail": "Follow the on-screen instructions: select the language shown to set language and keyboard settings, turn on Accessibility features if you need them, choose your network (Wi-Fi) and connect, then accept the terms of service.",
-            "title": "Choose language, keyboard, network and accept terms"
+            "title": "Choose language, keyboard, network and accept terms",
+            "photo": null
           },
           {
             "detail": "Enter your Google Account email or phone number and password. The first account to sign in becomes the Chromebook owner. If you use 2-Step Verification, enter the code sent to your chosen device when prompted. Once you sign in, your bookmarks, extensions and apps appear automatically.",
-            "title": "Sign in with a Google Account"
+            "title": "Sign in with a Google Account",
+            "photo": null
           },
           {
             "detail": "If you do not have a Google Account, create one — on some Chromebooks you can select More options > Create new account during setup. To use the Chromebook without an account, select Browse as Guest. Guest browsing is not the same as setting the Chromebook up as owner.",
-            "title": "If you have no account, or want to browse without one"
+            "title": "If you have no account, or want to browse without one",
+            "photo": null
           },
           {
             "detail": "ChromeOS automatically checks for and downloads operating system updates when connected to the internet. To finish a downloaded update, use the 'Update available' / 'Update device' notification at the bottom right and select Restart. To check yourself: turn the Chromebook on, connect to Wi-Fi, select the time at the bottom right > Settings, select About ChromeOS at the bottom left, and under Google ChromeOS select Check for updates — if an update is found it downloads automatically, then restart to finish. Keep it plugged in to avoid interruption, and note that on mobile data you may get an alert about data use.",
-            "title": "Let ChromeOS updates work, and check manually"
+            "title": "Let ChromeOS updates work, and check manually",
+            "photo": null
           },
           {
             "detail": "After setup, open the time at the bottom right > Settings > Apps > Google Play Store and select Turn on if that option is shown, then follow the prompts and accept the Play terms. Menu labels vary by ChromeOS version. Not every model supports Android apps, and work or school devices may have this controlled by an administrator — if there is no Turn on option, check model support / admin policy instead of forcing it.",
-            "title": "Turn on Google Play / Android apps, if supported and wanted"
+            "title": "Turn on Google Play / Android apps, if supported and wanted",
+            "photo": null
           },
           {
             "detail": "Linux is off by default. On a supported Chromebook: select the time at the bottom right > Settings > Advanced > Developers, next to 'Linux development environment' select Turn On, and follow the on-screen instructions using the default settings unless you need different ones. Setup can take 10 minutes or more and opens a Terminal window with a Debian environment. Linux lets you install command-line tools, code editors and IDEs.",
-            "title": "Optional: enable Linux (developers only)"
+            "title": "Optional: enable Linux (developers only)",
+            "photo": null
           }
         ],
         "honest_notes": [
@@ -142,7 +169,8 @@
         "disclaimers": [
           "Linux apps all run in the same sandbox as each other (separate from the rest of the Chromebook), and Google lists current limitations for Linux on Chromebook on its support page (for example cameras and hardware/GPU acceleration support limits at the time of the page consulted).",
           "Google Play / Android app support also varies by model and by work/school management; the official page text retrieved for the Play turn-on flow in this session was thinner than the setup, update and Linux pages, so exact Settings labels are noted as version-dependent."
-        ]
+        ],
+        "video_url": null
       }
     },
     "brand_layers": {
@@ -834,23 +862,28 @@
         "account_setup": [
           {
             "detail": "Google says it takes about 15 minutes: start at the Google Account creation page or inside the Family Link app, enter the child's name, the email address they want, and their birthday, then sign in with your own Google Account and give parental consent the way Google offers. This route is for a child under 13, or the applicable age in your country; the supervised account gives the child Search, Chrome and Gmail with parental controls.",
-            "title": "Create the child's Google Account"
+            "title": "Create the child's Google Account",
+            "photo": null
           },
           {
             "detail": "A child above the applicable age can create their own Google Account, and the parent adds supervision afterwards. Google states that above that age the child can also stop supervision; if they do, the parent is notified and the child's supervised devices are temporarily locked.",
-            "title": "Older children: add supervision instead"
+            "title": "Older children: add supervision instead",
+            "photo": null
           },
           {
             "detail": "Use the child's supervised account to sign in. On a brand-new Chromebook the first account signed in becomes the device owner; a parent who needs to be owner signs in first, then adds the child as a user.",
-            "title": "Sign the child in on the Chromebook"
+            "title": "Sign the child in on the Chromebook",
+            "photo": null
           },
           {
             "detail": "On the child's Chromebook, open Settings; under Accounts, next to Parental controls, click Set up and follow the steps. Google notes the child and the device must be nearby and the child gives their consent during setup; the parent signs in to confirm. Parents then manage settings in the Family Link app on their own device.",
-            "title": "Add supervision on the Chromebook if needed"
+            "title": "Add supervision on the Chromebook if needed",
+            "photo": null
           },
           {
             "detail": "Install the Family Link app from Google Play or the App Store and sign in as the parent; some settings can also be managed at familylink.google.com.",
-            "title": "Get Family Link on the parent's phone"
+            "title": "Get Family Link on the parent's phone",
+            "photo": null
           }
         ],
         "controls_available": [
@@ -898,35 +931,43 @@
         "enable_steps": [
           {
             "detail": "Child's Google Account created with consent, supervised in Family Link; child signed in on the Chromebook with the supervised account.",
-            "title": "Complete account setup and sign the child in"
+            "title": "Complete account setup and sign the child in",
+            "photo": null
           },
           {
             "detail": "All controls below live under the child's profile in the parent's Family Link app.",
-            "title": "Open Family Link and select the child"
+            "title": "Open Family Link and select the child",
+            "photo": null
           },
           {
             "detail": "Controls > Content restrictions > Google Chrome: choose the filtering level, then add always-approved school sites and any blocked sites.",
-            "title": "Set the Chrome filter"
+            "title": "Set the Chrome filter",
+            "photo": null
           },
           {
             "detail": "In Content restrictions: confirm SafeSearch under Google Search; under Google Play set maturity ratings and the purchase approval strength.",
-            "title": "Set Search and Play rules"
+            "title": "Set Search and Play rules",
+            "photo": null
           },
           {
             "detail": "Screen time > Time limits: turn on the daily limit, edit the weekly schedule, and add the Downtime (bedtime) schedule.",
-            "title": "Set screen time"
+            "title": "Set screen time",
+            "photo": null
           },
           {
             "detail": "Per-app limits for games, unlimited time for school apps, and block anything that should not be on the machine.",
-            "title": "Set app rules"
+            "title": "Set app rules",
+            "photo": null
           },
           {
             "detail": "Signed in as the device owner, open Settings > Privacy and security > Manage other people; turn off guest browsing and limit sign-in to chosen accounts, so the supervised account cannot be walked around with a guest session or another account. Setting names vary slightly by ChromeOS version.",
-            "title": "Close the side doors on the Chromebook"
+            "title": "Close the side doors on the Chromebook",
+            "photo": null
           },
           {
             "detail": "Sign in with the child's account: try a blocked site and send the access request, try downloading a free app and watch the approval arrive, and check the daily-limit display. Adjust, then hand over.",
-            "title": "Test as the child"
+            "title": "Test as the child",
+            "photo": null
           }
         ],
         "first_setup_checklist": [
@@ -945,7 +986,8 @@
           "Side doors are account-shaped: guest mode and additional unsupervised accounts bypass supervision unless the owner restricts them; a Powerwash (factory reset) followed by setup under a different account removes the device from the supervised arrangement, so the owner account should stay in the parent's hands (reset point is framed guidance; guest/sign-in behaviour is documented ChromeOS functionality).",
           "Purchase approvals have a hard edge stated by Google: they apply only when the child buys through Google Play's billing system, not to alternate billing systems or purchases elsewhere.",
           "Supervision has an age exit: above the applicable age in your country, Google documents that the child can stop supervision; the parent is notified and supervised devices are temporarily locked, but from that point the arrangement is a family agreement, not a setting."
-        ]
+        ],
+        "video_url": null
       },
       "macos": {
         "platform": "macOS",
@@ -953,31 +995,38 @@
         "account_setup": [
           {
             "detail": "On the parent's device, open Settings (iPhone/iPad) or System Settings (Mac) > Family and create the family group if there is not one already. The organizer, and adults designated as parent/guardian, can create child accounts and set controls for children and teens in the group.",
-            "title": "Set up Family Sharing"
+            "title": "Set up Family Sharing",
+            "photo": null
           },
           {
             "detail": "In Family settings, choose Add Member, then Create Child Account. Enter the child's name and correct date of birth; Apple uses the date of birth to determine eligible services and to suggest parental controls such as Ask to Buy and Screen Time.",
-            "title": "Create the child's Apple Account"
+            "title": "Create the child's Apple Account",
+            "photo": null
           },
           {
             "detail": "Agree to Apple's Family Privacy Disclosure for Children and the terms. Because child-privacy law (COPPA in the US, similar laws elsewhere) requires verifiable parental consent, Apple verifies the organizer's adult status; its legal disclosure names methods such as confirming the payment method on file (for example its security code) or an identity card in Wallet, varying by country.",
-            "title": "Verify you are an adult, and consent"
+            "title": "Verify you are an adult, and consent",
+            "photo": null
           },
           {
             "detail": "Create the child's email address (Apple can create a free iCloud address if the child has none) and a password. The account joins the family group automatically. During setup Apple offers the first controls: age-related content restrictions for apps, books, TV shows and movies; Downtime and app limits; restrictions on who the child can communicate with; and approvals for purchases or free downloads.",
-            "title": "Finish the account"
+            "title": "Finish the account",
+            "photo": null
           },
           {
             "detail": "Apple's disclosure states that a child's account cannot be removed from the family unless the account is deleted, the child turns 13 (or the equivalent minimum age in your jurisdiction), or the child is transferred to another family; after that age the child may be able to keep the account without participating in Family Sharing.",
-            "title": "Know the membership rule"
+            "title": "Know the membership rule",
+            "photo": null
           },
           {
             "detail": "Give the child their own Mac user account as a standard user, not an administrator, signed in with their child Apple Account. The parent keeps the administrator account and password. If the child already has an Apple Account without consent, Apple documents adding it to the family via Invite in Person and agreeing to the Parental Privacy Disclosure.",
-            "title": "On the MacBook itself"
+            "title": "On the MacBook itself",
+            "photo": null
           },
           {
             "detail": "Offered during account creation. Apple Support notes the age rules vary by region; in the United States an organizer can turn Ask to Buy on for any family member under 18, and for children under 13 it is on by default.",
-            "title": "Ask to Buy"
+            "title": "Ask to Buy",
+            "photo": null
           }
         ],
         "controls_available": [
@@ -1025,43 +1074,53 @@
         "enable_steps": [
           {
             "detail": "Child Apple Account created in Family Sharing; child signed in on the MacBook with their own account as a standard user.",
-            "title": "Complete account setup and sign the child in"
+            "title": "Complete account setup and sign the child in",
+            "photo": null
           },
           {
             "detail": "On the parent's Mac signed in with the organizer's Apple Account (or on the child's Mac signed in to the child's account), open System Settings > Screen Time; with Family Sharing, choose the child from the Family Member pop-up menu.",
-            "title": "Open Screen Time for the child"
+            "title": "Open Screen Time for the child",
+            "photo": null
           },
           {
             "detail": "So usage reports exist before limits are judged.",
-            "title": "Turn on App & Website Activity"
+            "title": "Turn on App & Website Activity",
+            "photo": null
           },
           {
             "detail": "A code the child does not know and that is not reused anywhere else.",
-            "title": "Set a Screen Time passcode"
+            "title": "Set a Screen Time passcode",
+            "photo": null
           },
           {
             "detail": "Turn on the schedule; use Custom days for different school-night and weekend hours.",
-            "title": "Set Downtime"
+            "title": "Set Downtime",
+            "photo": null
           },
           {
             "detail": "Cap the biggest time-sinks; keep school and messaging essentials always allowed.",
-            "title": "Set App Limits and Always Allowed"
+            "title": "Set App Limits and Always Allowed",
+            "photo": null
           },
           {
             "detail": "Set the web content level and store age ratings; under App Store, Media, Web & Games, set Game Center rules if relevant.",
-            "title": "Turn on Content & Privacy"
+            "title": "Turn on Content & Privacy",
+            "photo": null
           },
           {
             "detail": "Set Communication Limits and confirm Communication Safety is on.",
-            "title": "Review Communication settings"
+            "title": "Review Communication settings",
+            "photo": null
           },
           {
             "detail": "In Family settings, select the child and turn on Ask to Buy if it is not already on.",
-            "title": "Confirm Ask to Buy"
+            "title": "Confirm Ask to Buy",
+            "photo": null
           },
           {
             "detail": "Sign in with the child's account, run into a limit, and start a download so the parent sees the approval request arrive on their own device.",
-            "title": "Test as the child"
+            "title": "Test as the child",
+            "photo": null
           }
         ],
         "first_setup_checklist": [
@@ -1080,7 +1139,8 @@
           "Ask to Buy covers purchases the child makes through Apple's stores with their account; it does not govern buying elsewhere, and Apple's legal disclosure notes some categories (for example re-downloads and redemption-code downloads) may not be subject to Ask to Buy.",
           "Ages and defaults are regional: the age at which a child can leave the family arrangement, whether Ask to Buy is on by default, and which controls a region requires to stay on all vary by country, per Apple's support pages.",
           "Erasing the Mac and setting it up under a different Apple Account takes it out from under these settings; the anchor is the child's account staying in the family and the parent keeping the only administrator credentials (framed guidance)."
-        ]
+        ],
+        "video_url": null
       },
       "windows_11": {
         "platform": "Windows 11",
@@ -1088,27 +1148,33 @@
         "account_setup": [
           {
             "detail": "Sign in at account.microsoft.com/family with the parent's own Microsoft account. The adult who runs the group is the family organizer; organizers add and remove members, manage limits and permissions, view activity for members with reporting enabled, and give consent for a minor.",
-            "title": "Start from the parent's account"
+            "title": "Start from the parent's account",
+            "photo": null
           },
           {
             "detail": "Select Add a family member and choose the role Member. Microsoft describes Member as usually the best option for a child; Organizer is the adult role. The same flow exists in the Microsoft Family Safety app (Add a family member > role > Invite to family group).",
-            "title": "Add a family member"
+            "title": "Add a family member",
+            "photo": null
           },
           {
             "detail": "Enter the child's email address or phone number to send an invite, or create a new Microsoft account for the child as part of the flow. The invitee signs in to their own account to accept. An account can belong to only one family group at a time.",
-            "title": "Invite, or create the child's account"
+            "title": "Invite, or create the child's account",
+            "photo": null
           },
           {
             "detail": "If the child is under the statutory age for your country, they are prompted to request adult consent and the organizer approves it. Statutory ages vary by country (Microsoft publishes a country list), and some regions require additional consent steps; Microsoft's consent pages describe an extra requirement under China's PIPL as an example.",
-            "title": "Give consent if asked"
+            "title": "Give consent if asked",
+            "photo": null
           },
           {
             "detail": "On the child's laptop, go to Windows Settings > Accounts > Family, add or allow the child's account, and have the child sign in to Windows with their own account. Once they sign in, the device appears in their connected devices, which is what applies the family settings to that machine.",
-            "title": "Connect the laptop"
+            "title": "Connect the laptop",
+            "photo": null
           },
           {
             "detail": "Microsoft's own note: make sure the child's account is set as a standard user, because family features may not work properly if the child's account is an administrator. The parent keeps the administrator password.",
-            "title": "Keep the child a standard user"
+            "title": "Keep the child a standard user",
+            "photo": null
           }
         ],
         "controls_available": [
@@ -1144,31 +1210,38 @@
         "enable_steps": [
           {
             "detail": "Child added as a Member with consent given if prompted; child signed in on the laptop with their own account, set as a standard user.",
-            "title": "Complete account setup and sign the child in"
+            "title": "Complete account setup and sign the child in",
+            "photo": null
           },
           {
             "detail": "At account.microsoft.com/family, select the child's tile, open the Windows platform tab, select Screen time, turn limits on, and set the daily limit and allowed hours for each day.",
-            "title": "Set screen time"
+            "title": "Set screen time",
+            "photo": null
           },
           {
             "detail": "On the same platform tab, open Apps, features, and games, turn on App and game limits, then set daily limits on, or block, the apps and games that matter.",
-            "title": "Set app and game limits"
+            "title": "Set app and game limits",
+            "photo": null
           },
           {
             "detail": "Select the child, choose the Edge platform, turn on Filter inappropriate websites and searches, and add specific Blocked sites or Allowed sites. For younger children, turn on Only use allowed websites and build the allowed list.",
-            "title": "Turn on web filtering"
+            "title": "Turn on web filtering",
+            "photo": null
           },
           {
             "detail": "In Content filters > Apps and games, set the age rating the child may use without approval.",
-            "title": "Set the age rating"
+            "title": "Set the age rating",
+            "photo": null
           },
           {
             "detail": "Open the child's Spending page; require approval for purchases, or add an account balance instead of a payment method.",
-            "title": "Set spending rules"
+            "title": "Set spending rules",
+            "photo": null
           },
           {
             "detail": "Sign in with the child's account, open Edge, and try a blocked site and an over-limit app so the parent sees exactly what the child sees and how requests arrive.",
-            "title": "Test as the child"
+            "title": "Test as the child",
+            "photo": null
           }
         ],
         "first_setup_checklist": [
@@ -1189,7 +1262,8 @@
         ],
         "disclaimers": [
           "Dashboard labels drift: Microsoft has renamed these pages over the years (Content restrictions, Content filters, Web and search, Edge tab), so a reader's screen may use a sibling label for the same setting."
-        ]
+        ],
+        "video_url": null
       }
     }
   }
