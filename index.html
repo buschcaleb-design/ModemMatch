@@ -129,6 +129,24 @@
   .dockrole { display: inline-block; background: #334155; color: #cbd5e1;
               border-radius: 999px; padding: 3px 10px; font-size: .76rem;
               font-weight: 700; margin: 0 6px 6px 0; }
+  #setupbtn-wrap { max-width: 640px; margin: 0 auto; padding: 0 16px; text-align: right; }
+  #setupbtn { background: none; border: none; color: #7dd3fc; font-size: .88rem;
+              font-weight: 700; cursor: pointer; padding: 6px 0; }
+  .savebtn { display: block; width: 100%; margin-top: 10px; background: #16202f;
+             border: 2px solid #475569; color: #cbd5e1; border-radius: 12px;
+             padding: 11px; font-size: .9rem; font-weight: 700; cursor: pointer; }
+  .savebtn:active { background: #273449; }
+  .setupline { margin: 6px 0; color: #e2e8f0; font-size: .95rem; }
+  .setupactions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .printsheet { background: #ffffff; color: #0f172a; border-radius: 14px;
+                padding: 22px; margin-top: 14px; text-align: left; }
+  .printsheet h2 { color: #0f172a; margin-top: 0; }
+  .printsheet p { margin: 8px 0; }
+  @media print {
+    #setupbtn-wrap, .discbtn, .buildstamp, .no-print { display: none !important; }
+    body { background: #ffffff; }
+    .printsheet { border-radius: 0; padding: 0; }
+  }
   .orline { text-align: center; color: #64748b; font-size: .85rem; margin: 18px 0 10px; }
   .dots::after { content: ""; animation: dots 1s steps(3) infinite; }
   @keyframes dots { 0% { content: ""; } 33% { content: "."; } 66% { content: ".."; } 100% { content: "..."; } }
@@ -153,9 +171,11 @@
   <div id="pc-guide" style="display:none"></div>
   <div id="model-lookup" style="display:none"></div>
   <div id="pairing" style="display:none"></div>
+  <div id="setup" style="display:none"></div>
   <div id="disclaimers" style="display:none"></div>
+  <div id="setupbtn-wrap"><button id="setupbtn" onclick="openMySetup()">🧩 My Setup</button></div>
   <button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>
-  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.14 &middot; If a page looks outdated, read this stamp back to us</p>
+  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.15 &middot; If a page looks outdated, read this stamp back to us</p>
 </div>
 <script>const stepsEl = document.getElementById('steps');
 const bar = document.getElementById('bar');
@@ -166,7 +186,7 @@ let isps = [];
 // First screen: Buy New Gear / Set Up New Gear. Second: Internet / PC.
 // Then route into the matching existing flow.
 let flowType = 'buy';   // 'buy' | 'setup'
-const SECTION_IDS = ['home', 'flow-pick', 'isp-pick', 'quiz', 'results', 'guide', 'pc-guide', 'model-lookup', 'pairing', 'disclaimers'];
+const SECTION_IDS = ['home', 'flow-pick', 'isp-pick', 'quiz', 'results', 'guide', 'pc-guide', 'model-lookup', 'pairing', 'setup', 'disclaimers'];
 function hideAllSections() {
   SECTION_IDS.forEach(id => document.getElementById(id).style.display = 'none');
 }
@@ -700,6 +720,7 @@ function laptopCardHTML(p, i, isTop, rankLabel) {
     ${laptopWhyHTML(p)}
     ${fullSpecsHTML(p)}
     <button class="pairbtn" onclick="openPairing('laptop','${p.id}')">🔌 Find my screen or dock to pair with it</button>
+    <button class="savebtn" onclick="saveSetupFromCard(this,'laptop','${p.id}')">💾 Save this setup</button>
     <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
 }
 function twoInOneUnavailableNote() {
@@ -967,6 +988,7 @@ function desktopCardHTML(p, i, isTop, rankLabel) {
     ${desktopWhyHTML(p)}
     ${fullSpecsHTML(p)}
     <button class="pairbtn" onclick="openPairing('desktop','${p.id}')">🔌 Find my screen or dock to pair with it</button>
+    <button class="savebtn" onclick="saveSetupFromCard(this,'desktop','${p.id}')">💾 Save this setup</button>
     <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
 }
 function renderDesktopResults() {
@@ -1513,19 +1535,55 @@ function renderModelCard(m) {
 }
 
 // ------------------------------------------------------------- pairing
-// Screens + dock pairing for one picked computer (Build .13, Caleb's
-// design): the results stay clean; pairing is its own opt-in flow per
-// pick, entered from the card button, with free jumps between the
-// Screens and Dock stages. All verdicts come from /api/pairing —
-// maker-stated display counts and vetted dock pairings only; where
-// the data doesn't settle a question, the UI says so instead of
-// guessing.
+// Screens + dock pairing for one picked computer (Build .13): an
+// opt-in flow per pick, entered from the card button, with free jumps
+// between the Screens and Dock stages. Verdicts come from
+// /api/pairing — maker-stated data only, never a guessed count.
 let pairData = null, pairType = 'laptop', pairStage = 'screens';
 let pairReturn = { section: 'results', y: 0 };
 let pairScreens = { count: null, resolution: 'unsure', have: null };
 let pairAsked = { count: false, res: false };
 let pairTier = null, pairChassis = null;
 let pairSizeFilter = 'all', pairQualityFilter = 'all';
+let pairQty = {};
+function pairSetup() {
+  return pairData ? findSetupForComputer(pairType, pairData.id) : null;
+}
+function pairSetupDockId() {
+  const s = pairSetup();
+  return s ? s.dock_id : null;
+}
+function pairSetupMonitorQty(monId) {
+  const s = pairSetup();
+  if (!s) return 0;
+  const m = s.monitors.find(x => x.id === monId);
+  return m ? m.qty : 0;
+}
+function pairQtyFor(monId) {
+  if (pairQty[monId]) return pairQty[monId];
+  const inSetup = pairSetupMonitorQty(monId);
+  if (inSetup) return inSetup;
+  const want = pairScreens.count || 1;
+  return Math.max(1, Math.min(4, want));
+}
+function pairMonQtyDelta(monId, d) {
+  pairQty[monId] = Math.max(1, Math.min(9, pairQtyFor(monId) + d));
+  refreshPairStage();
+}
+function pairToggleDock(dockId) {
+  const s = ensureSetupForComputer(pairType, pairData.id);
+  s.dock_id = (s.dock_id === dockId) ? null : dockId;
+  touchSetup(s);
+  refreshPairStage();
+}
+function pairToggleMonitor(monId) {
+  const s = ensureSetupForComputer(pairType, pairData.id);
+  const i = s.monitors.findIndex(x => x.id === monId);
+  if (i >= 0) s.monitors.splice(i, 1);
+  else s.monitors.push({ id: monId, qty: pairQtyFor(monId) });
+  touchSetup(s);
+  refreshPairStage();
+}
 const PAIR_TIER_LABEL = { '1080p': '1080p Full HD', '1440p': '1440p QHD', '4k': '4K Ultra HD' };
 const PAIR_RES_OPTS = [
   { v: '1080p', t: '1080p — Full HD', s: 'Sharp for work and most games' },
@@ -1540,6 +1598,7 @@ async function openPairing(type, id) {
   pairReturn = { section: cur || 'results', y: window.scrollY || 0 };
   pairStage = 'screens'; pairChassis = null;
   pairSizeFilter = 'all'; pairQualityFilter = 'all';
+  pairQty = {};
   pairScreens = { count: null, resolution: 'unsure', have: null };
   pairAsked = { count: false, res: false };
   // Reuse the quiz's screens answers when this pick came from a quiz;
@@ -1731,11 +1790,18 @@ function pairShelfHTML() {
 function monitorCardHTML(m) {
   const chips = [`📺 ${m.size_in}″`, esc(m.resolution), `${m.refresh_hz}Hz`, esc(m.panel_type)];
   if (m.usbc_video_input) chips.push('🔌 USB-C video input — one cable from a laptop');
+  const inSetup = pairSetupMonitorQty(m.id);
   return `<div class="card"><h3>${esc(m.name)}</h3>
     <div class="price">$${m.price_usd.toLocaleString()}</div>
     <p class="permo" style="color:#94a3b8;font-size:.78rem;margin:2px 0 0">Price via ${esc(m.price_source || 'retailer')}, checked Oct 2026 · ${esc(m.role)}</p>
     <div class="chips">${chips.map(c => `<span class="chip">${c}</span>`).join('')}</div>
     <p class="why">${esc(m.why)}</p>
+    <div class="sortrow" style="align-items:center;margin-top:10px">
+      <button class="sort" onclick="pairMonQtyDelta('${m.id}',-1)">−</button>
+      <span>×${pairQtyFor(m.id)}</span>
+      <button class="sort" onclick="pairMonQtyDelta('${m.id}',1)">+</button>
+      <button class="sort" onclick="pairToggleMonitor('${m.id}')">${inSetup ? `✓ In your setup ×${inSetup} — tap to remove` : '＋ Add to my setup'}</button>
+    </div>
     <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
 }
 function dockCardHTML(o, beyond) {
@@ -1759,11 +1825,13 @@ function dockCardHTML(o, beyond) {
     ? `<div class="price">$${o.price_usd.toLocaleString()}</div>
        <p class="permo" style="color:#94a3b8;font-size:.78rem;margin:2px 0 0">Price via ${esc(o.price_source || 'maker store')}, checked Oct 2026</p>`
     : `<p class="permo" style="color:#94a3b8;font-size:.8rem;margin:2px 0 0">No verified price yet — we list a price only when we've confirmed one</p>`;
+  const inSetup = pairSetupDockId() === o.id;
   return `<div class="card"><span class="dockrole">${roleLabel}</span>
     <h3>${esc(o.name)}</h3>
     ${price}
     <div class="chips">${chips.map(c => `<span class="chip">${c}</span>`).join('')}</div>
     ${tech}${flag}
+    <button class="pairbtn" onclick="pairToggleDock('${o.id}')">${inSetup ? '✓ Dock in your setup — tap to remove' : '＋ Add this dock to my setup'}</button>
     <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
 }
 function pairDockHTML() {
@@ -1831,6 +1899,339 @@ function pairDockHTML() {
   }
   return h;
 }
+
+// ------------------------------------------------------------- my setup
+// Build 2026-10-15.15: saved setups — deliberately NOT a cart (nothing
+// reserved or ordered). localStorage only (bytematch.setups.v1),
+// storing stable item ids + quantities; names/prices are re-read from
+// the current catalog at display time. Share links carry ids +
+// quantities + name in the URL hash only.
+const SETUPS_KEY = 'bytematch.setups.v1';
+function loadSetups() {
+  try {
+    const raw = localStorage.getItem(SETUPS_KEY);
+    if (raw) {
+      const j = JSON.parse(raw);
+      if (j && j.version === 1 && Array.isArray(j.setups)) return j;
+    }
+  } catch (e) {}
+  return { version: 1, active_id: null, setups: [] };
+}
+let setupStore = loadSetups();
+function persistSetups() {
+  try { localStorage.setItem(SETUPS_KEY, JSON.stringify(setupStore)); } catch (e) {}
+  updateSetupBtn();
+}
+function updateSetupBtn() {
+  const b = document.getElementById('setupbtn');
+  if (b) b.textContent = setupStore.setups.length
+    ? `🧩 My Setup (${setupStore.setups.length})` : '🧩 My Setup';
+}
+function newSetupId() {
+  return 's' + Date.now().toString(36) + Math.floor(Math.random() * 1e5).toString(36);
+}
+function findSetupForComputer(kind, id) {
+  return setupStore.setups.find(s => s.computer.kind === kind && s.computer.id === id) || null;
+}
+function ensureSetupForComputer(kind, id) {
+  let s = findSetupForComputer(kind, id);
+  if (!s) {
+    s = { id: newSetupId(), name: null, computer: { kind, id },
+          dock_id: null, monitors: [], created: Date.now(), updated: Date.now() };
+    setupStore.setups.push(s);
+  }
+  setupStore.active_id = s.id;
+  persistSetups();
+  return s;
+}
+function getSetup(id) { return setupStore.setups.find(s => s.id === id) || null; }
+function touchSetup(s) { s.updated = Date.now(); persistSetups(); }
+function saveSetupFromCard(btn, kind, id) {
+  const s = ensureSetupForComputer(kind, id);
+  touchSetup(s);
+  if (btn) btn.textContent = '✓ Saved — find it in My Setup';
+}
+// Catalog resolution: ids -> current records (null = no longer listed)
+let setupCatalog = null;
+async function loadSetupCatalog() {
+  if (setupCatalog) return setupCatalog;
+  setupCatalog = { computers: {}, docks: {}, monitors: {} };
+  try {
+    const pd = await fetch('/api/pairing-data').then(x => x.json());
+    const addDock = o => { if (o && o.id) setupCatalog.docks[o.id] = o; };
+    Object.values(pd.brand_options || {}).forEach(list => list.forEach(addDock));
+    Object.values(pd.laptops || {}).forEach(e => (e.usba_displaylink_options || []).forEach(addDock));
+    ((pd.meta || {}).displaylink_options || []).forEach(addDock);
+    Object.values(pd.monitors || {}).forEach(list =>
+      list.forEach(m => { setupCatalog.monitors[m.id] = m; }));
+  } catch (e) {}
+  return setupCatalog;
+}
+async function resolveComputer(kind, id) {
+  await loadSetupCatalog();
+  const key = kind + '/' + id;
+  if (!(key in setupCatalog.computers)) {
+    try {
+      const r = await fetch(`/api/computer/${kind}/${encodeURIComponent(id)}`);
+      setupCatalog.computers[key] = r.ok ? await r.json() : null;
+    } catch (e) { setupCatalog.computers[key] = null; }
+  }
+  return setupCatalog.computers[key];
+}
+function setupTotals(s, comp, cat) {
+  if (!comp) return { total: null, computerMissing: true, missingPrice: [] };
+  if (comp.price == null) return { total: null, computerMissing: false, missingPrice: [] };
+  let total = comp.price;
+  const missingPrice = [];
+  if (s.dock_id) {
+    const d = cat.docks[s.dock_id];
+    if (d) {
+      if (d.price_usd != null) total += d.price_usd;
+      else missingPrice.push(d.name);
+    }
+  }
+  s.monitors.forEach(m => {
+    const mon = cat.monitors[m.id];
+    if (mon) {
+      if (mon.price_usd != null) total += mon.price_usd * m.qty;
+      else missingPrice.push(mon.name);
+    }
+  });
+  return { total, computerMissing: false, missingPrice };
+}
+function setupLinesHTML(s, comp, cat) {
+  const lines = [];
+  if (!comp)
+    lines.push(`<p class="setupline">🖥️ <strong>Computer:</strong> this model is no longer in the catalog.</p>`);
+  else
+    lines.push(`<p class="setupline">🖥️ <strong>${esc(comp.name)}</strong> — from $${comp.price.toLocaleString()}</p>`);
+  if (s.dock_id) {
+    const d = cat.docks[s.dock_id];
+    if (!d)
+      lines.push(`<p class="setupline">🔌 <strong>Dock:</strong> no longer in the catalog. <button class="sort" onclick="setupRemoveDock('${s.id}')">✕ Remove</button></p>`);
+    else
+      lines.push(`<p class="setupline">🔌 ${esc(d.name)} — ${d.price_usd != null ? '$' + d.price_usd.toLocaleString() : 'price not shown (not counted in the total)'} <button class="sort" onclick="setupRemoveDock('${s.id}')">✕ Remove</button></p>`);
+  } else {
+    lines.push(`<p class="setupline">🔌 No dock added yet — this computer's pairing flow can add one.</p>`);
+  }
+  if (!s.monitors.length)
+    lines.push(`<p class="setupline">🖥️ No screens added yet.</p>`);
+  s.monitors.forEach(m => {
+    const mon = cat.monitors[m.id];
+    if (!mon)
+      lines.push(`<p class="setupline">🖥️ A saved screen is no longer in the catalog. <button class="sort" onclick="setupRemoveMonitor('${s.id}','${m.id}')">✕ Remove</button></p>`);
+    else
+      lines.push(`<p class="setupline">🖥️ ${esc(mon.name)} ×${m.qty} — ${mon.price_usd != null ? '$' + mon.price_usd.toLocaleString() + ' each' : 'price not shown (not counted in the total)'} <button class="sort" onclick="setupRemoveMonitor('${s.id}','${m.id}')">✕ Remove</button></p>`);
+  });
+  return lines.join('');
+}
+function setupCardHTML(s, comp, cat, withActions) {
+  const name = s.name || (comp ? comp.name : 'Saved setup');
+  const t = setupTotals(s, comp, cat);
+  let totalHTML;
+  if (t.computerMissing)
+    totalHTML = `<div class="note">No total: the saved computer is no longer in the catalog, so there's nothing current to price against.</div>`;
+  else if (t.total == null)
+    totalHTML = `<div class="note">No total: the computer's price isn't shown, and we never guess one.</div>`;
+  else
+    totalHTML = `<div class="have" style="text-align:left">Estimated starting total: <strong>$${t.total.toLocaleString()}</strong><br><span style="font-weight:400">From the prices above, checked Oct 2026. The computer's figure is its starting price${t.missingPrice.length ? '; anything marked "price not shown" is not counted' : ''} — configurations and final prices vary.</span></div>`;
+  return `<div class="card"><h3>🧩 ${esc(name)}</h3>
+    ${setupLinesHTML(s, comp, cat)}
+    ${totalHTML}
+    ${withActions ? `<div class="setupactions">
+      <button class="sort" onclick="setupOpen('${s.id}')">Open</button>
+      <button class="sort" onclick="setupRename('${s.id}')">Rename</button>
+      <button class="sort" onclick="setupDuplicate('${s.id}')">Duplicate</button>
+      <button class="sort" onclick="setupShare(this,'${s.id}')">Share link</button>
+      <button class="sort" onclick="setupPrint('${s.id}')">Print checklist</button>
+      <button class="sort" onclick="setupDelete('${s.id}')">Delete</button>
+    </div>` : ''}</div>`;
+}
+let setupReturn = { section: 'home', y: 0 };
+let setupResolved = {};
+async function openMySetup() {
+  const cur = SECTION_IDS.find(x => x !== 'setup' &&
+    document.getElementById(x).style.display !== 'none');
+  setupReturn = { section: cur || 'home', y: window.scrollY || 0 };
+  hideAllSections();
+  const el = document.getElementById('setup');
+  el.style.display = 'block';
+  el.innerHTML = `<div class="loading"><span class="dots">Loading your setups</span></div>`;
+  window.scrollTo(0, 0);
+  await renderSetupList();
+}
+function closeMySetup() {
+  hideAllSections();
+  const el = document.getElementById(setupReturn.section);
+  if (el) el.style.display = 'block';
+  window.scrollTo(0, setupReturn.y);
+}
+async function renderSetupList() {
+  const el = document.getElementById('setup');
+  const cat = await loadSetupCatalog();
+  let h = `<button class="back" onclick="closeMySetup()">← Back</button>
+    <h1>My <span class="accent">Setup</span></h1>
+    <p class="sub">Computers, docks, and screens you've saved on this device. This is not a cart — nothing is reserved or ordered, and prices are re-read from the catalog each time you look.</p>`;
+  if (!setupStore.setups.length)
+    h += `<div class="note">No saved setups yet — save one from any computer result with the 💾 Save this setup button, and it'll wait for you here.</div>`;
+  const sorted = [...setupStore.setups].sort((a, b) => (b.updated || 0) - (a.updated || 0));
+  for (const s of sorted) {
+    const comp = await resolveComputer(s.computer.kind, s.computer.id);
+    setupResolved[s.id] = comp;
+    h += setupCardHTML(s, comp, cat, true);
+  }
+  el.innerHTML = h;
+}
+async function setupOpen(id) {
+  const s = getSetup(id);
+  if (!s) return;
+  const comp = await resolveComputer(s.computer.kind, s.computer.id);
+  if (!comp) { alert('That computer is no longer in the catalog.'); return; }
+  if (s.computer.kind === 'laptop') renderModelCard(comp);
+  else renderDesktopModelCard(comp);
+}
+function setupRename(id) {
+  const s = getSetup(id);
+  if (!s) return;
+  const cur = s.name || (setupResolved[id] ? setupResolved[id].name : '');
+  const n = prompt('Name this setup:', cur);
+  if (n && n.trim()) { s.name = n.trim(); touchSetup(s); renderSetupList(); }
+}
+function setupDuplicate(id) {
+  const s = getSetup(id);
+  if (!s) return;
+  const copy = JSON.parse(JSON.stringify(s));
+  copy.id = newSetupId();
+  copy.name = (s.name || (setupResolved[id] ? setupResolved[id].name : 'Setup')) + ' (copy)';
+  copy.created = Date.now(); copy.updated = Date.now();
+  setupStore.setups.push(copy);
+  persistSetups();
+  renderSetupList();
+}
+function setupDelete(id) {
+  if (!confirm('Delete this saved setup?')) return;
+  setupStore.setups = setupStore.setups.filter(s => s.id !== id);
+  if (setupStore.active_id === id) setupStore.active_id = null;
+  persistSetups();
+  renderSetupList();
+}
+function setupRemoveDock(id) {
+  const s = getSetup(id);
+  if (!s) return;
+  s.dock_id = null; touchSetup(s); renderSetupList();
+}
+function setupRemoveMonitor(id, monId) {
+  const s = getSetup(id);
+  if (!s) return;
+  s.monitors = s.monitors.filter(m => m.id !== monId);
+  touchSetup(s); renderSetupList();
+}
+function setupShare(btn, id) {
+  const s = getSetup(id);
+  if (!s) return;
+  const comp = setupResolved[id];
+  const url = encodeSetupLink(s, s.name || (comp ? comp.name : 'My setup'));
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => {
+      btn.textContent = '✓ Link copied';
+      setTimeout(() => { btn.textContent = 'Share link'; }, 2000);
+    }, () => prompt('Copy this share link:', url));
+  } else prompt('Copy this share link:', url);
+}
+async function setupPrint(id) {
+  const s = getSetup(id);
+  if (!s) return;
+  const cat = await loadSetupCatalog();
+  const comp = await resolveComputer(s.computer.kind, s.computer.id);
+  const name = s.name || (comp ? comp.name : 'Saved setup');
+  const t = setupTotals(s, comp, cat);
+  const rows = [];
+  rows.push(comp ? `☐ Computer: ${esc(comp.name)} — from $${comp.price.toLocaleString()}`
+                 : '☐ Computer: no longer in the catalog');
+  if (s.dock_id) {
+    const d = cat.docks[s.dock_id];
+    rows.push(d ? `☐ Dock: ${esc(d.name)}${d.price_usd != null ? ' — $' + d.price_usd.toLocaleString() : ' — price not shown'}`
+                : '☐ Dock: no longer in the catalog');
+  }
+  s.monitors.forEach(m => {
+    const mon = cat.monitors[m.id];
+    rows.push(mon ? `☐ Screen ×${m.qty}: ${esc(mon.name)}${mon.price_usd != null ? ' — $' + mon.price_usd.toLocaleString() + ' each' : ' — price not shown'}`
+                  : '☐ Screen: no longer in the catalog');
+  });
+  if (!s.dock_id && !s.monitors.length)
+    rows.push("☐ Add a dock or screens from the pairing flow on this computer's card.");
+  document.getElementById('setup').innerHTML = `
+    <button class="back no-print" onclick="renderSetupList()">← Back to My Setup</button>
+    <div class="printsheet">
+      <h2>🧩 ${esc(name)} — setup checklist</h2>
+      ${rows.map(r => `<p>${r}</p>`).join('')}
+      ${t.total != null
+        ? `<p><strong>Estimated starting total: $${t.total.toLocaleString()}</strong> — from prices checked Oct 2026; the computer's figure is a starting price and configurations vary.</p>`
+        : '<p>No total shown — a component has no current price.</p>'}
+      <p>Saved with ByteMatch. A checklist, not an order: nothing is reserved or purchased.</p>
+    </div>
+    <button class="pairbtn no-print" onclick="window.print()">🖨️ Print this checklist</button>`;
+  window.scrollTo(0, 0);
+}
+// Share links: ids + quantities + name, in the URL hash only.
+function encodeSetupLink(s, displayName) {
+  const payload = { n: displayName || '', c: [s.computer.kind, s.computer.id],
+                    d: s.dock_id || null,
+                    m: s.monitors.map(m => [m.id, m.qty]) };
+  const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return location.origin + location.pathname + '#setup=' + b64;
+}
+function decodeSetupLink(hash) {
+  try {
+    const b64 = hash.replace(/^#setup=/, '').replace(/-/g, '+').replace(/_/g, '/');
+    const j = JSON.parse(decodeURIComponent(escape(atob(b64))));
+    if (!j || !Array.isArray(j.c) || !j.c[1]) return null;
+    return { name: j.n || null,
+             computer: { kind: j.c[0] === 'desktop' ? 'desktop' : 'laptop', id: j.c[1] },
+             dock_id: j.d || null,
+             monitors: (Array.isArray(j.m) ? j.m : []).map(([mid, qty]) =>
+               ({ id: mid, qty: Math.max(1, Math.min(9, qty | 0 || 1)) })) };
+  } catch (e) { return null; }
+}
+let sharedSetup = null;
+async function openSharedSetup(hash) {
+  const parsed = decodeSetupLink(hash);
+  if (!parsed) return false;
+  sharedSetup = parsed;
+  setupReturn = { section: 'home', y: 0 };
+  hideAllSections();
+  const el = document.getElementById('setup');
+  el.style.display = 'block';
+  el.innerHTML = `<div class="loading"><span class="dots">Loading the shared setup</span></div>`;
+  const cat = await loadSetupCatalog();
+  const comp = await resolveComputer(parsed.computer.kind, parsed.computer.id);
+  const pseudo = { id: '__shared__', name: parsed.name,
+                   computer: parsed.computer, dock_id: parsed.dock_id,
+                   monitors: parsed.monitors };
+  el.innerHTML = `<button class="back" onclick="closeMySetup()">← Back</button>
+    <h1>A shared <span class="accent">setup</span></h1>
+    <p class="sub">Someone shared this setup with you. Prices and availability are today's catalog data — save a copy and it stays in your own My Setup on this device.</p>
+    ${setupCardHTML(pseudo, comp, cat, false)}
+    <button class="pairbtn" onclick="sharedSaveCopy()">💾 Save a copy to My Setup</button>`;
+  window.scrollTo(0, 0);
+  return true;
+}
+function sharedSaveCopy() {
+  if (!sharedSetup) return;
+  const s = { id: newSetupId(), name: sharedSetup.name || null,
+              computer: sharedSetup.computer, dock_id: sharedSetup.dock_id,
+              monitors: sharedSetup.monitors.map(m => ({ id: m.id, qty: m.qty })),
+              created: Date.now(), updated: Date.now() };
+  setupStore.setups.push(s);
+  setupStore.active_id = s.id;
+  persistSetups();
+  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  openMySetup();
+}
+updateSetupBtn();
+if (location.hash && location.hash.indexOf('#setup=') === 0)
+  openSharedSetup(location.hash);
 
 // ------------------------------------------------------------- disclaimers
 // All the coverage notes and version caveats from across the guides live
