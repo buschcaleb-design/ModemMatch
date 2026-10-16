@@ -461,6 +461,7 @@ async function pickModel(i) {
          await startPcGuide(); renderPcFormFactor(m.setup.os_key); }
 }
 function renderModelCard(m) {
+  setPageTheme('laptop');
   hideAllSections();
   const r = document.getElementById('results');
   r.style.display = 'block';

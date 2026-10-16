@@ -530,6 +530,7 @@ function setupCardHTML(s, comp, cat, withActions) {
 let setupReturn = { section: 'home', y: 0 };
 let setupResolved = {};
 async function openMySetup() {
+  if (!document.body.dataset.theme) setPageTheme('store');
   const cur = SECTION_IDS.find(x => x !== 'setup' &&
     document.getElementById(x).style.display !== 'none');
   setupReturn = { section: cur || 'home', y: window.scrollY || 0 };

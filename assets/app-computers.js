@@ -502,6 +502,7 @@ async function finishDesktops() {
   renderDesktopResults();
 }
 function renderDesktopModelCard(m) {
+  setPageTheme('desktop');
   hideAllSections();
   const r = document.getElementById('results');
   r.style.display = 'block';
