@@ -122,6 +122,13 @@
   .buybtn { display: block; width: 100%; background: #16202f; border: 2px dashed #475569;
             color: #64748b; border-radius: 12px; padding: 12px; font-size: .9rem;
             cursor: not-allowed; }
+  .pairbtn { display: block; width: 100%; margin-top: 12px; background: #16202f;
+             border: 2px solid #38bdf8; color: #7dd3fc; border-radius: 12px;
+             padding: 12px; font-size: .92rem; font-weight: 700; cursor: pointer; }
+  .pairbtn:active { background: #273449; }
+  .dockrole { display: inline-block; background: #334155; color: #cbd5e1;
+              border-radius: 999px; padding: 3px 10px; font-size: .76rem;
+              font-weight: 700; margin: 0 6px 6px 0; }
   .orline { text-align: center; color: #64748b; font-size: .85rem; margin: 18px 0 10px; }
   .dots::after { content: ""; animation: dots 1s steps(3) infinite; }
   @keyframes dots { 0% { content: ""; } 33% { content: "."; } 66% { content: ".."; } 100% { content: "..."; } }
@@ -145,9 +152,10 @@
   <div id="guide" style="display:none"></div>
   <div id="pc-guide" style="display:none"></div>
   <div id="model-lookup" style="display:none"></div>
+  <div id="pairing" style="display:none"></div>
   <div id="disclaimers" style="display:none"></div>
   <button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>
-  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.12 &middot; If a page looks outdated, read this stamp back to us</p>
+  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.13 &middot; If a page looks outdated, read this stamp back to us</p>
 </div>
 <script>const stepsEl = document.getElementById('steps');
 const bar = document.getElementById('bar');
@@ -158,7 +166,7 @@ let isps = [];
 // First screen: Buy New Gear / Set Up New Gear. Second: Internet / PC.
 // Then route into the matching existing flow.
 let flowType = 'buy';   // 'buy' | 'setup'
-const SECTION_IDS = ['home', 'flow-pick', 'isp-pick', 'quiz', 'results', 'guide', 'pc-guide', 'model-lookup', 'disclaimers'];
+const SECTION_IDS = ['home', 'flow-pick', 'isp-pick', 'quiz', 'results', 'guide', 'pc-guide', 'model-lookup', 'pairing', 'disclaimers'];
 function hideAllSections() {
   SECTION_IDS.forEach(id => document.getElementById(id).style.display = 'none');
 }
@@ -676,6 +684,7 @@ function laptopCardHTML(p, i, isTop, rankLabel) {
     <p class="why">${esc(p.summary || (Array.isArray(p.why) ? (p.why[0] || '') : p.why) || '')}</p>
     ${p.ecosystem_note ? `<p class="why">🔗 ${esc(p.ecosystem_note)}</p>` : ''}
     ${laptopWhyHTML(p)}
+    <button class="pairbtn" onclick="openPairing('laptop','${p.id}')">🔌 Find my screen or dock to pair with it</button>
     <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
 }
 function twoInOneUnavailableNote() {
@@ -941,6 +950,7 @@ function desktopCardHTML(p, i, isTop, rankLabel) {
     <p class="why">${esc(p.summary || (Array.isArray(p.why) ? (p.why[0] || '') : p.why) || '')}</p>
     ${p.ecosystem_note ? `<p class="why">🔗 ${esc(p.ecosystem_note)}</p>` : ''}
     ${desktopWhyHTML(p)}
+    <button class="pairbtn" onclick="openPairing('desktop','${p.id}')">🔌 Find my screen or dock to pair with it</button>
     <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
 }
 function renderDesktopResults() {
@@ -1484,6 +1494,326 @@ function renderModelCard(m) {
     <button class="opt" onclick="startLaptopBuy()">💻 Not the one? Take the laptop quiz<small>Answer a few questions and we'll match you</small></button>
     <button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
   window.scrollTo(0, 0);
+}
+
+// ------------------------------------------------------------- pairing
+// Screens + dock pairing for one picked computer (Build .13, Caleb's
+// design): the results stay clean; pairing is its own opt-in flow per
+// pick, entered from the card button, with free jumps between the
+// Screens and Dock stages. All verdicts come from /api/pairing —
+// maker-stated display counts and vetted dock pairings only; where
+// the data doesn't settle a question, the UI says so instead of
+// guessing.
+let pairData = null, pairType = 'laptop', pairStage = 'screens';
+let pairReturn = { section: 'results', y: 0 };
+let pairScreens = { count: null, resolution: 'unsure', have: null };
+let pairAsked = { count: false, res: false };
+let pairTier = null, pairChassis = null;
+let pairSizeFilter = 'all', pairQualityFilter = 'all';
+const PAIR_TIER_LABEL = { '1080p': '1080p Full HD', '1440p': '1440p QHD', '4k': '4K Ultra HD' };
+const PAIR_RES_OPTS = [
+  { v: '1080p', t: '1080p — Full HD', s: 'Sharp for work and most games' },
+  { v: '1440p', t: '1440p — QHD', s: 'Crisper; the gaming sweet spot' },
+  { v: '4k', t: '4K — Ultra HD', s: 'Sharpest picture; needs a stronger graphics card' },
+  { v: 'unsure', t: 'Not sure', s: "We'll assume standard screens — no pressure either way" } ];
+
+async function openPairing(type, id) {
+  pairType = type;
+  const cur = SECTION_IDS.find(s => s !== 'pairing' &&
+    document.getElementById(s).style.display !== 'none');
+  pairReturn = { section: cur || 'results', y: window.scrollY || 0 };
+  pairStage = 'screens'; pairChassis = null;
+  pairSizeFilter = 'all'; pairQualityFilter = 'all';
+  pairScreens = { count: null, resolution: 'unsure', have: null };
+  pairAsked = { count: false, res: false };
+  // Reuse the quiz's screens answers when this pick came from a quiz;
+  // a looked-up model has none, so the flow asks.
+  if (type === 'laptop' && laptopRes && laptopRes.query) {
+    const q = laptopRes.query;
+    if ('ext_screens' in q && q.ext_screens !== '' && q.ext_screens != null) {
+      pairScreens.count = parseInt(q.ext_screens, 10);
+      pairAsked.count = true;
+    }
+    if ('ext_resolution' in q && q.ext_resolution) {
+      pairScreens.resolution = q.ext_resolution;
+      pairAsked.res = true;
+    }
+  }
+  if (type === 'desktop' && desktopRes && desktopRes.query) {
+    const q = desktopRes.query;
+    if ('screens' in q && q.screens !== '' && q.screens != null) {
+      pairScreens.count = parseInt(q.screens, 10);
+      pairAsked.count = true;
+    }
+    if ('resolution' in q && q.resolution) {
+      pairScreens.resolution = q.resolution;
+      pairAsked.res = true;
+    }
+  }
+  pairTier = PAIR_TIER_LABEL[pairScreens.resolution] ? pairScreens.resolution : null;
+  hideAllSections();
+  const el = document.getElementById('pairing');
+  el.style.display = 'block';
+  el.innerHTML = `<div class="loading"><span class="dots">Loading pairing options</span></div>`;
+  window.scrollTo(0, 0);
+  try {
+    pairData = await fetch(`/api/pairing/${type}/${encodeURIComponent(id)}`).then(x => x.json());
+  } catch (e) { pairData = null; }
+  if (!pairData || pairData.error) {
+    el.innerHTML = `<button class="back" onclick="closePairing()">← Back</button>
+      <div class="note">We couldn't load pairing options for that model just now.</div>`;
+    return;
+  }
+  renderPairing();
+}
+function closePairing() {
+  hideAllSections();
+  const el = document.getElementById(pairReturn.section);
+  if (el) el.style.display = 'block';
+  window.scrollTo(0, pairReturn.y);
+}
+function pairGo(s) { pairStage = s; renderPairing(); }
+function renderPairing() {
+  const el = document.getElementById('pairing');
+  const d = pairData;
+  el.innerHTML = `<button class="back" onclick="closePairing()">← Back to your picks</button>
+    <h1>Screens &amp; docks for your <span class="accent">${d.type === 'laptop' ? 'laptop' : 'desktop'}</span></h1>
+    <p class="sub">${esc(d.name)} — pair it with screens it can actually drive, and a dock that actually fits its ports.</p>
+    <div class="sortrow">
+      <button class="sort${pairStage === 'screens' ? ' on' : ''}" onclick="pairGo('screens')">🖥️ Screens</button>
+      <button class="sort${pairStage === 'dock' ? ' on' : ''}" onclick="pairGo('dock')">🔌 Dock</button>
+    </div>
+    <div id="pairstage"></div>`;
+  refreshPairStage();
+  window.scrollTo(0, 0);
+}
+function refreshPairStage() {
+  const s = document.getElementById('pairstage');
+  if (s) s.innerHTML = pairStage === 'screens' ? pairScreensHTML() : pairDockHTML();
+}
+function pairCountOpts() {
+  if (pairData && pairData.type === 'laptop') return [
+    { v: 0, t: 'Just the laptop screen', s: 'No extra monitors' },
+    { v: 1, t: '+1 extra screen', s: 'One monitor plugged in at a desk' },
+    { v: 2, t: '+2 extra screens', s: 'A full desk setup' },
+    { v: 3, t: '+3 or more extra screens', s: 'A full command center' } ];
+  return [
+    { v: 1, t: '1 screen', s: 'Just one monitor' },
+    { v: 2, t: '2 screens', s: 'Side by side — the classic desk setup' },
+    { v: 3, t: '3 or more screens', s: 'A full command center' } ];
+}
+function pairSetCount(v) {
+  pairScreens.count = v; pairAsked.count = true;
+  if (v === 0) pairAsked.res = true;
+  refreshPairStage();
+}
+function pairSetRes(v) {
+  pairScreens.resolution = v; pairAsked.res = true;
+  pairTier = PAIR_TIER_LABEL[v] ? v : null;
+  pairSizeFilter = 'all'; pairQualityFilter = 'all';
+  refreshPairStage();
+}
+function pairSetHave(b) { pairScreens.have = b; refreshPairStage(); }
+function pairSetTier(t) {
+  pairTier = t; pairSizeFilter = 'all'; pairQualityFilter = 'all';
+  refreshPairStage();
+}
+function pairSetChassis(c) { pairChassis = c; refreshPairStage(); }
+function pairFilterSize(v) { pairSizeFilter = v; refreshPairStage(); }
+function pairFilterQuality(v) { pairQualityFilter = v; refreshPairStage(); }
+function pairChangeAnswers() { pairAsked = { count: false, res: false }; refreshPairStage(); }
+
+function pairScreensHTML() {
+  const d = pairData;
+  // Ask first, with the quiz's own wording, until both are answered.
+  if (!pairAsked.count || !pairAsked.res) {
+    let h = '';
+    if (!pairAsked.count) {
+      h += `<p class="q">${d.type === 'laptop' ? 'Will you plug in extra screens?' : 'How many screens will you plug in?'}</p>`;
+      h += pairCountOpts().map(o =>
+        `<button class="opt" onclick="pairSetCount(${o.v})">${o.t}<small>${o.s}</small></button>`).join('');
+    }
+    if (!pairAsked.res && pairScreens.count !== 0) {
+      h += `<p class="q">What resolution are the ${d.type === 'laptop' ? 'extra ' : ''}screens?</p>`;
+      h += PAIR_RES_OPTS.map(o =>
+        `<button class="opt" onclick="pairSetRes('${o.v}')">${o.t}<small>${o.s}</small></button>`).join('');
+    }
+    return h;
+  }
+  const n = pairScreens.count;
+  const resLabel = PAIR_TIER_LABEL[pairScreens.resolution] || 'resolution not specified';
+  let h = `<p class="sortline">Your setup: ${d.type === 'laptop'
+      ? (n === 0 ? 'just the laptop screen' : `+${n} external screen${n > 1 ? 's' : ''}`)
+      : `${n} screen${n > 1 ? 's' : ''}`} · ${resLabel}</p>
+    <button class="back" onclick="pairChangeAnswers()">↺ Change these answers</button>`;
+  if (d.type === 'laptop') {
+    if (n === 0) {
+      h += `<div class="note">No extra screens — nothing to match for displays. A dock can still tidy the desk (one cable for power and peripherals); see the Dock step.</div>`;
+      return h;
+    }
+    const disp = d.display || {};
+    if (disp.max_external != null) {
+      const mx = disp.max_external;
+      if (n <= mx) {
+        h += `<div class="have">✅ <strong>Good news:</strong> ${esc(d.name)} drives up to ${mx} external screen${mx > 1 ? 's' : ''} on its own — your setup is covered natively.</div>`;
+      } else {
+        h += `<div class="note">⚠️ On its own, ${esc(d.name)} is rated for ${mx} external screen${mx > 1 ? 's' : ''} — getting to ${n} takes a dock that adds screens itself (DisplayLink).</div>
+          <button class="pairbtn" onclick="pairGo('dock')">🔌 See the Dock step</button>`;
+      }
+      if (disp.max_resolution)
+        h += `<p class="sortline">Maker-rated external output: up to ${esc(disp.max_resolution)}.</p>`;
+    } else {
+      h += `<div class="note">The maker doesn't publish an exact external-screen count for this model, so we won't invent one. Its display ports: ${esc(disp.ports || 'not published')}.</div>`;
+      if (disp.detail) h += `<p class="sortline">${esc(disp.detail)}</p>`;
+    }
+  } else {
+    h += `<div class="note">Desktops plug screens straight into the graphics card — no dock needed for displays. This one's graphics: ${esc(d.gpu || 'see the model page')}.</div>`;
+    if (d.display_inches)
+      h += `<p class="sortline">It's an all-in-one: the built-in ${d.display_inches}″ screen counts as one of your screens.</p>`;
+    if (n === 0) return h;
+  }
+  // Do they already have the screens?
+  h += `<p class="q" style="margin-top:18px">Do you already have these screens?</p>
+    <div class="sortrow">
+      <button class="sort${pairScreens.have === true ? ' on' : ''}" onclick="pairSetHave(true)">Yes, I have them</button>
+      <button class="sort${pairScreens.have === false ? ' on' : ''}" onclick="pairSetHave(false)">No — show me screens</button>
+    </div>`;
+  if (pairScreens.have === true)
+    h += `<div class="note">You're set for screens. If a dock would help — one cable for everything — the Dock step has this machine's vetted pairings.</div>`;
+  else if (pairScreens.have === false)
+    h += pairShelfHTML();
+  return h;
+}
+function pairShelfHTML() {
+  const mons = pairData.monitors || {};
+  if (!Object.keys(mons).length)
+    return `<div class="note">🖥️ The screen shelf is still being stocked — check back soon.</div>`;
+  if (!pairTier) {
+    return `<p class="q" style="margin-top:14px">Which resolution should we match?</p>` +
+      Object.keys(PAIR_TIER_LABEL).map(t =>
+        `<button class="opt" onclick="pairSetTier('${t}')">${PAIR_TIER_LABEL[t]}<small>${(mons[t] || []).length} on the shelf</small></button>`).join('');
+  }
+  const shelf = mons[pairTier] || [];
+  let h = `<p class="picks-head">Screens at ${PAIR_TIER_LABEL[pairTier]}</p>`;
+  h += `<button class="back" onclick="pairTier=null;refreshPairStage()">← Pick a different resolution</button>`;
+  if (!shelf.length)
+    return h + `<div class="note">🖥️ The ${PAIR_TIER_LABEL[pairTier]} shelf is still being stocked — try another resolution.</div>`;
+  const sizes = [['all', 'All sizes'], ['small', 'Small'], ['office', 'Office'], ['large', 'Large'], ['widescreen', 'Widescreen']];
+  const quals = [['all', 'Any quality'], ['everyday', 'Everyday'], ['sharp', 'Sharp'], ['color', 'Color'], ['premium', 'Premium'], ['unspecified', 'Unspecified']];
+  h += `<div class="sortrow wrap">${sizes.map(([v, t]) =>
+    `<button class="sort${pairSizeFilter === v ? ' on' : ''}" onclick="pairFilterSize('${v}')">${t}</button>`).join('')}</div>`;
+  h += `<div class="sortrow wrap">${quals.map(([v, t]) =>
+    `<button class="sort${pairQualityFilter === v ? ' on' : ''}" onclick="pairFilterQuality('${v}')">${t}</button>`).join('')}</div>`;
+  const shown = shelf.filter(m =>
+    (pairSizeFilter === 'all' || m.size_class === pairSizeFilter) &&
+    (pairQualityFilter === 'all' || m.quality_class === pairQualityFilter));
+  if (!shown.length)
+    h += `<div class="note">No screens on this shelf match that combination yet — try clearing a filter.</div>`;
+  shown.forEach(m => { h += monitorCardHTML(m); });
+  return h;
+}
+function monitorCardHTML(m) {
+  const chips = [`📺 ${m.size_in}″`, esc(m.resolution), `${m.refresh_hz}Hz`, esc(m.panel_type)];
+  if (m.usbc_video_input) chips.push('🔌 USB-C video input — one cable from a laptop');
+  return `<div class="card"><h3>${esc(m.name)}</h3>
+    <div class="price">$${m.price_usd.toLocaleString()}</div>
+    <p class="permo" style="color:#94a3b8;font-size:.78rem;margin:2px 0 0">Price via ${esc(m.price_source || 'retailer')}, checked Oct 2026 · ${esc(m.role)}</p>
+    <div class="chips">${chips.map(c => `<span class="chip">${c}</span>`).join('')}</div>
+    <p class="why">${esc(m.why)}</p>
+    <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
+}
+function dockCardHTML(o, beyond) {
+  const roleLabel = { manufacturer: "🏭 Maker's own dock", third_party_primary: 'Third-party pick',
+    third_party_secondary: 'Third-party pick', usba_displaylink: 'USB-A DisplayLink route',
+    displaylink_fallback: 'DisplayLink pick' }[o.role] || 'Dock';
+  const chips = [];
+  if (o.connection) chips.push('🔌 ' + esc(o.connection));
+  if (o.max_displays) chips.push(`🖥️ Up to ${o.max_displays} screens`);
+  if (o.host_charging_w) chips.push(`⚡ Charges the laptop at ${o.host_charging_w}W`);
+  const tech = o.displaylink_capable
+    ? `<p class="why">🖥️ Adds screens itself over USB (DisplayLink) — works past the laptop's own screen limit. Needs the free DisplayLink driver.</p>`
+    : `<p class="why">Uses the laptop's own graphics (native) — screens through it stay within the laptop's own display limits.</p>`;
+  let flag = '';
+  if (beyond) {
+    flag = o.displaylink_capable
+      ? `<p class="why" style="color:#4ade80">✅ This is the kind that can add your extra screens.</p>`
+      : `<p class="warnline">⚠️ On its own this won't add screens past the laptop's limit — shown so you can compare.</p>`;
+  }
+  const price = o.price_usd != null
+    ? `<div class="price">$${o.price_usd.toLocaleString()}</div>
+       <p class="permo" style="color:#94a3b8;font-size:.78rem;margin:2px 0 0">Price via ${esc(o.price_source || 'maker store')}, checked Oct 2026</p>`
+    : `<p class="permo" style="color:#94a3b8;font-size:.8rem;margin:2px 0 0">No verified price yet — we list a price only when we've confirmed one</p>`;
+  return `<div class="card"><span class="dockrole">${roleLabel}</span>
+    <h3>${esc(o.name)}</h3>
+    ${price}
+    <div class="chips">${chips.map(c => `<span class="chip">${c}</span>`).join('')}</div>
+    ${tech}${flag}
+    <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
+}
+function pairDockHTML() {
+  const d = pairData;
+  if (d.type === 'desktop') {
+    return `<div class="note">Desktops plug screens in directly — the graphics card's own ports do the job, so there's no dock to pair with a desktop. Matching the screens themselves happens in the Screens step.</div>
+      <button class="pairbtn" onclick="pairGo('screens')">🖥️ Go to Screens</button>`;
+  }
+  if (pairScreens.count === null) {
+    return `<p class="q">First — how many extra screens should the dock handle?</p>
+      <p class="sortline">A pairing only means something against a target setup.</p>` +
+      pairCountOpts().map(o =>
+        `<button class="opt" onclick="pairSetCount(${o.v})">${o.t}<small>${o.s}</small></button>`).join('');
+  }
+  const split = d.chassis_split;
+  if (split && !pairChassis) {
+    return `<p class="q">One question about this exact model</p>
+      <div class="note">Dell sells this model in two chassis, and they differ where it matters: the plastic-chassis version's USB-C port is data-only, while the aluminum-chassis version's USB-C carries DisplayPort video. Which is yours?</div>
+      <button class="opt" onclick="pairSetChassis('plastic')">Plastic chassis<small>USB-C is data-only on this version</small></button>
+      <button class="opt" onclick="pairSetChassis('aluminum')">Aluminum chassis<small>USB-C carries DisplayPort video on this version</small></button>`;
+  }
+  let effClass = d.dock_class;
+  if (split && pairChassis) effClass = split[pairChassis];
+  if (d.dock_class === 'unknown' && !split) {
+    let h = `<div class="note">We couldn't verify this model's dock ports from the maker's published specs, so we won't pair a dock we can't stand behind.</div>`;
+    if (d.unknown_reason) h += `<p class="sortline">${esc(d.unknown_reason)}</p>`;
+    h += `<p class="sortline">The safe route: check the model's spec page for "DisplayPort" or "Thunderbolt" next to its USB-C ports — a dock needs one of those to carry a picture.</p>`;
+    return h;
+  }
+  if (effClass === 'usbc_data_only_with_usba') {
+    let h = `<div class="note">⚠️ A standard USB-C dock can't add screens to this laptop — its USB-C port is data-only (no video). The docks that can help connect over USB-A and add screens themselves, using DisplayLink. Two honest caveats: they need the free DisplayLink driver, and they can't charge this laptop — it keeps its own power adapter.</div>
+      <p class="picks-head">The USB-A DisplayLink route</p>`;
+    (d.usba_displaylink_options || []).forEach(o => { h += dockCardHTML(o, false); });
+    return h;
+  }
+  const opts = d.pairing_options || [];
+  const mx = (d.display || {}).max_external;
+  const n = pairScreens.count;
+  let h = '';
+  let beyond = false;
+  if (mx != null && n > mx) {
+    beyond = true;
+    h += `<div class="note">⚠️ This laptop drives up to ${mx} external screen${mx > 1 ? 's' : ''} on its own. A regular dock just re-exports that same graphics — it can't pass the limit. The docks marked DisplayLink add screens over USB and can take you further.</div>
+      <p class="picks-head">Vetted pairings for ${esc(d.brand)}</p>`;
+  } else if (mx != null && n >= 1) {
+    h += `<div class="have">✅ <strong>Good news:</strong> this laptop drives your ${n} external screen${n > 1 ? 's' : ''} on its own — a dock is optional.</div>
+      <p class="picks-head">For a tidier desk</p>
+      <p class="sortline">One cable for screens, power, and peripherals when you sit down:</p>`;
+  } else if (n === 0) {
+    h += `<p class="picks-head">Docks for a tidier desk</p>
+      <p class="sortline">No extra screens planned — a dock here is about one-cable convenience, not more displays:</p>`;
+  } else {
+    h += `<div class="note">The maker doesn't publish an exact external-screen count for this model, so we can't promise it covers ${n} screen${n > 1 ? 's' : ''} natively. These are the vetted ${esc(d.pairing_key || d.brand)} pairings; if the laptop turns out to be limited, a DisplayLink dock is the kind that adds screens itself.</div>
+      <p class="picks-head">Vetted pairings</p>`;
+  }
+  opts.forEach(o => { h += dockCardHTML(o, beyond); });
+  if (beyond && !opts.some(o => o.displaylink_capable) &&
+      (d.displaylink_options || []).length) {
+    h += `<p class="picks-head">DisplayLink docks that can add the screens</p>`;
+    d.displaylink_options.forEach(o => { h += dockCardHTML(o, true); });
+  }
+  if (effClass === 'usbc_dp' &&
+      opts.some(o => (o.connection || '').indexOf('Thunderbolt') === 0)) {
+    h += `<p class="sortline">Port note: this laptop's USB-C carries DisplayPort video but isn't Thunderbolt — makers state Thunderbolt docks may run with reduced function on ports like this; a USB-C (DisplayPort) dock is the certain match.</p>`;
+  }
+  return h;
 }
 
 // ------------------------------------------------------------- disclaimers
