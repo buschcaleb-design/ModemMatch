@@ -13,14 +13,17 @@ function hideAllSections() {
 }
 function chooseFlow(f) { flowType = f; renderFlowPick(); }
 function renderFlowPick() {
+  if (typeof setScene === 'function') setScene('');
   hideAllSections();
   const el = document.getElementById('flow-pick');
   el.style.display = 'block';
   const buying = flowType === 'buy';
   el.innerHTML = `<button class="back" onclick="backHome()">← Back</button>
     <p class="q">${buying ? 'What are you buying?' : 'What are you setting up?'}</p>
+    <div class="opt-grid">
     <button class="opt" onclick="routeFlow('internet')">🌐 Internet<small>${buying ? 'Modems, routers & mesh — ditch the ISP rental fee' : 'Activate and set up your modem or router, step by step'}</small></button>
     <button class="opt" onclick="routeFlow('pc')">💻 PC<small>${buying ? "Laptops & desktops matched to how you'll actually use them" : 'First-boot walkthroughs, brand setup tools & kid setup'}</small></button>
+    </div>
     <p class="orline">— or —</p>
     <button class="opt" onclick="startModelLookup()">🔎 Know your model?<small>Type the name — or the model number off the box — and jump straight to it</small></button>`;
   window.scrollTo(0, 0);
@@ -35,9 +38,12 @@ function routeFlow(kind) {
   }
 }
 
+const LOGO_EXT = { centurylink: 'svg', frontier: 'svg' };
+const logoExt = id => LOGO_EXT[id] || 'png';
+
 const QUESTIONS = [
   { key: 'isp', q: "Who's your internet provider?",
-    opts: () => isps.map(i => ({ v: i.id, t: i.name,
+    opts: () => isps.map(i => ({ v: i.id, t: i.name, logo: i.id,
       s: i.connection === 'fiber' ? 'Fiber' : i.connection === 'dsl' ? 'DSL' : 'Cable' })) },
   { key: 'speed_tier', q: "How fast is your internet?",
     opts: () => [
@@ -105,9 +111,13 @@ function render() {
   bar.style.width = ((step + 1) / (V.length + 1) * 100) + '%';
   let h = `<button class="back" onclick="${step === 0 ? 'backToFlowPick()' : 'back()'}">← Back</button>`;
   h += `<p class="q">${Q.q}</p>`;
+  h += '<div class="opt-grid">';
   Q.opts().forEach(o => {
-    h += `<button class="opt" onclick="pick('${Q.key}','${o.v}')">${o.t}${o.s ? `<small>${o.s}</small>` : ''}</button>`;
+    h += o.logo
+      ? `<button class="opt has-logo" onclick="pick('${Q.key}','${o.v}')"><img class="opt-logo" src="/assets/logos/${o.logo}.${logoExt(o.logo)}" alt=""><span class="opt-name">${o.t}</span>${o.s ? `<small>${o.s}</small>` : ''}</button>`
+      : `<button class="opt" onclick="pick('${Q.key}','${o.v}')">${o.t}${o.s ? `<small>${o.s}</small>` : ''}</button>`;
   });
+  h += '</div>';
   stepsEl.innerHTML = h;
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
 }
@@ -154,7 +164,7 @@ function comboCardHTML() {
   const total = m.price + rt.price;
   const saveBit = meta.fee > 0 ? ` <span class="permo">— saves you $${meta.fee * 36 - total} over 3 years</span>` : '';
   const kind = sortMode === 'cheapest' ? 'cheapest' : sortMode === 'stability' ? 'most reliable' : 'highest-value';
-  return `<div class="card combo"><span class="rank">⭐ OUR COMBO PICK</span>
+  return `<div class="card combo breakout"><span class="rank">⭐ OUR COMBO PICK</span>
     <h3>${m.name} + ${rt.name}</h3>
     <div class="price">$${total}${saveBit}</div>
     <p class="why">Our ${kind} modem paired with our ${kind} router for your home. Buy both, ditch the rental, done.</p></div>`;
@@ -168,19 +178,72 @@ function tabButtonsHTML(modems, routers) {
 }
 
 function listHTML(picks) {
-  const shown = showAll ? picks : picks.slice(0, 5);
-  let h = '';
-  shown.forEach((p, i) => { h += cardHTML(p, i); });
-  if (!showAll && picks.length > 5)
-    h += `<button class="more" onclick="showAll=true;renderResults()">Show ${picks.length - 5} more ▼</button>`;
+  const shown = showAll ? picks : picks.slice(0, 6);
+  let h = '<div class="picks-grid breakout">';
+  shown.forEach((p, i) => { h += cardHTML(p, i, i === 0); });
+  h += '</div>';
+  if (!showAll && picks.length > 6)
+    h += `<button class="more" onclick="showAll=true;renderResults()">Show ${picks.length - 6} more ▼</button>`;
   return h;
 }
 
-function cardHTML(p, i) {
+
+// Results redesign helpers (Caleb, 2026-10-16): drawn stand-ins live in the
+// photo slot until real maker photos are collected; chips became big rows.
+function cardArt(kind) {
+  const W = 'viewBox="0 0 100 75" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"';
+  const G = 'fill="none" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"';
+  const arts = {
+    laptop: `<svg ${W}><g ${G}><rect x="24" y="14" width="52" height="36" rx="3.6" stroke="#0284c7"/><path d="M14 58 h72 l-7 -6 H21 Z" stroke="#e84393"/><circle cx="50" cy="32" r="2" fill="#0284c7" stroke="none"/></g></svg>`,
+    desktop: `<svg ${W}><g ${G}><rect x="35" y="7" width="30" height="60" rx="4" stroke="#4f46e5"/><circle cx="50" cy="18" r="3.4" stroke="#0891b2"/><path d="M42 30 h16 M42 38 h16 M42 46 h10" stroke="#e84393"/></g></svg>`,
+    monitor: `<svg ${W}><g ${G}><rect x="15" y="13" width="70" height="46" rx="4" stroke="#0284c7"/><path d="M50 59 v6 M36 67 h28" stroke="#10304f"/><path d="M24 24 l14 10 M42 24 l-6 6" stroke="#f59e0b" stroke-width="2.6"/></g></svg>`,
+    dock: `<svg ${W}><g ${G}><rect x="17" y="42" width="66" height="17" rx="5" stroke="#7c3aed"/><path d="M31 42 v-8 M69 42 v-8 M24 22 q6 -6 12 0 M64 22 q6 -6 12 0" stroke="#7c3aed"/><circle cx="74" cy="50.5" r="2" fill="#e84393" stroke="none"/></g></svg>`,
+    modem: `<svg ${W}><g ${G}><rect x="19" y="33" width="62" height="25" rx="5" stroke="#10304f"/><circle cx="30" cy="45.5" r="2.2" fill="#16a34a" stroke="none"/><circle cx="41" cy="45.5" r="2.2" fill="#f59e0b" stroke="none"/><path d="M58 45.5 h14 M64 26 a10 10 0 0 1 8 5" stroke="#0284c7"/></g></svg>`,
+    router: `<svg ${W}><g ${G}><rect x="17" y="41" width="66" height="19" rx="5" stroke="#10304f"/><path d="M28 41 V22 M50 41 V16 M72 41 V22" stroke="#10304f"/><path d="M40 26 a14 14 0 0 1 20 0 M35 19 a22 22 0 0 1 30 0" stroke="#e84393"/><circle cx="28" cy="50.5" r="2" fill="#16a34a" stroke="none"/></g></svg>`,
+    mesh: `<svg ${W}><g ${G}><rect x="14" y="26" width="24" height="24" rx="6" stroke="#0d9488"/><rect x="62" y="26" width="24" height="24" rx="6" stroke="#7c3aed"/><path d="M42 38 h16" stroke="#64748b" stroke-dasharray="1.5 5"/><circle cx="26" cy="38" r="2" fill="#0d9488" stroke="none"/><circle cx="74" cy="38" r="2" fill="#7c3aed" stroke="none"/></g></svg>`
+  };
+  return `<div class="pimg">${arts[kind] || arts.router}</div>`;
+}
+// Photo gallery (Caleb, 2026-10-16): when an item has collected photos,
+// the slot rotates through them like a store gallery; until then the drawn
+// stand-in holds the slot.
+function cardGallery(kind, images, name) {
+  if (!images || !images.length) return cardArt(kind);
+  const enc = encodeURIComponent(JSON.stringify(images));
+  const nav = images.length > 1 ? `<button class="galnav prev" onclick="galCycle(this,-1)" aria-label="Previous photo">‹</button><button class="galnav next" onclick="galCycle(this,1)" aria-label="Next photo">›</button><span class="galcount">1 / ${images.length}</span>` : '';
+  return `<div class="pimg gal" data-imgs="${enc}" data-idx="0"><img src="${images[0]}" alt="${esc(name || 'Product photo')}" loading="lazy" onerror="galFallback(this,'${kind}')">${nav}</div>`;
+}
+function galFallback(img, kind) {
+  const box = img.closest('.pimg');
+  if (box) box.outerHTML = cardArt(kind);
+}
+function galCycle(btn, d) {
+  const box = btn.closest('.pimg');
+  const imgs = JSON.parse(decodeURIComponent(box.dataset.imgs));
+  let i = (parseInt(box.dataset.idx || '0', 10) + d + imgs.length) % imgs.length;
+  box.dataset.idx = i;
+  box.querySelector('img').src = imgs[i];
+  const c = box.querySelector('.galcount');
+  if (c) c.textContent = (i + 1) + ' / ' + imgs.length;
+}
+function factRowsHTML(chips) {
+  if (!chips || !chips.length) return '';
+  const rows = chips.map(c => {
+    const parts = String(c).split(' · ');
+    if (parts.length > 1)
+      return `<div class="factrow"><span class="fl">${parts[0]}</span><span class="fv">${parts.slice(1).join(' · ')}</span></div>`;
+    return `<div class="factrow"><span class="fv left">${c}</span></div>`;
+  }).join('');
+  return `<div class="factrows">${rows}</div>`;
+}
+
+function cardHTML(p, i, isHero) {
   const saveLine = p.saves_over_life > 0
     ? `saves you $${p.saves_over_life} over ${p.life_years} years`
     : `WiFi upgrade — no rental fee on your plan`;
-  return `<div class="card"><span class="rank">#${i + 1} ${p.type.replace('_', ' ').toUpperCase()}</span>
+  const kind = p.type.includes('mesh') ? 'mesh' : p.type.includes('router') ? 'router' : 'modem';
+  return `<div class="card${isHero ? ' hero' : ''}"><span class="rank">#${i + 1} ${p.type.replace('_', ' ').toUpperCase()}</span>
+    ${cardGallery(kind, p.images, p.name)}
     <h3>${p.name}</h3>
     <div class="price">$${p.price} <span class="permo">— ${saveLine}</span></div>
     <p class="why">${p.why}</p>
@@ -221,6 +284,7 @@ function backHome() {
   window.scrollTo(0, 0);
 }
 function startBuy() {
+  if (typeof setScene === 'function') setScene('');
   setPageTheme('store');
   document.getElementById('home').style.display = 'none';
   document.getElementById('flow-pick').style.display = 'none';
@@ -230,6 +294,7 @@ function startBuy() {
 }
 // Setup flow: ISP -> gear type -> activation -> (Next) -> instructions
 function startSetup() {
+  if (typeof setScene === 'function') setScene('');
   setPageTheme('store');
   document.getElementById('home').style.display = 'none';
   document.getElementById('flow-pick').style.display = 'none';
@@ -239,7 +304,7 @@ function startSetup() {
            <p class="q">Who's your internet provider?</p>`;
   isps.forEach(i => {
     const conn = i.connection === 'fiber' ? 'Fiber' : i.connection === 'dsl' ? 'DSL' : 'Cable';
-    h += `<button class="opt" onclick="pickGear('${i.id}')">${i.name}<small>${conn}</small></button>`;
+    h += `<button class="opt has-logo" onclick="pickGear('${i.id}')"><img class="opt-logo" src="/assets/logos/${i.id}.${logoExt(i.id)}" alt=""><span class="opt-name">${i.name}</span><small>${conn}</small></button>`;
   });
   el.innerHTML = h;
   window.scrollTo(0, 0);
@@ -380,9 +445,13 @@ function setPageTheme(name) {
 
 // Setup themes: each OS has a plain "first look" (stage 1) that evolves
 // into its full modern look (stage 2) as the setup wizard advances.
-const OS_THEMES = { windows_11: ['win-first', 'win11'], macos: ['mac-first', 'macos'],
-                    chromeos: ['chrome-first', 'chromeos'] };
-function setOsTheme(key, stage) {
+const OS_THEMES = { windows_11: ['win98', 'winxp', 'win11'], macos: ['mac-classic', 'mac-aqua', 'mac-modern'],
+                    chromeos: ['chrome-early', 'chrome-mid', 'chromeos'] };
+function setOsTheme(key, stage, frac) {
   const t = OS_THEMES[key];
-  if (t) setPageTheme(t[stage === 2 ? 1 : 0]);
+  if (!t) return;
+  // Long ladders (Windows generations) map the wizard's progress onto the
+  // whole ladder, oldest first, newest on the final screen.
+  if (typeof frac === 'number' && t.length > 2) setPageTheme(t[Math.round(frac * (t.length - 1))]);
+  else setPageTheme(t[stage === 2 ? t.length - 1 : 0]);
 }
