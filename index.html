@@ -155,7 +155,7 @@
   <div id="pairing" style="display:none"></div>
   <div id="disclaimers" style="display:none"></div>
   <button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>
-  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.13 &middot; If a page looks outdated, read this stamp back to us</p>
+  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.14 &middot; If a page looks outdated, read this stamp back to us</p>
 </div>
 <script>const stepsEl = document.getElementById('steps');
 const bar = document.getElementById('bar');
@@ -663,14 +663,28 @@ async function goLaptopSetup() {
       pcGuides.setup_guides.os_flows[top.setup.os_key])
     renderPcFormFactor(top.setup.os_key);
 }
+function fullSpecsHTML(p) {
+  // The verbatim maker spec text, kept one tap away now that the
+  // card front shows the compact summary chips (Build .14).
+  const rows = [];
+  [['CPU', p.cpu, p.cpu_short], ['Memory', p.ram_text, p.ram_short],
+   ['Storage', p.storage_text, p.storage_short], ['Graphics', p.gpu, p.gpu_short]]
+    .forEach(([label, full, short]) => {
+      if (full && short && full !== short)
+        rows.push(`<li>${label}: ${esc(full)}</li>`);
+    });
+  if (!rows.length) return '';
+  return `<details class="setupbox"><summary>📋 Full specs, as the maker lists them</summary>
+    <ul class="whylist">${rows.join('')}</ul></details>`;
+}
 function laptopCardHTML(p, i, isTop, rankLabel) {
   const [badge, badgeCls] = archBadge(p);
   const chips = [];
   if (p.display_inches) chips.push(`📺 ${p.display_inches}″ screen`);
-  if (p.cpu) chips.push(esc(p.cpu));
-  if (p.ram_text) chips.push('🧠 ' + esc(p.ram_text));
-  if (p.storage_text) chips.push('💾 ' + esc(p.storage_text));
-  if (p.gpu) chips.push('🎨 ' + esc(p.gpu));
+  if (p.cpu) chips.push('CPU · ' + esc(p.cpu_short || p.cpu));
+  if (p.ram_text || p.ram_short) chips.push('Memory · ' + esc(p.ram_short || p.ram_text));
+  if (p.storage_text || p.storage_short) chips.push('Storage · ' + esc(p.storage_short || p.storage_text));
+  if (p.gpu) chips.push('GPU · ' + esc(p.gpu_short || p.gpu));
   if (p.weight_text) chips.push('⚖️ ' + esc(p.weight_text));
   const maxBit = p.price_max
     ? ` <span class="permo">— up to $${p.price_max.toLocaleString()} fully loaded${p.max_config_note ? ' (' + esc(p.max_config_note) + ')' : ''}</span>` : '';
@@ -684,6 +698,7 @@ function laptopCardHTML(p, i, isTop, rankLabel) {
     <p class="why">${esc(p.summary || (Array.isArray(p.why) ? (p.why[0] || '') : p.why) || '')}</p>
     ${p.ecosystem_note ? `<p class="why">🔗 ${esc(p.ecosystem_note)}</p>` : ''}
     ${laptopWhyHTML(p)}
+    ${fullSpecsHTML(p)}
     <button class="pairbtn" onclick="openPairing('laptop','${p.id}')">🔌 Find my screen or dock to pair with it</button>
     <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
 }
@@ -934,10 +949,10 @@ function desktopCardHTML(p, i, isTop, rankLabel) {
   const chips = [];
   chips.push(`🖥️ ${esc(p.form_factor_label)}`);
   if (p.display_inches) chips.push(`📺 ${p.display_inches}″ screen built in`);
-  if (p.cpu) chips.push(esc(p.cpu));
-  if (p.ram_text) chips.push('🧠 ' + esc(p.ram_text));
-  if (p.storage_text) chips.push('💾 ' + esc(p.storage_text));
-  if (p.gpu) chips.push('🎨 ' + esc(p.gpu));
+  if (p.cpu) chips.push('CPU · ' + esc(p.cpu_short || p.cpu));
+  if (p.ram_text || p.ram_short) chips.push('Memory · ' + esc(p.ram_short || p.ram_text));
+  if (p.storage_text || p.storage_short) chips.push('Storage · ' + esc(p.storage_short || p.storage_text));
+  if (p.gpu) chips.push('GPU · ' + esc(p.gpu_short || p.gpu));
   const maxBit = p.price_max
     ? ` <span class="permo">— up to $${p.price_max.toLocaleString()} fully loaded${p.max_config_note ? ' (' + esc(p.max_config_note) + ')' : ''}</span>` : '';
   return `<div class="card${isTop ? ' combo' : ''}"><span class="rank">${rankLabel || (isTop ? '⭐ OUR TOP DESKTOP PICK' : '#' + (i + 1) + ' DESKTOP')}</span>
@@ -950,6 +965,7 @@ function desktopCardHTML(p, i, isTop, rankLabel) {
     <p class="why">${esc(p.summary || (Array.isArray(p.why) ? (p.why[0] || '') : p.why) || '')}</p>
     ${p.ecosystem_note ? `<p class="why">🔗 ${esc(p.ecosystem_note)}</p>` : ''}
     ${desktopWhyHTML(p)}
+    ${fullSpecsHTML(p)}
     <button class="pairbtn" onclick="openPairing('desktop','${p.id}')">🔌 Find my screen or dock to pair with it</button>
     <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
 }
