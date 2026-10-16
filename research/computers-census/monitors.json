@@ -1,0 +1,580 @@
+{
+  "meta": {
+    "dataset": "ByteMatch curated monitors shelf",
+    "created": "2026-10-15",
+    "prices_checked_date": "2026-10-15",
+    "scope": "Curated shelf, NOT a census: 3-5 monitors per resolution tier, sized for the job.",
+    "price_rule": "Every shelf monitor has a price observed at the maker store, Walmart, Best Buy, or Micro Center (Caleb's retailer rule). No Amazon, no Target. Unpriced-at-allowed-source models were cut.",
+    "spec_rule": "Specs from the manufacturer's own spec table only; marketing-vs-spec conflicts resolved to the spec table and flagged.",
+    "size_class_rule": "Caleb's bands (set 2026-10-16, correcting the original band): aspect first — 21:9 or wider = 'widescreen' at any inches. Otherwise by size: under 27in = 'small', 27in to 32in = 'office' (the standard office screen is 32in), over 32in = 'large'.",
+    "quality_class_rule": "premium = OLED, or top published gamut (>=98% DCI-P3) plus a spec'd HDR class. color = published wide gamut (>=95% DCI-P3) or a factory-calibration claim in the spec sheet. sharp = high pixel density for size (>=100 ppi) with IPS-class panel. everyday = standard published panel, nothing more claimed. unspecified = maker published neither gamut nor panel detail (never assumed everyday)."
+  },
+  "tiers": {
+    "1080p": [
+      {
+        "aspect": "16:9",
+        "brand": "BenQ",
+        "brightness_nits": 250,
+        "checked_date": "2026-10-15",
+        "color_gamut": {
+          "dci_p3_percent": null,
+          "srgb_percent": 99
+        },
+        "flags": [
+          "Tilt-only stand in the spec table (no height adjustment); the 100x100 VESA mount is the ergonomic fix.",
+          "Speakers are 2Wx2 per the spec table."
+        ],
+        "inputs": {
+          "displayport": "1.2",
+          "hdmi": "2x HDMI 1.4",
+          "usb_hub": false,
+          "usbc_note": "No USB-C port in the BenQ spec table connectivity list (HDMI/DisplayPort only).",
+          "usbc_video_input": false
+        },
+        "name": "BenQ GW2490",
+        "panel_type": "IPS",
+        "price_source": {
+          "name": "Best Buy",
+          "url": "https://www.bestbuy.com/site/searchpage.jsp?qp=monitorscreensizerange_facet%3DScreen+Size%7E34%22+-+39.9%22%5Emonitorscreensizerange_facet%3DScreen+Size%7E23%22+-+26.4%22&id=pcat17071&browsedCategory=pcmcat1530205398002&st=pcmcat1530205398002_categoryid%24cat00000"
+        },
+        "price_usd": 114.99,
+        "refresh_hz": 100,
+        "refresh_oc_hz": null,
+        "resolution": "1920x1080",
+        "role": "everyday/work value pick",
+        "size_in": 23.8,
+        "speakers": true,
+        "spec_source_url": "https://www.benq.com/en-ca/monitor/home/gw2490/spec.html",
+        "vesa_mount": true,
+        "why": "The everyday value pick: 100Hz IPS with two HDMI ports plus DisplayPort, built-in speakers and BenQ eye-care modes, at the lowest price on this shelf.",
+        "size_class": "small",
+        "ppi": 92.6,
+        "quality_class": "everyday",
+        "quality_basis": "Standard published panel with no wide-gamut or factory-calibration claim beyond basic sRGB."
+      },
+      {
+        "aspect": "16:9",
+        "brand": "Dell",
+        "brightness_nits": 250,
+        "checked_date": "2026-10-15",
+        "color_gamut": {
+          "dci_p3_percent": null,
+          "srgb_percent": 99
+        },
+        "flags": [
+          "USB-C trap: downstream data-only port (15W) - see usbc_note. Third-party listings that describe this monitor as 'USB-C' video-capable are wrong per Dell's spec table.",
+          "Dell US page structured offer data showed OutOfStock at fetch time; $184.99 was the price observed at dell.com - re-check stock before buying."
+        ],
+        "inputs": {
+          "displayport": "1.2",
+          "hdmi": "1x HDMI 1.4",
+          "usb_hub": true,
+          "usbc_note": "USB-C TRAP: the USB-C port is a downstream port only, up to 15W PD, listed by Dell as 'data only' - it is NOT a video input. Video is via HDMI/DP/VGA; a separate USB 3.2 Gen1 Type-B upstream port drives the hub.",
+          "usbc_video_input": false
+        },
+        "name": "Dell P2425H",
+        "panel_type": "IPS",
+        "price_source": {
+          "name": "Dell",
+          "url": "https://www.dell.com/en-us/shop/dell-24-monitor-p2425h/apd/210-bmgh/monitors-monitor-accessories"
+        },
+        "price_usd": 184.99,
+        "refresh_hz": 100,
+        "refresh_oc_hz": null,
+        "resolution": "1920x1080",
+        "role": "all-rounder / office pick",
+        "size_in": 23.8,
+        "speakers": false,
+        "spec_source_url": "https://www.dell.com/en-us/shop/dell-24-monitor-p2425h/apd/210-bmgh/monitors-monitor-accessories",
+        "vesa_mount": true,
+        "why": "The office all-rounder: height, swivel and pivot stand, 99% sRGB IPS at 100Hz and a real USB hub - just do not expect its USB-C port to carry video.",
+        "size_class": "small",
+        "ppi": 92.6,
+        "quality_class": "everyday",
+        "quality_basis": "Standard published panel with no wide-gamut or factory-calibration claim beyond basic sRGB."
+      },
+      {
+        "aspect": "16:9",
+        "brand": "BenQ",
+        "brightness_nits": 250,
+        "checked_date": "2026-10-15",
+        "color_gamut": {
+          "dci_p3_percent": null,
+          "srgb_percent": 99
+        },
+        "flags": [
+          "Best Buy listing is the white finish; check colour if black is required.",
+          "Height adjustment 130mm, swivel and pivot per the spec table; USB hub is 2x USB 3.2 Gen1 Type-A downstream.",
+          "Retailer trap seen elsewhere: one third-party retailer listing overstated this model as 200Hz - BenQ's spec table says 100Hz."
+        ],
+        "inputs": {
+          "displayport": "1.2 (plus DisplayPort-out MST for daisy-chaining)",
+          "hdmi": "1x HDMI 1.4",
+          "usb_hub": true,
+          "usbc_note": "TRUE USB-C VIDEO INPUT: BenQ spec table lists 'USB C (PowerDelivery 65W, DisplayPort Alt Mode, Data)' x1 - one cable carries video, data and 65W laptop charging.",
+          "usbc_video_input": true
+        },
+        "name": "BenQ GW2486TC",
+        "panel_type": "IPS",
+        "price_source": {
+          "name": "Best Buy",
+          "url": "https://www.bestbuy.com/site/searchpage.jsp?qp=monitorscreensizerange_facet%3DScreen+Size%7E34%22+-+39.9%22%5Emonitorscreensizerange_facet%3DScreen+Size%7E23%22+-+26.4%22&id=pcat17071&browsedCategory=pcmcat1530205398002&st=pcmcat1530205398002_categoryid%24cat00000"
+        },
+        "price_usd": 199.99,
+        "refresh_hz": 100,
+        "refresh_oc_hz": null,
+        "resolution": "1920x1080",
+        "role": "USB-C single-cable / laptop work pick",
+        "size_in": 23.8,
+        "speakers": true,
+        "spec_source_url": "https://www.benq.com/en-ca/monitor/home/gw2486tc/spec.html",
+        "vesa_mount": true,
+        "why": "The laptop pick: one USB-C cable carries video, data and 65W charging, and you still get a height-adjustable stand, speakers, a noise-cancelling mic and a USB hub.",
+        "size_class": "small",
+        "ppi": 92.6,
+        "quality_class": "everyday",
+        "quality_basis": "Standard published panel with no wide-gamut or factory-calibration claim beyond basic sRGB."
+      },
+      {
+        "aspect": "16:9",
+        "brand": "Samsung",
+        "brightness_nits": 250,
+        "checked_date": "2026-10-15",
+        "color_gamut": {
+          "dci_p3_percent": null,
+          "srgb_percent": 95
+        },
+        "flags": [
+          "Size is Samsung's stated 'Screen Size (Class) 24'; the spec table's active display area (525.89 x 295.81 mm) is about 23.8in viewable.",
+          "Price discrepancy on Samsung's own US page: the page body shows $199.99 while the page's structured offer data shows $119.99 - $119.99 (the offer/sale figure) is recorded. The Samsung page also showed Out of stock at fetch time; re-check before buying.",
+          "Response time in the spec table is 1ms MPRT, not GtG - do not compare it directly with GtG figures on other models.",
+          "No built-in speaker is listed in the Samsung spec table.",
+          "VA panel: strong contrast, but off-angle colour shift is worse than the IPS picks on this shelf."
+        ],
+        "inputs": {
+          "displayport": "1.4",
+          "hdmi": "1x HDMI 2.0",
+          "usb_hub": false,
+          "usbc_note": "No USB-C port in the Samsung spec table, and the spec table lists USB Hub as 'No'.",
+          "usbc_video_input": false
+        },
+        "name": "Samsung Odyssey G3 G30D (LS24DG302ENXZA)",
+        "panel_type": "VA",
+        "price_source": {
+          "name": "Samsung",
+          "url": "https://www.samsung.com/us/monitors/gaming/24-inch-odyssey-g3-g30d-fhd-180hz-1ms-gaming-monitor-with-ergonomic-stand-sku-ls24dg302enxza/"
+        },
+        "price_usd": 119.99,
+        "refresh_hz": 180,
+        "refresh_oc_hz": null,
+        "resolution": "1920x1080",
+        "role": "gaming-leaning pick",
+        "size_in": 24,
+        "speakers": false,
+        "spec_source_url": "https://www.samsung.com/ie/monitors/gaming/odyssey-g3-g30d-24-inch-180hz-freesync-ls24dg302euxxu/",
+        "vesa_mount": true,
+        "why": "The gaming pick: a true native 180Hz with FreeSync and a height-adjustable stand, on a VA panel with deep 3,000:1 contrast for dark scenes.",
+        "size_class": "small",
+        "ppi": 91.8,
+        "quality_class": "everyday",
+        "quality_basis": "Standard published panel with no wide-gamut or factory-calibration claim beyond basic sRGB."
+      }
+    ],
+    "1440p": [
+      {
+        "aspect": "16:9",
+        "brand": "Dell",
+        "brightness_nits": 400,
+        "checked_date": "2026-10-15",
+        "color_gamut": {
+          "srgb_percent": 99
+        },
+        "factory_calibrated": null,
+        "flags": [
+          "Cable trap: a USB-C to DisplayPort cable is included, but the monitor has no USB-C port and no USB hub of any kind.",
+          "HDR is only VESA DisplayHDR 400, the lowest tier, despite the 400-nit panel.",
+          "Dell's page displayed the $149.99 price while its structured offer data marked the item OutOfStock at check time; stock is volatile."
+        ],
+        "inputs": {
+          "displayport": "DisplayPort 1.4 x2",
+          "hdmi": "1x HDMI (version not stated in Dell spec table; HDCP 2.2)",
+          "usb_hub": false,
+          "usbc_note": "No USB-C port on the monitor at all. Dell bundles a USB-C to DisplayPort cable, which is a cable, not a USB-C input.",
+          "usbc_video_input": false
+        },
+        "name": "Dell 27 Gaming Monitor - G2724D",
+        "panel_type": "Fast IPS",
+        "price_source": {
+          "name": "Dell (maker store)",
+          "url": "https://www.dell.com/en-us/shop/dell-27-gaming-monitor-g2724d/apd/210-bhxc"
+        },
+        "price_usd": 149.99,
+        "refresh_hz": 165,
+        "refresh_note": "165Hz over DisplayPort; HDMI capped at 144Hz per Dell's native-resolution line. No overclock figure published.",
+        "resolution": "2560x1440",
+        "role": "everyday/work value pick",
+        "size_in": 27,
+        "speakers": false,
+        "spec_source_url": "https://www.dell.com/en-us/shop/dell-27-gaming-monitor-g2724d/apd/210-bhxc",
+        "vesa_mount": true,
+        "why": "Cheapest honest 1440p IPS here: 400-nit Fast IPS at 165Hz with a full height/pivot stand and VESA mount, as long as you do not need USB or speakers.",
+        "size_class": "office",
+        "ppi": 108.8,
+        "quality_class": "sharp",
+        "quality_basis": "High pixel density for its size (108.8 ppi) with an IPS-class panel; no published wide-gamut or calibration claim."
+      },
+      {
+        "aspect": "16:9",
+        "brand": "ASUS",
+        "brightness_nits": 250,
+        "checked_date": "2026-10-15",
+        "color_gamut": {
+          "srgb_percent": 130
+        },
+        "factory_calibrated": null,
+        "flags": [
+          "HDR trap: HDR10 support is marketed on a panel whose spec-table brightness is only 250 nits typical, so HDR will not look like HDR.",
+          "180Hz is DisplayPort-only; both HDMI ports cap at 144Hz per ASUS signal-frequency table.",
+          "Stand has tilt and swivel only; ASUS spec lists Height Adjustment: No."
+        ],
+        "inputs": {
+          "displayport": "DisplayPort 1.4 x1 (HBR2)",
+          "hdmi": "2x HDMI v2.0",
+          "usb_hub": false,
+          "usbc_note": "No USB-C port listed in ASUS I/O spec.",
+          "usbc_video_input": false
+        },
+        "name": "ASUS TUF Gaming VG27AQ3A",
+        "panel_type": "Fast IPS",
+        "price_source": {
+          "name": "Walmart",
+          "url": "https://www.walmart.com/?vid=306450&itemId=20667231"
+        },
+        "price_usd": 209.0,
+        "refresh_hz": 180,
+        "refresh_note": "180Hz maximum over DisplayPort per ASUS signal-frequency spec; HDMI inputs cap at 144Hz. No overclock figure published separately.",
+        "resolution": "2560x1440",
+        "role": "gaming-leaning",
+        "size_in": 27,
+        "speakers": true,
+        "spec_source_url": "https://www.asus.com/us/displays-desktops/monitors/tuf-gaming/tuf-gaming-vg27aq3a/techspec/",
+        "vesa_mount": true,
+        "why": "Fastest panel on the shelf at 180Hz with built-in 2W x2 speakers for $209, if you can live with a dim 250-nit screen and no height adjustment.",
+        "size_class": "office",
+        "ppi": 108.8,
+        "quality_class": "sharp",
+        "quality_basis": "High pixel density for its size (108.8 ppi) with an IPS-class panel. Publishes 130% sRGB coverage, but no DCI-P3 figure and no factory-calibration claim, so it does not meet the 'color' band's evidence standard."
+      },
+      {
+        "aspect": "16:9",
+        "brand": "LG",
+        "brightness_nits": 300,
+        "checked_date": "2026-10-15",
+        "color_gamut": {
+          "srgb_percent": 99
+        },
+        "factory_calibrated": true,
+        "flags": [
+          "Factory calibration: LG's spec table states Color Calibrated: Yes.",
+          "HDR is HDR10 only with a 300-nit panel and no VESA DisplayHDR certification in the spec table; treat HDR as a checkbox, not a feature.",
+          "Regional status conflict: LG Singapore's page marks this model Discontinued while LG's US store still lists it at $299.99; US structured offer data marked it OutOfStock at check time.",
+          "No speakers and no USB ports of any kind in the LG spec table."
+        ],
+        "inputs": {
+          "displayport": "DisplayPort v1.4 x1",
+          "hdmi": "2x HDMI v2.0",
+          "usb_hub": false,
+          "usbc_note": "No USB-C port listed in LG spec table.",
+          "usbc_video_input": false
+        },
+        "name": "LG UltraGear 27GR75Q-B",
+        "panel_type": "IPS",
+        "price_source": {
+          "name": "LG (maker store)",
+          "url": "https://www.lg.com/us/monitors/lg-27gr75q-b-gaming-monitor"
+        },
+        "price_usd": 299.99,
+        "refresh_hz": 165,
+        "refresh_note": "165Hz maximum per LG spec table; no overclock figure published for this model.",
+        "resolution": "2560x1440",
+        "role": "all-rounder",
+        "size_in": 27,
+        "speakers": false,
+        "spec_source_url": "https://www.lg.com/sg/consumer-monitors/gaming/27gr75q-b/",
+        "vesa_mount": true,
+        "why": "Balanced middle pick: factory color-calibrated 165Hz IPS with a height/pivot stand, fine for work by day and games by night.",
+        "size_class": "office",
+        "ppi": 108.8,
+        "quality_class": "color",
+        "quality_basis": "factory-calibration claim in the spec sheet."
+      },
+      {
+        "aspect": "16:9",
+        "brand": "Dell",
+        "brightness_nits": 350,
+        "checked_date": "2026-10-15",
+        "color_gamut": {
+          "dci_p3_percent": 98,
+          "srgb_percent": 100
+        },
+        "factory_calibrated": true,
+        "flags": [
+          "USB-C trap (headline trap of this shelf): it looks like a USB-C monitor and has a USB hub, but the USB-C upstream is data-only per Dell, so a laptop cannot drive it or charge from it over one cable. Buy the U2724DE sibling for that.",
+          "Factory-calibration claim: Dell states Delta E < 2 (average) across sRGB, BT.709, Display P3 and DCI-P3 in the gamut spec.",
+          "HDMI labeling is muddled in Dell's own spec (HDCP 1.4 listed alongside an HDMI 2.1 VRR reference); recorded exactly as Dell states it rather than upgraded to 'HDMI 2.1'.",
+          "Dell lists HDR Ready: No. No HDR marketing inflation on this model."
+        ],
+        "inputs": {
+          "displayport": "DisplayPort 1.4 x1 in, plus DisplayPort 1.4 out for daisy-chaining",
+          "hdmi": "1x HDMI (Dell lists HDCP 1.4 and states support for QHD 120Hz TMDS with VRR as specified in HDMI 2.1; Dell does not label the port itself HDMI 2.1)",
+          "usb_hub": true,
+          "usbc_note": "USB-C TRAP: Dell's own port list calls the USB-C upstream port 'data only' (SuperSpeed USB 10 Gbps, USB 3.2 Gen 2). It carries no video and no upstream power delivery. A separate USB-C downstream port offers 15W charging only.",
+          "usbc_video_input": false
+        },
+        "name": "Dell UltraSharp 27 Monitor - U2724D",
+        "panel_type": "IPS Black",
+        "price_source": {
+          "name": "Dell (maker store)",
+          "url": "https://www.dell.com/en-us/shop/dell-ultrasharp-27-monitor-u2724d/apd/210-bksf"
+        },
+        "price_usd": 439.99,
+        "refresh_hz": 120,
+        "refresh_note": "120Hz native at 2560x1440 per Dell spec; no overclock figure published.",
+        "resolution": "2560x1440",
+        "role": "creator-leaning / work (non-docking)",
+        "size_in": 27,
+        "speakers": false,
+        "spec_source_url": "https://www.dell.com/en-us/shop/dell-ultrasharp-27-monitor-u2724d/apd/210-bksf",
+        "vesa_mount": true,
+        "why": "Best color on the shelf for the money: IPS Black panel, 100% sRGB and 98% DCI-P3 with a stated Delta E < 2 average, at 120Hz, if your computer connects by HDMI or DisplayPort.",
+        "size_class": "office",
+        "ppi": 108.8,
+        "quality_class": "color",
+        "quality_basis": "published wide gamut (98% DCI-P3); factory-calibration claim in the spec sheet."
+      },
+      {
+        "aspect": "16:9",
+        "brand": "Dell",
+        "brightness_nits": 350,
+        "checked_date": "2026-10-15",
+        "color_gamut": {
+          "dci_p3_percent": 98,
+          "srgb_percent": 100
+        },
+        "factory_calibrated": true,
+        "flags": [
+          "True USB-C video input confirmed from Dell's spec wording (Thunderbolt 4 upstream, Video + Data, DP Alt Mode, 90W PD); this is the shelf's only full docking monitor.",
+          "Factory calibration: Dell's What's Included lists a factory calibration report, and the gamut spec states Delta E < 2 (average).",
+          "Availability discrepancy on Dell's own page at check time: the page banner said 'currently unavailable' while the page's structured offer data listed $639.99 and InStock. Price recorded is Dell's own $639.99; verify stock before recommending a purchase.",
+          "Two look-alike upstream ports: Thunderbolt 4 (video) and USB-C (data only). Plugging the laptop into the wrong one gives a black screen.",
+          "Dell lists HDR Ready: No; no built-in speakers."
+        ],
+        "inputs": {
+          "displayport": "DisplayPort 1.4 x1 in, plus DisplayPort 1.4 out for daisy-chaining",
+          "hdmi": "1x HDMI (Dell lists HDCP 1.4 and states support for QHD 120Hz TMDS with VRR as specified in HDMI 2.1; Dell does not label the port itself HDMI 2.1)",
+          "usb_hub": true,
+          "usbc_note": "True single-cable input: Thunderbolt 4 upstream port is specified by Dell as 'Video + Data', Alternate mode with DisplayPort 1.4, power delivery up to 90W. A second Thunderbolt 4 downstream port (15W) supports daisy-chaining. Note it also has a separate USB-C upstream port that is data-only; the Thunderbolt port is the video one.",
+          "usbc_video_input": true
+        },
+        "name": "Dell UltraSharp 27 Thunderbolt Hub Monitor - U2724DE",
+        "panel_type": "IPS Black",
+        "price_source": {
+          "name": "Dell (maker store)",
+          "url": "https://www.dell.com/en-us/shop/dell-ultrasharp-27-thunderbolt-hub-monitor-u2724de/apd/210-bksj"
+        },
+        "price_usd": 639.99,
+        "refresh_hz": 120,
+        "refresh_note": "120Hz native at 2560x1440 per Dell spec; no overclock figure published.",
+        "resolution": "2560x1440",
+        "role": "creator-leaning / work docking pick (single-cable laptop pick)",
+        "size_in": 27,
+        "speakers": false,
+        "spec_source_url": "https://www.dell.com/en-us/shop/dell-ultrasharp-27-thunderbolt-hub-monitor-u2724de/apd/210-bksj",
+        "vesa_mount": true,
+        "why": "The one-cable desk pick: same calibrated IPS Black 1440p 120Hz panel as the U2724D, plus a real Thunderbolt dock with 90W charging, KVM and 2.5GbE Ethernet built in.",
+        "size_class": "office",
+        "ppi": 108.8,
+        "quality_class": "color",
+        "quality_basis": "published wide gamut (98% DCI-P3); factory-calibration claim in the spec sheet."
+      }
+    ],
+    "4k": [
+      {
+        "aspect": "16:9",
+        "brand": "Dell",
+        "brightness_nits": 350,
+        "checked_date": "2026-10-15",
+        "color_gamut": {
+          "srgb_percent": 99
+        },
+        "factory_calibrated": null,
+        "flags": [
+          "No standalone DisplayPort input despite 'DisplayPort 1.4' frequency lines in the spec - video inputs are 2x HDMI 2.1 plus USB-C Alt Mode only",
+          "HDR is marketing 'HDR readiness' only - Dell's spec table names no HDR class, so hdr is null, not HDR400",
+          "Best Buy page checked was the open-box listing, which states 'Buy New: $349.99'; that new price is the figure recorded"
+        ],
+        "hdr": null,
+        "inputs": {
+          "displayport": null,
+          "hdmi": "2x HDMI 2.1",
+          "kvm": false,
+          "usb_hub": true,
+          "usbc_note": "USB-C upstream with DisplayPort 1.4 Alt Mode, Power Delivery up to 65W; second USB-C downstream 15W. No standalone DisplayPort input in Dell's port list - DP is only via USB-C.",
+          "usbc_video_input": true
+        },
+        "name": "Dell 27 Plus 4K USB-C Monitor - S2725QC",
+        "panel_type": "IPS",
+        "price_source": {
+          "name": "Best Buy",
+          "url": "https://www.bestbuy.com/product/dell-s2725qc-27-ips-led-4k-uhd-120hz-8ms-freesync-premium-monitor-with-hdr-hdmi-displayport-usb-ash-white/6619486/openbox"
+        },
+        "price_usd": 349.99,
+        "refresh_hz": 120,
+        "resolution": "3840x2160",
+        "role": "everyday/work value pick",
+        "size_in": 27,
+        "speakers": true,
+        "spec_source_url": "https://www.dell.com/en-us/shop/monitors/apd/dell-27-plus-4k-usb-c-monitor-s2725qc/s2725qc_monitor/-",
+        "vesa_mount": true,
+        "why": "True 4K at 120Hz with 99% sRGB, speakers and a 65W single-cable USB-C dock for the lowest price on the shelf.",
+        "size_class": "office",
+        "ppi": 163.2,
+        "quality_class": "sharp",
+        "quality_basis": "High pixel density for its size (163.2 ppi) with an IPS-class panel; no published wide-gamut or calibration claim."
+      },
+      {
+        "aspect": "16:9",
+        "brand": "Samsung",
+        "brightness_nits": 350,
+        "checked_date": "2026-10-15",
+        "color_gamut": {
+          "srgb_percent": 99
+        },
+        "factory_calibrated": true,
+        "flags": [
+          "Price discrepancy on Samsung's own page: page body shows $449.99 (recorded) while the page's JSON-LD offer says $349.99; page also showed Out of stock / Notify me on the check date",
+          "Panel trap in the family: the 27-inch LS27D802 is IPS, but the 32-inch sibling LS32D804 in the same spec table is VA - do not carry the IPS claim across sizes",
+          "No built-in speakers in the spec interface/audio listing - plan on external audio",
+          "Factory calibration is spec'd by Samsung as 'Factory Tuning: Yes'"
+        ],
+        "hdr": "HDR10",
+        "inputs": {
+          "displayport": "1.2",
+          "hdmi": "1x HDMI 2.0",
+          "kvm": true,
+          "usb_hub": true,
+          "usbc_note": "USB-C 1x, charging power 90W, with data, built-in LAN (Ethernet) and KVM - Samsung describes single-cable laptop use at 90W",
+          "usbc_video_input": true
+        },
+        "name": "Samsung ViewFinity S8 S80UD 27-inch - LS27D802UANXGO",
+        "panel_type": "IPS",
+        "price_source": {
+          "name": "Samsung (maker store)",
+          "url": "https://www.samsung.com/us/monitors/high-resolution/27-inch-viewfinity-s8-s80ud-4k-uhd-hdr10-high-resolution-monitor-with-usb-c-and-ergonomic-stand-sku-ls27d802uanxgo/"
+        },
+        "price_usd": 449.99,
+        "refresh_hz": 60,
+        "resolution": "3840x2160",
+        "role": "all-rounder",
+        "size_in": 27,
+        "speakers": false,
+        "spec_source_url": "https://www.samsung.com/us/monitors/high-resolution/27-inch-viewfinity-s8-s80ud-4k-uhd-hdr10-high-resolution-monitor-with-usb-c-and-ergonomic-stand-sku-ls27d802uanxgo/",
+        "vesa_mount": true,
+        "why": "True 4K IPS with 99% sRGB, HDR10, KVM, Ethernet and the strongest laptop charging on the shelf at 90W over USB-C.",
+        "size_class": "office",
+        "ppi": 163.2,
+        "quality_class": "color",
+        "quality_basis": "factory-calibration claim in the spec sheet."
+      },
+      {
+        "aspect": "16:9",
+        "brand": "ASUS",
+        "brightness_nits": 350,
+        "checked_date": "2026-10-15",
+        "color_gamut": {
+          "srgb_percent": 100
+        },
+        "factory_calibrated": true,
+        "flags": [
+          "USB-C bandwidth trap in ASUS's own note: video is capped at 4K@30Hz over USB-C when USB data is set to USB 3.2 - use USB 2.0 data mode / DP or HDMI for 4K@60Hz",
+          "DisplayPort is only 1.2, older than the DP 1.4 on most rivals, despite the ProArt positioning",
+          "HDR is HDR10 support only at 350 nits - no DisplayHDR certification in the spec table",
+          "Micro Center price was observed in Micro Center's monitor search results naming 'PA279CV 27\" 4K UHD (3840 x 2160) 60Hz LED Monitor' at $399.99"
+        ],
+        "hdr": "HDR10",
+        "inputs": {
+          "displayport": "1.2",
+          "hdmi": "2x HDMI v2.0",
+          "kvm": false,
+          "usb_hub": true,
+          "usbc_note": "USB-C x1 (DP Alt Mode), Power Delivery 65W",
+          "usbc_video_input": true
+        },
+        "name": "ASUS ProArt Display PA279CV",
+        "panel_type": "IPS",
+        "price_source": {
+          "name": "Micro Center",
+          "url": "https://www.microcenter.com/search/search_results.aspx?Ntk=all&sortby=match&N=4294966896+41+40+4294820814+4294820812+4294820820"
+        },
+        "price_usd": 399.99,
+        "refresh_hz": 60,
+        "resolution": "3840x2160",
+        "role": "creator-leaning (value)",
+        "size_in": 27,
+        "speakers": true,
+        "spec_source_url": "https://www.asus.com/sa-en/displays-desktops/monitors/proart/proart-display-pa279cv/techspec/",
+        "vesa_mount": true,
+        "why": "Factory-calibrated 100% sRGB, Delta E < 2, Calman Verified, with USB-C 65W video and a 4-port USB hub for under $400.",
+        "size_class": "office",
+        "ppi": 163.2,
+        "quality_class": "color",
+        "quality_basis": "factory-calibration claim in the spec sheet."
+      },
+      {
+        "aspect": "16:9",
+        "brand": "BenQ",
+        "brightness_nits": 250,
+        "checked_date": "2026-10-15",
+        "color_gamut": {
+          "rec709_percent": 99,
+          "srgb_percent": 99
+        },
+        "factory_calibrated": true,
+        "flags": [
+          "Brightness trap: typical brightness is only 250 nits - the 350-nit figure in headlines is the HDR peak, not everyday brightness",
+          "HDR is HDR10 only - no DisplayHDR class in BenQ's spec table, despite HDR marketing",
+          "BenQ US store showed 'Notify me when this product is in stock' at the $549.99 price on the check date - price observed, stock was not",
+          "Third-party roundups claiming 96W USB-C / Thunderbolt for this model are wrong - BenQ's spec table says 65W Power Delivery"
+        ],
+        "hdr": "HDR10",
+        "inputs": {
+          "displayport": "1.4",
+          "hdmi": "1x HDMI v2.0",
+          "kvm": true,
+          "usb_hub": true,
+          "usbc_note": "USB-C x1 (Power Delivery 65W, DisplayPort Alt Mode, Data); plus a second USB-C downstream port",
+          "usbc_video_input": true
+        },
+        "name": "BenQ PD2705U",
+        "panel_type": "IPS",
+        "price_source": {
+          "name": "BenQ (maker store)",
+          "url": "https://buy.benq.com/us-buy/pd2705u.html"
+        },
+        "price_usd": 549.99,
+        "refresh_hz": 60,
+        "resolution": "3840x2160",
+        "role": "creator-leaning",
+        "size_in": 27,
+        "speakers": true,
+        "spec_source_url": "https://www.benq.com/en-ca/monitor/creative-pro/pd2705u/spec.html",
+        "vesa_mount": true,
+        "why": "Designer monitor with 99% sRGB / 99% Rec.709, factory calibration report, Calman and Pantone validation, KVM and 65W USB-C video in one cable.",
+        "size_class": "office",
+        "ppi": 163.2,
+        "quality_class": "color",
+        "quality_basis": "factory-calibration claim in the spec sheet."
+      }
+    ]
+  }
+}
