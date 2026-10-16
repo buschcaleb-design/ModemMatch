@@ -673,6 +673,144 @@
         "spec_source_url": "https://crua-monitor.com/products/cr490qw-dqhd-240hz",
         "vesa_mount": true,
         "why": "A 49-inch 5120x1440 curved VA panel at 240Hz for $699.99 direct from the maker - the fastest super-ultrawide on the shelf for the money. HDMI/DisplayPort only; there is no USB-C."
+      },
+      {
+        "aspect": "16:9",
+        "brand": "Dell",
+        "brightness_nits": 200,
+        "checked_date": "2026-10-16",
+        "color_gamut": {
+          "dci_p3_percent": 99,
+          "srgb_percent": null
+        },
+        "factory_calibrated": null,
+        "flags": [
+          "No USB at all: Dell's spec table lists USB as 'No' - no hub and no USB-C port, so peripherals plug into the computer, not the monitor. That omission is how Dell hit this price.",
+          "HDMI is TMDS: Dell's port spec caps the two HDMI ports at 2560x1440 at 120Hz. The full 240Hz is DisplayPort-only.",
+          "Dim for an OLED: 200 cd/m2 typical brightness and a 400 cd/m2 HDR peak (10% APL) per Dell's spec table - best in a light-controlled room.",
+          "No built-in speakers (3.5mm audio-out passthrough only)."
+        ],
+        "hdr": "HDR10 (Dell lists HDR support; no VESA DisplayHDR class published in the spec table)",
+        "inputs": {
+          "displayport": "DisplayPort 1.4 x1 (DSC, up to 2560x1440 at 240Hz)",
+          "hdmi": "HDMI 2.1 (TMDS) x2 - capped at 2560x1440 at 120Hz per Dell's port spec",
+          "kvm": false,
+          "usb_hub": false,
+          "usbc_note": "No USB-C port in Dell's spec table, and no USB hub of any kind.",
+          "usbc_video_input": false
+        },
+        "name": "Alienware AW2726DM 27-inch QD-OLED",
+        "panel_type": "OLED (QD-OLED)",
+        "ppi": 110.8,
+        "price_source": {
+          "name": "Best Buy",
+          "url": "https://www.bestbuy.com/product/alienware-aw2726dm-27-qd-oled-qhd-240hz-0-03ms-freesync-premium-pro-gaming-monitor-with-hdr-hdmi-displayport-black/J3K4L6WZQ6"
+        },
+        "price_usd": 349.99,
+        "quality_basis": "QD-OLED panel per Dell's spec table, with 99% DCI-P3 (CIE 1976); premium rests on the OLED rule - Dell publishes no VESA DisplayHDR class for this model.",
+        "quality_class": "premium",
+        "refresh_hz": 240,
+        "refresh_note": "240Hz native at 2560x1440 over DisplayPort 1.4 per Dell spec; HDMI (TMDS) caps at 120Hz; 0.03ms GTG; AMD FreeSync Premium and VESA AdaptiveSync.",
+        "resolution": "2560x1440",
+        "role": "gaming-leaning (entry-price OLED)",
+        "size_class": "small",
+        "size_in": 26.5,
+        "speakers": false,
+        "spec_source_url": "https://www.dell.com/en-us/shop/monitors/apd/alienware-27-240hz-qdoled-gaming-monitor-aw2726dm/AW2726DM/-",
+        "vesa_mount": true,
+        "why": "The cheapest way into OLED gaming: a 1440p QD-OLED at 240Hz for $349.99 - Dell got there by cutting the USB hub, speakers and brightness, not the panel."
+      },
+      {
+        "aspect": "16:9",
+        "brand": "LG",
+        "brightness_nits": 275,
+        "checked_date": "2026-10-16",
+        "color_gamut": {
+          "dci_p3_percent": 98.5,
+          "srgb_percent": null
+        },
+        "factory_calibrated": true,
+        "flags": [
+          "DisplayPort 2.1 here runs at UHBR13.5 (54Gbps), not UHBR20 (80Gbps) - LG's own support answers correct the early product copy. 54Gbps still carries 1440p at 480Hz without compression workarounds.",
+          "No USB-C port in LG's spec table: the USB hub (1x USB 3.0 upstream, 2x downstream) is data-only, so no one-cable laptop video.",
+          "No built-in speakers; audio is a 4-pole headphone jack with DTS Headphone:X instead.",
+          "Factory calibration: LG's spec table lists 'Colour Calibrated in Factory: YES' for this model."
+        ],
+        "hdr": "VESA DisplayHDR True Black 400",
+        "inputs": {
+          "displayport": "DisplayPort 2.1 x1 (UHBR13.5, 54Gbps)",
+          "hdmi": "HDMI 2.1 x2",
+          "kvm": false,
+          "usb_hub": true,
+          "usbc_note": "No USB-C port in LG's spec table. Video is via DisplayPort 2.1 or HDMI 2.1 only.",
+          "usbc_video_input": false
+        },
+        "name": "LG UltraGear 27GX790A-B",
+        "panel_type": "OLED (WOLED)",
+        "ppi": 110.8,
+        "price_source": {
+          "name": "Best Buy",
+          "url": "https://www.bestbuy.com/product/lg-ultragear-27-oled-qhd-480hz-0-03ms-nvidia-g-sync-amd-freesync-premium-pro-gaming-monitor-hdmi-x2-displayport-usb-black/JJ8VPZTF8C"
+        },
+        "price_usd": 899.99,
+        "quality_basis": "WOLED panel per LG's spec table, with DCI-P3 98.5% (CIE 1976, typical) and a published VESA DisplayHDR True Black 400 class; premium rests on the OLED rule.",
+        "quality_class": "premium",
+        "refresh_hz": 480,
+        "refresh_note": "480Hz native at 2560x1440 per LG spec - the fastest panel on this shelf; 0.03ms GTG; VESA ClearMR 21000 (highest tier); NVIDIA G-SYNC Compatible and AMD FreeSync Premium Pro.",
+        "resolution": "2560x1440",
+        "role": "gaming-leaning (esports-speed OLED)",
+        "size_class": "small",
+        "size_in": 26.5,
+        "speakers": false,
+        "spec_source_url": "https://www.lg.com/us/monitors/lg-27gx790a-b-gaming-monitor",
+        "vesa_mount": true,
+        "why": "The speed king: 480Hz on a 26.5-inch WOLED with DisplayPort 2.1 and True Black 400 - the fastest monitor on this shelf, built purely for competitive play."
+      },
+      {
+        "aspect": "21:9",
+        "brand": "Dell",
+        "brightness_nits": 250,
+        "checked_date": "2026-10-16",
+        "color_gamut": {
+          "dci_p3_percent": 99.3,
+          "srgb_percent": null
+        },
+        "factory_calibrated": null,
+        "flags": [
+          "USB-C trap: the only USB-C port is a 5Gbps downstream port with 15W charging per Dell's spec table - it carries no DisplayPort Alt Mode video. Video is via DisplayPort 1.4 or HDMI 2.1 only, and the USB hub runs off a separate USB-B upstream cable.",
+          "Brightness is 250 cd/m2 typical; the 1,000-nit figure is the HDR peak.",
+          "No built-in speakers and no KVM switch in Dell's spec table (Picture-by-Picture / Picture-in-Picture only).",
+          "Curved 1800R panel."
+        ],
+        "hdr": "VESA DisplayHDR True Black 400",
+        "inputs": {
+          "displayport": "DisplayPort 1.4 x1 (DSC, up to 3440x1440 at 240Hz)",
+          "hdmi": "HDMI 2.1 x2",
+          "kvm": false,
+          "usb_hub": true,
+          "usbc_note": "USB-C TRAP: downstream-only 5Gbps port with 15W charging per Dell's spec table - no DisplayPort Alt Mode video. Hub (1x USB-A downstream plus the USB-C downstream port) runs off the USB-B upstream port.",
+          "usbc_video_input": false
+        },
+        "name": "Alienware AW3425DW 34-inch Curved QD-OLED Ultrawide",
+        "panel_type": "OLED (QD-OLED)",
+        "ppi": 109.0,
+        "price_source": {
+          "name": "Best Buy",
+          "url": "https://www.bestbuy.com/product/alienware-aw3425dw-34-qd-oled-uwqhd-240hz-0-03ms-freesync-premium-pro-curved-gaming-monitor-with-hdr-hdmi-displayport-usb-interstellar-indigo/J3K4L63R43"
+        },
+        "price_usd": 699.99,
+        "quality_basis": "QD-OLED panel per Dell's spec table, with 99.3% DCI-P3 (CIE 1976) and a published VESA DisplayHDR True Black 400 class; premium rests on the OLED rule.",
+        "quality_class": "premium",
+        "refresh_hz": 240,
+        "refresh_note": "240Hz native at 3440x1440 per Dell spec; 0.03ms GTG; 1800R curvature; NVIDIA G-SYNC Compatible, AMD FreeSync Premium Pro and VESA AdaptiveSync.",
+        "resolution": "3440x1440",
+        "role": "gaming-leaning (ultrawide OLED)",
+        "size_class": "widescreen",
+        "size_in": 34.2,
+        "speakers": false,
+        "spec_source_url": "https://www.dell.com/en-us/shop/monitors/apd/alienware-34-240hz-qd-oled-gaming-monitor-aw3425dw/aw3425dw_monitor/-",
+        "vesa_mount": true,
+        "why": "The ultrawide OLED sweet spot: 34.2 inches of 3440x1440 QD-OLED at 240Hz with 99.3% DCI-P3 and true blacks - just bring your own speakers, and don't expect the USB-C port to carry video."
       }
     ],
     "4k": [
@@ -1178,6 +1316,144 @@
         "spec_source_url": "https://www.lg.com/us/monitors/lg-37u730sa-w-4k-uhd-monitor",
         "vesa_mount": true,
         "why": "A 37-inch 4K IPS panel - Large class - that is also a webOS smart TV: streaming apps with no computer attached, plus one-cable USB-C (65W) for a laptop. Caleb found this one on LG's store."
+      },
+      {
+        "aspect": "16:9",
+        "brand": "Dell",
+        "brightness_nits": 250,
+        "checked_date": "2026-10-16",
+        "color_gamut": {
+          "dci_p3_percent": 99,
+          "srgb_percent": null
+        },
+        "factory_calibrated": null,
+        "flags": [
+          "USB-C trap: the only USB-C port is a 5Gbps downstream port with 15W charging per Dell's spec table - it carries no DisplayPort Alt Mode video. Video is via DisplayPort 1.4 or HDMI 2.1 only, and the USB hub runs off a separate USB-B upstream cable.",
+          "Brightness is 250 cd/m2 typical; the 1,000-nit figure is the HDR peak (3% APL).",
+          "No built-in speakers and no KVM switch in Dell's spec table (Picture-by-Picture / Picture-in-Picture only).",
+          "Retailer spec error: Best Buy's spec block claims 3 DisplayPort inputs; Dell's spec table lists exactly 1x DisplayPort 1.4, 2x HDMI 2.1."
+        ],
+        "hdr": "VESA DisplayHDR True Black 400 + Dolby Vision",
+        "inputs": {
+          "displayport": "DisplayPort 1.4 x1 (DSC, up to 3840x2160 at 240Hz)",
+          "hdmi": "HDMI 2.1 x2 (one with eARC/ARC for Dolby Atmos passthrough)",
+          "kvm": false,
+          "usb_hub": true,
+          "usbc_note": "USB-C TRAP: downstream-only 5Gbps port with up to 15W charging per Dell's spec table - no DisplayPort Alt Mode video. Hub (3x USB-A downstream) runs off the USB-B upstream port.",
+          "usbc_video_input": false
+        },
+        "name": "Alienware AW2725Q 27-inch 4K QD-OLED",
+        "panel_type": "OLED (QD-OLED)",
+        "ppi": 165.0,
+        "price_source": {
+          "name": "Best Buy",
+          "url": "https://www.bestbuy.com/product/alienware-aw2725q-27-qd-oled-4k-uhd-240hz-0-03-ms-freesync-and-g-sync-gaming-monitor-with-hdr-hdmi-displayport-black/J3K4L63R85"
+        },
+        "price_usd": 699.99,
+        "quality_basis": "QD-OLED panel per Dell's spec table, with 99% DCI-P3 (CIE 1976) and VESA DisplayHDR True Black 400 plus Dolby Vision published by Dell; premium rests on the OLED rule.",
+        "quality_class": "premium",
+        "refresh_hz": 240,
+        "refresh_note": "240Hz native at 3840x2160 per Dell spec (DSC over DisplayPort 1.4); 0.03ms GTG; NVIDIA G-SYNC Compatible, AMD FreeSync Premium Pro and VESA AdaptiveSync.",
+        "resolution": "3840x2160",
+        "role": "gaming-leaning (compact 4K OLED)",
+        "size_class": "small",
+        "size_in": 26.7,
+        "speakers": false,
+        "spec_source_url": "https://www.dell.com/en-us/shop/monitors/apd/alienware-27-4k-qd-oled-gaming-monitor-aw2725q/aw2725q_monitor/-",
+        "vesa_mount": true,
+        "why": "The sharpest gaming monitor on this shelf: full 4K on a 26.7-inch QD-OLED (165 PPI) at 240Hz with Dolby Vision - desktop-class text clarity that still plays at esports speed."
+      },
+      {
+        "aspect": "16:9",
+        "brand": "Dell",
+        "brightness_nits": 250,
+        "checked_date": "2026-10-16",
+        "color_gamut": {
+          "dci_p3_percent": 99,
+          "srgb_percent": null
+        },
+        "factory_calibrated": null,
+        "flags": [
+          "USB-C trap: the quick-access USB-C port is downstream-only with BC1.2 charging per Dell's spec table - no DisplayPort Alt Mode video. Video is via DisplayPort 1.4 or HDMI 2.1 only; the hub runs off a USB-B upstream cable.",
+          "Brightness: Dell's headline figure of 1,000 cd/m2 is the HDR peak; SDR typical is 250 cd/m2, in line with the other QD-OLEDs on this shelf.",
+          "No built-in speakers and no audio line-out per Dell's spec table (audio goes out over the eARC HDMI port to a soundbar or receiver).",
+          "Gently curved 1700R panel; Dell's table lists G-SYNC Compatible and VESA AdaptiveSync but no AMD FreeSync."
+        ],
+        "hdr": "VESA DisplayHDR True Black 400 + Dolby Vision",
+        "inputs": {
+          "displayport": "DisplayPort 1.4 x1 (DSC, up to 3840x2160 at 240Hz)",
+          "hdmi": "HDMI 2.1 x2 (one with eARC for Dolby Atmos passthrough)",
+          "kvm": false,
+          "usb_hub": true,
+          "usbc_note": "USB-C TRAP: downstream-only USB 3.2 Gen 1 port with BC1.2 power charging per Dell's spec table - no video input. Hub (3x USB-A downstream) runs off the USB-B upstream port.",
+          "usbc_video_input": false
+        },
+        "name": "Alienware AW3225QF 32-inch 4K QD-OLED",
+        "panel_type": "OLED (QD-OLED)",
+        "ppi": 139.4,
+        "price_source": {
+          "name": "Best Buy",
+          "url": "https://www.bestbuy.com/product/alienware-aw3225qf-32-qd-oled-curved-4k-uhd-240hz-0-03-ms-g-sync-compatible-gaming-monitor-with-hdr-hdmi-displayport-lunar-light/J3K4L62597"
+        },
+        "price_usd": 779.99,
+        "quality_basis": "QD-OLED panel per Dell's spec table, with 99% DCI-P3 and DisplayHDR True Black 400 / Dolby Vision published by Dell; premium rests on the OLED rule.",
+        "quality_class": "premium",
+        "refresh_hz": 240,
+        "refresh_note": "240Hz native at 3840x2160 per Dell spec (DSC enabled); 0.03ms GTG; 1700R curvature; NVIDIA G-SYNC Compatible and VESA AdaptiveSync.",
+        "resolution": "3840x2160",
+        "role": "gaming-leaning (big-screen 4K OLED)",
+        "size_class": "office",
+        "size_in": 31.6,
+        "speakers": false,
+        "spec_source_url": "https://www.dell.com/en-my/shop/alienware-32-4k-qd-oled-gaming-monitor-aw3225qf/apd/210-blnx",
+        "vesa_mount": true,
+        "why": "The big-screen 4K OLED: a gently curved 31.6-inch QD-OLED at 240Hz with 99% DCI-P3 and Dolby Vision, for gamers who want near-TV size without giving up monitor speed."
+      },
+      {
+        "aspect": "16:9",
+        "brand": "HP",
+        "brightness_nits": 250,
+        "checked_date": "2026-10-16",
+        "color_gamut": {
+          "dci_p3_percent": 99,
+          "srgb_percent": 100
+        },
+        "factory_calibrated": true,
+        "flags": [
+          "Clearance pricing: the $650.99 Best Buy price is marked Clearance against a $1,299.99 comparable value. The product page's own JSON-LD offer read InStock at $650.99 when checked, but some page modules suggested limited availability - stock at this price should be treated as volatile.",
+          "External power brick: HP's data lists an external supply with up to 480W power consumption (max) - the brick is unusually large for a monitor.",
+          "VESA 100x100 mounting works via a bracket HP includes in the box (per HP's spec table).",
+          "Factory color calibration is an HP-published claim for this model ('Factory Color Calibration for professional-grade color accuracy', with user recalibration), on top of the OLED rule."
+        ],
+        "hdr": "VESA DisplayHDR True Black 400",
+        "inputs": {
+          "displayport": "DisplayPort 2.1 x1 (UHBR10)",
+          "hdmi": "HDMI 2.1 x2",
+          "kvm": true,
+          "usb_hub": true,
+          "usbc_note": "TRUE USB-C VIDEO INPUT: HP's spec table lists a USB-C video input with DisplayPort 1.4 Alt Mode and up to 140W USB Power Delivery - a genuine one-cable laptop connection. Two further USB-C ports are data-only downstream (10Gbps, 15W charging). OMEN Gear Switch acts as the KVM, switching the hub between two computers.",
+          "usbc_video_input": true
+        },
+        "name": "HP OMEN Transcend 32",
+        "panel_type": "OLED (QD-OLED)",
+        "ppi": 139.9,
+        "price_source": {
+          "name": "Best Buy",
+          "url": "https://www.bestbuy.com/product/hp-omen-transcend-31-5-qd-oled-4k-uhd-240hz-g-sync-compatible-gaming-monitor-with-adjustable-height-black-white/JJGP4G6YH7"
+        },
+        "price_usd": 650.99,
+        "quality_basis": "QD-OLED panel per HP's spec table, with 99% Display P3, 100% sRGB and a published VESA DisplayHDR True Black 400 class, plus an HP factory color calibration claim; premium rests on the OLED rule.",
+        "quality_class": "premium",
+        "refresh_hz": 240,
+        "refresh_note": "240Hz native at 3840x2160 per HP spec; 0.03ms GTG; NVIDIA G-SYNC Compatible and AMD FreeSync Premium Pro; VESA ClearMR 13000.",
+        "resolution": "3840x2160",
+        "role": "gaming-leaning / work docking pick (4K OLED with full USB-C)",
+        "size_class": "office",
+        "size_in": 31.5,
+        "speakers": true,
+        "spec_source_url": "https://www.hp.com/sa-en/products/monitors/product-details/product-specifications/2102155888",
+        "vesa_mount": true,
+        "why": "The one-cable OLED: the only OLED on this shelf whose USB-C takes video AND delivers 140W, with a KVM switch, DisplayPort 2.1 and built-in speakers - a gaming flagship that also docks a laptop, at a clearance price half its $1,299.99 list."
       }
     ]
   }
