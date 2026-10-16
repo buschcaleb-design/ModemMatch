@@ -91,6 +91,19 @@
              padding: 16px; font-size: 1rem; cursor: pointer; }
   .buildstamp { text-align: center; color: #475569; font-size: .75rem; margin-top: 32px; }
   .loading { text-align: center; padding: 60px 0; color: #94a3b8; }
+  .wizprog { color: #7dd3fc; font-size: .85rem; font-weight: 700; margin: 0 0 8px; }
+  .wiznav { display: flex; gap: 10px; margin-top: 16px; }
+  .wiznav .opt { flex: 1; text-align: center; margin: 0; }
+  .wiznav .wiznext { border-color: #38bdf8; background: #273449; font-weight: 700; }
+  .minput { display: block; width: 100%; background: #1e293b; border: 2px solid #334155;
+            color: #e2e8f0; border-radius: 14px; padding: 14px 16px; font-size: 1rem;
+            margin: 0 0 12px; outline: none; }
+  .minput:focus { border-color: #38bdf8; }
+  .buylinks { margin-top: 12px; }
+  .buybtn { display: block; width: 100%; background: #16202f; border: 2px dashed #475569;
+            color: #64748b; border-radius: 12px; padding: 12px; font-size: .9rem;
+            cursor: not-allowed; }
+  .orline { text-align: center; color: #64748b; font-size: .85rem; margin: 18px 0 10px; }
   .dots::after { content: ""; animation: dots 1s steps(3) infinite; }
   @keyframes dots { 0% { content: ""; } 33% { content: "."; } 66% { content: ".."; } 100% { content: "..."; } }
 </style>
@@ -112,7 +125,8 @@
   <div id="results" style="display:none"></div>
   <div id="guide" style="display:none"></div>
   <div id="pc-guide" style="display:none"></div>
-  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.5 &middot; If a page looks outdated, read this stamp back to us</p>
+  <div id="model-lookup" style="display:none"></div>
+  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.6 &middot; If a page looks outdated, read this stamp back to us</p>
 </div>
 <script>const stepsEl = document.getElementById('steps');
 const bar = document.getElementById('bar');
@@ -123,7 +137,7 @@ let isps = [];
 // First screen: Buy New Gear / Set Up New Gear. Second: Internet / PC.
 // Then route into the matching existing flow.
 let flowType = 'buy';   // 'buy' | 'setup'
-const SECTION_IDS = ['home', 'flow-pick', 'isp-pick', 'quiz', 'results', 'guide', 'pc-guide'];
+const SECTION_IDS = ['home', 'flow-pick', 'isp-pick', 'quiz', 'results', 'guide', 'pc-guide', 'model-lookup'];
 function hideAllSections() {
   SECTION_IDS.forEach(id => document.getElementById(id).style.display = 'none');
 }
@@ -136,7 +150,9 @@ function renderFlowPick() {
   el.innerHTML = `<button class="back" onclick="backHome()">← Back</button>
     <p class="q">${buying ? 'What are you buying?' : 'What are you setting up?'}</p>
     <button class="opt" onclick="routeFlow('internet')">🌐 Internet<small>${buying ? 'Modems, routers & mesh — ditch the ISP rental fee' : 'Activate and set up your modem or router, step by step'}</small></button>
-    <button class="opt" onclick="routeFlow('pc')">💻 PC<small>${buying ? "Laptops matched to how you'll actually use them" : 'First-boot walkthroughs, brand setup tools & kid setup'}</small></button>`;
+    <button class="opt" onclick="routeFlow('pc')">💻 PC<small>${buying ? "Laptops matched to how you'll actually use them" : 'First-boot walkthroughs, brand setup tools & kid setup'}</small></button>
+    <p class="orline">— or —</p>
+    <button class="opt" onclick="startModelLookup()">🔎 Know your model?<small>Type the name — or the model number off the box — and jump straight to it</small></button>`;
   window.scrollTo(0, 0);
 }
 function backToFlowPick() { renderFlowPick(); }
@@ -613,7 +629,7 @@ async function goLaptopSetup() {
       pcGuides.setup_guides.os_flows[top.setup.os_key])
     renderPcFormFactor(top.setup.os_key);
 }
-function laptopCardHTML(p, i, isTop) {
+function laptopCardHTML(p, i, isTop, rankLabel) {
   const [badge, badgeCls] = archBadge(p);
   const chips = [];
   if (p.display_inches) chips.push(`📺 ${p.display_inches}″ screen`);
@@ -624,7 +640,7 @@ function laptopCardHTML(p, i, isTop) {
   if (p.weight_text) chips.push('⚖️ ' + esc(p.weight_text));
   const maxBit = p.price_max
     ? ` <span class="permo">— up to $${p.price_max.toLocaleString()} fully loaded${p.max_config_note ? ' (' + esc(p.max_config_note) + ')' : ''}</span>` : '';
-  return `<div class="card${isTop ? ' combo' : ''}"><span class="rank">${isTop ? '⭐ OUR TOP LAPTOP PICK' : '#' + (i + 1) + ' LAPTOP'}</span>
+  return `<div class="card${isTop ? ' combo' : ''}"><span class="rank">${rankLabel || (isTop ? '⭐ OUR TOP LAPTOP PICK' : '#' + (i + 1) + ' LAPTOP')}</span>
     <h3>${esc(p.name)}</h3>
     <div class="price">from $${p.price.toLocaleString()}${maxBit}</div>
     <p class="permo" style="color:#94a3b8;font-size:.78rem;margin:2px 0 0">Prices via ${esc(p.price_source || 'manufacturer')}, checked Oct 2026</p>
@@ -633,10 +649,31 @@ function laptopCardHTML(p, i, isTop) {
     ${p.formerly ? `<p class="why">ℹ️ Line renamed in 2025 — this is the new ${esc(p.formerly)}.</p>` : ''}
     <p class="why">${esc(p.summary || (Array.isArray(p.why) ? (p.why[0] || '') : p.why) || '')}</p>
     ${p.ecosystem_note ? `<p class="why">🔗 ${esc(p.ecosystem_note)}</p>` : ''}
-    ${laptopWhyHTML(p)}</div>`;
+    ${laptopWhyHTML(p)}
+    <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
+}
+function twoInOneUnavailableNote() {
+  // Worded from the actual state: if the catalog holds no 2-in-1 at all
+  // for this system, the feature simply isn't available there; if it
+  // exists but none made these picks, say it's not among these picks.
+  const facts = laptopRes.filter_facts || {};
+  if (facts.two_in_one_available === false) {
+    if (laptopRes.query.os === 'mac')
+      return "Touchscreen 2-in-1 isn't available on Mac laptops — Apple doesn't make one. Showing your Mac picks without it.";
+    return "Touchscreen 2-in-1 isn't available in this part of our catalog. Showing your picks without it.";
+  }
+  return "Touchscreen 2-in-1 isn't available among these picks. Showing them without it.";
 }
 function renderLaptopResults() {
   const r = document.getElementById('results');
+  // A filter with no matches steps aside kindly instead of dead-ending:
+  // drop it, show the picks, explain in one small note, and let the
+  // toggle fall back to off so the screen never claims it's applied.
+  let unavailableNote = '';
+  if (ltwoInOne && laptopRes.recommendations.length && !currentLaptopPicks().length) {
+    ltwoInOne = false;
+    unavailableNote = twoInOneUnavailableNote();
+  }
   const picks = currentLaptopPicks();
   const q = laptopRes.query;
   const useLabel = { school: 'School', everyday: 'Everyday use', work: 'Work', gaming: 'Gaming', creative: 'Creative work' }[q.use] || q.use;
@@ -647,8 +684,9 @@ function renderLaptopResults() {
     <button class="sort${ltwoInOne ? ' on' : ''}" onclick="ltwoInOne=!ltwoInOne;lshowAll=false;renderLaptopResults()">🔄 Touchscreen 2-in-1</button>
     <button class="sort${lbattery ? ' on' : ''}" onclick="lbattery=!lbattery;lshowAll=false;renderLaptopResults()">🔋 Battery priority</button>
   </div>`;
+  if (unavailableNote) h += `<div class="note">${esc(unavailableNote)}</div>`;
   if (!picks.length) {
-    h += `<div class="note">No picks match that filter — try turning it off.</div>`;
+    h += `<div class="note">No laptops matched those answers — a fresh start with a few different answers may turn some up.</div>`;
   } else {
     h += laptopCardHTML(picks[0], 0, true);
     const rest = picks.slice(1);
@@ -721,6 +759,7 @@ function renderPcMenu() {
   let h = `<button class="back" onclick="backToFlowPick()">← Back</button>
     <h1>Set up your <span class="accent">PC</span></h1>
     <p class="sub">First boot, brand tools, and — if it's for a kid — the parental-control path.</p>
+    <button class="opt" onclick="startModelLookup()">🔎 Know your model?<small>Jump straight to its setup — type the name or the model number</small></button>
     <p class="picks-head">First boot, by system</p>`;
   Object.keys(PC_OS_LABELS).forEach(k => {
     if (sg.os_flows[k])
@@ -753,23 +792,59 @@ function renderPcTowerSoon() {
     <button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="backHome()">↺ Start over</button>`;
   window.scrollTo(0, 0);
 }
-function renderPcOsFlow(key) {
+// ------------------------------------------ stepped guide wizard
+// Guided flows present ONE step at a time: a single step card, a
+// "Step X of N" progress line, and Next / Back buttons. The first-week
+// (or first-setup) checklist is the flow's final screen.
+let wiz = null;
+function wizRender() {
   const el = document.getElementById('pc-guide');
+  const total = wiz.screens.length;
+  const s = wiz.screens[wiz.i];
+  let h = `<button class="back" onclick="${wiz.backAction}">← ${wiz.backLabel}</button>
+    ${wiz.title}
+    <p class="wizprog">Step ${wiz.i + 1} of ${total}</p>
+    <div class="progress"><i style="width:${((wiz.i + 1) / total) * 100}%"></i></div>
+    ${s.html}
+    <div class="wiznav">`;
+  if (wiz.i > 0)
+    h += `<button class="opt" onclick="wizMove(-1)">← Back</button>`;
+  if (wiz.i < total - 1)
+    h += `<button class="opt wiznext" onclick="wizMove(1)">Next →</button>`;
+  else if (wiz.doneAction)
+    h += `<button class="opt wiznext" onclick="${wiz.doneAction}">${wiz.doneLabel}</button>`;
+  h += `</div>`;
+  el.innerHTML = h;
+  window.scrollTo(0, 0);
+}
+function wizMove(d) {
+  wiz.i = Math.min(wiz.screens.length - 1, Math.max(0, wiz.i + d));
+  wizRender();
+}
+function wizStepScreen(head, item, num) {
+  return { html: `${head ? `<p class="picks-head" style="margin-top:0">${head}</p>` : ''}<div class="gstep"><span class="stepnum">${num}</span><div>${guideItemHTML(item)}</div></div>` };
+}
+function renderPcOsFlow(key) {
   const flow = pcGuides.setup_guides.os_flows[key];
-  let h = `<button class="back" onclick="renderPcFormFactor('${key}')">← Back</button>
-    <h1>First boot — <span class="accent">${esc(flow.os)}</span></h1>`;
-  if (flow.applies_to) h += `<div class="note">${esc(flow.applies_to)}</div>`;
-  h += stepsListHTML(flow.steps);
+  const screens = flow.steps.map((x, i) => ({
+    html: (i === 0 ? `<div class="vid soon">🎬 Video walkthrough coming soon</div>` : '') +
+      (i === 0 && flow.applies_to ? `<div class="note">${esc(flow.applies_to)}</div>` : '') +
+      `<div class="gstep"><span class="stepnum">${i + 1}</span><div>${guideItemHTML(x)}</div></div>`
+  }));
   const tokens = { windows_11: ['windows', 'all'], macos: ['macos', 'mac', 'all'],
                    chromeos: ['chromeos', 'chrome', 'all'] }[key] || ['all'];
   const fw = (pcGuides.setup_guides.first_week_checklist || [])
     .filter(c => tokens.includes(String(c.applies_to || 'all').toLowerCase()));
-  if (fw.length) {
-    h += `<p class="picks-head">First-week checklist</p>` + checkListHTML(fw);
-  }
-  (flow.honest_notes || []).forEach(n => { h += `<div class="note">${esc(n)}</div>`; });
-  el.innerHTML = h;
-  window.scrollTo(0, 0);
+  let finalHtml = '';
+  if (fw.length)
+    finalHtml += `<p class="picks-head" style="margin-top:0">First-week checklist</p>` + checkListHTML(fw);
+  (flow.honest_notes || []).forEach(n => { finalHtml += `<div class="note">${esc(n)}</div>`; });
+  if (finalHtml) screens.push({ html: finalHtml });
+  wiz = { title: `<h1>First boot — <span class="accent">${esc(flow.os)}</span></h1>`,
+          backAction: `renderPcFormFactor('${key}')`, backLabel: 'Back',
+          doneAction: 'renderPcMenu()', doneLabel: '✓ Done — all setup topics',
+          screens, i: 0 };
+  wizRender();
 }
 function renderPcBrands() {
   const el = document.getElementById('pc-guide');
@@ -816,25 +891,88 @@ function renderPcKidMenu() {
   window.scrollTo(0, 0);
 }
 function renderPcKid(key) {
-  const el = document.getElementById('pc-guide');
   const p = pcGuides.parental_controls.platforms[key];
-  let h = `<button class="back" onclick="renderPcKidMenu()">← Kid setup</button>
-    <h1>${esc(p.platform)} — <span class="accent">${esc(p.control_system || 'parental controls')}</span></h1>`;
-  if (p.account_setup && p.account_setup.length)
-    h += `<p class="picks-head">1 · Set up the child's account</p>` + stepsListHTML(p.account_setup);
-  if (p.enable_steps && p.enable_steps.length)
-    h += `<p class="picks-head">2 · Turn the controls on</p>` + stepsListHTML(p.enable_steps);
+  const screens = [];
+  (p.account_setup || []).forEach((x, i) =>
+    screens.push(wizStepScreen("Set up the child's account", x, i + 1)));
+  (p.enable_steps || []).forEach((x, i) =>
+    screens.push(wizStepScreen('Turn the controls on', x, i + 1)));
   if (p.controls_available && p.controls_available.length)
-    h += `<p class="picks-head">What you can control</p>` + checkListHTML(p.controls_available);
+    screens.push({ html: `<p class="picks-head" style="margin-top:0">What you can control</p>` + checkListHTML(p.controls_available) });
+  let finalHtml = '';
   if (p.first_setup_checklist && p.first_setup_checklist.length)
-    h += `<p class="picks-head">First-setup checklist</p>` + checkListHTML(p.first_setup_checklist);
+    finalHtml += `<p class="picks-head" style="margin-top:0">First-setup checklist</p>` + checkListHTML(p.first_setup_checklist);
   if (p.honest_limits && p.honest_limits.length) {
-    h += `<p class="picks-head">Honest limits</p>`;
+    finalHtml += `<p class="picks-head">Honest limits</p>`;
     p.honest_limits.forEach(x => {
-      h += `<div class="note">${esc(typeof x === 'string' ? x : (x.detail || x.title || ''))}</div>`;
+      finalHtml += `<div class="note">${esc(typeof x === 'string' ? x : (x.detail || x.title || ''))}</div>`;
     });
   }
-  el.innerHTML = h;
+  if (finalHtml) screens.push({ html: finalHtml });
+  wiz = { title: `<h1>${esc(p.platform)} — <span class="accent">${esc(p.control_system || 'parental controls')}</span></h1>`,
+          backAction: 'renderPcKidMenu()', backLabel: 'Kid setup',
+          doneAction: 'renderPcMenu()', doneLabel: '✓ Done — all setup topics',
+          screens, i: 0 };
+  wizRender();
+}
+
+// ------------------------------------------ Know your model? lookup
+// Type a name — or the model number off the box or sticker — and jump
+// straight to that model: its card (Buy) or its setup path (Set Up).
+let modelMatches = [], modelTimer = null;
+function startModelLookup() {
+  hideAllSections();
+  const el = document.getElementById('model-lookup');
+  el.style.display = 'block';
+  el.innerHTML = `<button class="back" onclick="backToFlowPick()">← Back</button>
+    <p class="q">Know your model?</p>
+    <p class="sub">Type the name — or the model number off the box or sticker — and we'll pull it right up.</p>
+    <input class="minput" id="mq" type="text" placeholder="e.g. Katana, CX34, Inspiron…" autocomplete="off" oninput="modelType(this.value)">
+    <div id="mresults"></div>`;
+  window.scrollTo(0, 0);
+  const inp = document.getElementById('mq');
+  if (inp && inp.focus) inp.focus();
+}
+function modelType(v) {
+  clearTimeout(modelTimer);
+  modelTimer = setTimeout(() => modelSearch(v), 180);
+}
+async function modelSearch(v) {
+  const box = document.getElementById('mresults');
+  const q = (v || '').trim();
+  if (q.length < 2) { box.innerHTML = ''; return; }
+  const d = await fetch('/api/laptop-search?q=' + encodeURIComponent(q)).then(x => x.json());
+  modelMatches = d.matches || [];
+  if (!modelMatches.length) {
+    const buying = flowType === 'buy';
+    box.innerHTML = `<div class="note">We don't have that model in our catalog yet — we're adding laptops as we research them, and ${buying ? 'the quiz' : 'the setup topics'} can still get you where you're going.</div>
+      <button class="opt" onclick="${buying ? 'startLaptopBuy()' : 'startPcGuide()'}">${buying ? '💻 Take the laptop quiz instead' : '🔧 Browse the setup topics'}</button>`;
+    return;
+  }
+  box.innerHTML = modelMatches.map((m, i) =>
+    `<button class="opt" onclick="pickModel(${i})">${esc(m.name)}<small>${esc(m.brand)} · ${esc(m.platform)} · from $${m.price.toLocaleString()}</small></button>`).join('');
+}
+async function pickModel(i) {
+  const m = modelMatches[i];
+  if (!m) return;
+  if (flowType === 'buy') renderModelCard(m);
+  else { await startPcGuide(); renderPcFormFactor(m.setup.os_key); }
+}
+function renderModelCard(m) {
+  hideAllSections();
+  const r = document.getElementById('results');
+  r.style.display = 'block';
+  // The setup button reads the top pick out of laptopRes — point it here.
+  laptopRes = { recommendations: [m], notes: [], kid: false,
+                query: { use: 'everyday', os: 'any', screen: 'any',
+                         budget: 'any', snapdragon: 'unsure', usage: 'light' } };
+  ltwoInOne = false; lbattery = false; lshowAll = false;
+  r.innerHTML = `<button class="back" onclick="startModelLookup()">← Search again</button>
+    <h1>Your <span class="accent">model</span></h1>
+    ${laptopCardHTML(m, 0, true, '🔎 YOUR MODEL')}
+    <button class="opt setupcta" onclick="goLaptopSetup()">🔧 Set up your new laptop<small>First boot, brand setup tools — step by step, on the setup page</small></button>
+    <button class="opt" onclick="startLaptopBuy()">💻 Not the one? Take the laptop quiz<small>Answer a few questions and we'll match you</small></button>
+    <button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
   window.scrollTo(0, 0);
 }
 
