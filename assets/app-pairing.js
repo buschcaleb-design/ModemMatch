@@ -4,12 +4,14 @@
 // between the Screens and Dock stages. Verdicts come from
 // /api/pairing — maker-stated data only, never a guessed count.
 let pairData = null, pairType = 'laptop', pairStage = 'screens';
+let pairMode = null; // 'screens' | 'dock' | 'both' — asked once, up front (Caleb, 2026-10-16)
 let pairReturn = { section: 'results', y: 0 };
 let pairScreens = { count: null, resolution: 'unsure', have: null };
 let pairAsked = { count: false, res: false };
 let pairTier = null, pairChassis = null;
 let pairSizeFilter = 'all', pairQualityFilter = 'all', pairTechFilter = 'all';
 let pairQty = {};
+let pairShelfAll = false;
 function pairSetup() {
   return pairData ? findSetupForComputer(pairType, pairData.id) : null;
 }
@@ -56,12 +58,12 @@ const PAIR_RES_OPTS = [
   { v: 'unsure', t: 'Not sure', s: "We'll assume standard screens — no pressure either way" } ];
 
 async function openPairing(type, id) {
-  if (!document.body.dataset.theme) setPageTheme('store');
+  setPageTheme('screens');
   pairType = type;
   const cur = SECTION_IDS.find(s => s !== 'pairing' &&
     document.getElementById(s).style.display !== 'none');
   pairReturn = { section: cur || 'results', y: window.scrollY || 0 };
-  pairStage = 'screens'; pairChassis = null;
+  pairStage = 'screens'; pairMode = null; pairChassis = null;
   pairSizeFilter = 'all'; pairQualityFilter = 'all'; pairTechFilter = 'all';
   pairQty = {};
   pairScreens = { count: null, resolution: 'unsure', have: null };
@@ -119,18 +121,99 @@ function renderPairing() {
   el.innerHTML = `<button class="back" onclick="closePairing()">← Back to your picks</button>
     <h1>Screens &amp; docks for your <span class="accent">${d.type === 'laptop' ? 'laptop' : 'desktop'}</span></h1>
     <p class="sub">${esc(d.name)} — pair it with screens it can actually drive, and a dock that actually fits its ports.</p>
-    <div class="sortrow">
-      <button class="sort${pairStage === 'screens' ? ' on' : ''}" onclick="pairGo('screens')">🖥️ Screens</button>
-      <button class="sort${pairStage === 'dock' ? ' on' : ''}" onclick="pairGo('dock')">🔌 Dock</button>
-    </div>
     <div id="pairstage"></div>`;
   refreshPairStage();
   window.scrollTo(0, 0);
 }
+function pairChooseMode(m) {
+  pairMode = m;
+  pairStage = m === 'dock' ? 'dock' : 'screens';
+  renderPairing();
+}
+function pairChoiceHTML() {
+  const both = pairSvg(piMon(3, 8, 17, 13, '#0284c7') + `<path d="M24 30 h17 v6 H24 Z M28 30 v-4 M37 30 v-4" stroke="#7c3aed"/>`);
+  return `<p class="q">What are we pairing today?</p>
+    <div class="opt-grid">
+    ${pairOptHTML(PAIR_TAB_ICONS.screens, 'Screens', 'Find screens this machine can actually drive', `pairChooseMode('screens')`)}
+    ${pairOptHTML(PAIR_TAB_ICONS.dock, 'Dock', 'One cable for power, ports and peripherals', `pairChooseMode('dock')`)}
+    ${pairOptHTML(both, 'Both', 'Screens first — they decide which dock you need', `pairChooseMode('both')`, 'wide')}
+    </div>`;
+}
 function refreshPairStage() {
   const s = document.getElementById('pairstage');
-  if (s) s.innerHTML = pairStage === 'screens' ? pairScreensHTML() : pairDockHTML();
+  if (!s) return;
+  if (!pairMode) { s.innerHTML = pairChoiceHTML(); return; }
+  s.innerHTML = pairStage === 'screens' ? pairScreensHTML() : pairDockHTML();
 }
+
+// Fun hand-drawn icons for the pairing pages (Caleb, 2026-10-16: same
+// big buttons, same fun style icons as the rest of the pass).
+function pairSvg(inner) {
+  return `<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g fill="none" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round">${inner}</g></svg>`;
+}
+function piMon(x, y, w, h, c) {
+  return `<path d="M${x} ${y} h${w} v${h} h-${w} Z" stroke="${c}"/><path d="M${x + w / 2} ${y + h} v3.4 M${x + w / 2 - 5} ${y + h + 4.4} h10" stroke="${c}"/>`;
+}
+function piLap(x, y, w, c) {
+  const h = Math.round(w * 0.66);
+  return `<path d="M${x} ${y} h${w} v${h} h-${w} Z" stroke="${c}"/><path d="M${x - 2.6} ${y + h + 3} h${w + 5.2}" stroke="${c}"/>`;
+}
+function piDots(cols, rows, c) {
+  let s = '';
+  for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++)
+    s += `<circle cx="${13 + i * (18 / Math.max(1, cols - 1))}" cy="${13 + j * (13 / Math.max(1, rows - 1))}" r="1.5" fill="${c}" stroke="none"/>`;
+  return `<path d="M8 7 h28 v24 H8 Z" stroke="${c}"/>` + s;
+}
+function piSpark(cx, cy, c, r) {
+  return `<path d="M${cx} ${cy - r} v${2 * r} M${cx - r} ${cy} h${2 * r}" stroke="${c}"/>`;
+}
+const PAIR_ICONS = {
+  'count:laptop:0': () => pairSvg(piLap(10, 11, 24, '#10304f') + piSpark(36, 10, '#e84393', 4)),
+  'count:laptop:1': () => pairSvg(piLap(3, 20, 16, '#10304f') + piMon(23, 9, 18, 13, '#0284c7')),
+  'count:laptop:2': () => pairSvg(piMon(4, 7, 16, 12, '#0284c7') + piMon(24, 7, 16, 12, '#7c3aed') + piLap(14, 27, 16, '#10304f')),
+  'count:laptop:3': () => pairSvg(piMon(2, 7, 12, 9, '#0284c7') + piMon(16, 7, 12, 9, '#7c3aed') + piMon(30, 7, 12, 9, '#db2777') + piLap(14, 26, 16, '#10304f')),
+  'count:desktop:1': () => pairSvg(piMon(11, 10, 22, 16, '#0284c7') + piSpark(37, 9, '#e84393', 4)),
+  'count:desktop:2': () => pairSvg(piMon(3, 11, 17, 13, '#0284c7') + piMon(24, 11, 17, 13, '#7c3aed')),
+  'count:desktop:3': () => pairSvg(piMon(2, 8, 12, 9, '#0284c7') + piMon(16, 8, 12, 9, '#7c3aed') + piMon(30, 8, 12, 9, '#db2777') + piMon(16, 25, 12, 9, '#0d9488')),
+  'res:1080p': () => pairSvg(piDots(3, 2, '#0284c7')),
+  'res:1440p': () => pairSvg(piDots(4, 3, '#7c3aed')),
+  'res:4k': () => pairSvg(piDots(5, 4, '#db2777')),
+  'res:unsure': () => pairSvg(`<path d="M8 8 h28 v22 H8 Z" stroke="#0d9488"/><path d="M17 15 q5 -6 10 0 q-2.4 3.4 -5 4.6 v3" stroke="#0d9488"/><circle cx="22" cy="26.4" r="1.5" fill="#0d9488" stroke="none"/>`),
+  'have:yes': () => pairSvg(piMon(6, 9, 24, 17, '#10304f') + `<circle cx="33" cy="29" r="7.4" fill="#dcfce7" stroke="#16a34a"/><path d="M29.8 29 l2.4 2.5 4 -4.6" stroke="#16a34a"/>`),
+  'have:no': () => pairSvg(piMon(9, 10, 22, 16, '#0284c7') + piSpark(36, 11, '#e84393', 4.4) + piSpark(8, 33, '#f59e0b', 3.4)),
+  'chassis:plastic': () => pairSvg(piLap(10, 12, 24, '#78716c') + `<circle cx="16" cy="18" r="1.4" fill="#78716c" stroke="none"/><circle cx="27" cy="21" r="1.4" fill="#78716c" stroke="none"/>`),
+  'chassis:aluminum': () => pairSvg(piLap(10, 12, 24, '#64748b') + `<path d="M13 24 l18 -9" stroke="#94a3b8" stroke-width="2"/>`),
+  'size:all': () => pairSvg(piMon(2, 13, 12, 9, '#0284c7') + piMon(16, 13, 12, 9, '#7c3aed') + piMon(30, 13, 12, 9, '#db2777')),
+  'size:small': () => pairSvg(piMon(14, 14, 16, 12, '#0284c7')),
+  'size:office': () => pairSvg(piMon(10, 10, 24, 17, '#0d9488')),
+  'size:large': () => pairSvg(piMon(5, 8, 34, 24, '#7c3aed')),
+  'size:widescreen': () => pairSvg(piMon(3, 14, 38, 14, '#db2777')),
+  'quality:all': () => pairSvg(`<path d="M22 6 l2.6 9.4 L34 18 l-9.4 2.6 L22 30 l-2.6 -9.4 L10 18 l9.4 -2.6 Z" stroke="#b0568a"/>`),
+  'quality:everyday': () => pairSvg(`<circle cx="22" cy="22" r="7.4" stroke="#d97706"/><path d="M22 8 v4 M22 32 v4 M8 22 h4 M32 22 h4 M12 12 l2.8 2.8 M32 12 l-2.8 2.8 M12 32 l2.8 -2.8 M32 32 l-2.8 -2.8" stroke="#d97706"/>`),
+  'quality:sharp': () => pairSvg(`<path d="M5 22 q17 -14 34 0 q-17 14 -34 0 Z" stroke="#0284c7"/><circle cx="22" cy="22" r="5.6" stroke="#0284c7"/><circle cx="22" cy="22" r="1.8" fill="#0284c7" stroke="none"/>`),
+  'quality:color': () => pairSvg(`<path d="M22 6 q9 12.4 9 20 a9 9 0 1 1 -18 0 q0 -7.6 9 -20 Z" stroke="#db2777"/><path d="M17.4 27 a4.8 4.8 0 0 0 3.4 5.4" stroke="#db2777"/>`),
+  'quality:premium': () => pairSvg(`<path d="M13 12 h18 l6 9 -15 16 L7 21 Z M7 21 h30 M22 37 L16.4 21 l4 -9 M22 37 l5.6 -16 -4 -9 M16.4 21 l5.6 -9 5.6 9" stroke="#7c3aed" stroke-width="2.3"/>`),
+  'quality:unspecified': () => pairSvg(`<path d="M15 13 q7 -7 13 0 q-3 4.4 -6.4 5.8 v3.6" stroke="#64748b"/><circle cx="21.6" cy="29" r="1.7" fill="#64748b" stroke="none"/>`),
+  'tech:all': () => pairSvg(`<path d="M9 9 h24 v15 H9 Z M13 28 h24 v-4 M33 24 v4" stroke="#64748b"/><path d="M13 33 h24 v-5" stroke="#94a3b8"/>`),
+  'tech:IPS': () => pairSvg(piMon(8, 10, 26, 18, '#0284c7') + `<circle cx="33" cy="10" r="3.6" stroke="#d97706"/>`),
+  'tech:OLED': () => pairSvg(`<path d="M8 9 h28 v22 H8 Z" fill="#10304f" stroke="#10304f"/><path d="M18 15 l1.8 4.6 4.9.4 -3.7 3.2 1.2 4.8 -4.2 -2.6 -4.2 2.6 1.2 -4.8 -3.7 -3.2 4.9 -.4 Z" fill="#ffd166" stroke="none"/>`),
+  'tech:VA': () => pairSvg(`<path d="M8 9 h28 v22 H8 Z" stroke="#10304f"/><path d="M8 9 h14 v22 H8 Z" fill="#10304f" stroke="none" fill-opacity=".55"/>`),
+  'tech:Mini-LED': () => pairSvg(`<path d="M8 8 h28 v24 H8 Z" stroke="#0d9488"/>` + [0, 1, 2].map(i => [0, 1, 2].map(j => `<circle cx="${14.6 + i * 7.4}" cy="${13.6 + j * 6.4}" r="1.5" fill="#0d9488" stroke="none"/>`).join('')).join(''))
+};
+function pairIconFor(kind, v) {
+  const f = PAIR_ICONS[kind + ':' + v];
+  return f ? f() : '';
+}
+function pairOptHTML(icon, t, s, onclick, cls) {
+  return icon
+    ? `<button class="opt has-icon${cls ? ' ' + cls : ''}" onclick="${onclick}"><span class="opt-ic">${icon}</span><span class="opt-txt">${t}<small>${s}</small></span></button>`
+    : `<button class="opt${cls ? ' ' + cls : ''}" onclick="${onclick}">${t}<small>${s}</small></button>`;
+}
+const PAIR_TAB_ICONS = {
+  screens: pairSvg(piMon(10, 9, 24, 18, '#0284c7') + piSpark(37, 9, '#e84393', 4)),
+  dock: pairSvg(`<path d="M7 27 h30 v9 a2 2 0 0 1 -2 2 H9 a2 2 0 0 1 -2 -2 Z" stroke="#7c3aed"/><path d="M15 27 v-6 M29 27 v-6 M15 21 h0 M12 15 q3 -3 6 0 M26 15 q3 -3 6 0" stroke="#7c3aed"/><circle cx="33" cy="32" r="1.7" fill="#e84393" stroke="none"/>`)
+};
+
 function pairCountOpts() {
   if (pairData && pairData.type === 'laptop') return [
     { v: 0, t: 'Just the laptop screen', s: 'No extra monitors' },
@@ -151,18 +234,20 @@ function pairSetRes(v) {
   pairScreens.resolution = v; pairAsked.res = true;
   pairTier = PAIR_TIER_LABEL[v] ? v : null;
   pairSizeFilter = 'all'; pairQualityFilter = 'all'; pairTechFilter = 'all';
+  pairShelfAll = false;
   refreshPairStage();
 }
-function pairSetHave(b) { pairScreens.have = b; refreshPairStage(); }
+function pairSetHave(b) { pairScreens.have = b; pairShelfAll = false; refreshPairStage(); }
 function pairSetTier(t) {
   pairTier = t; pairSizeFilter = 'all'; pairQualityFilter = 'all'; pairTechFilter = 'all';
+  pairShelfAll = false;
   refreshPairStage();
 }
 function pairSetChassis(c) { pairChassis = c; refreshPairStage(); }
-function pairFilterSize(v) { pairSizeFilter = v; refreshPairStage(); }
-function pairFilterQuality(v) { pairQualityFilter = v; refreshPairStage(); }
-function pairFilterTech(v) { pairTechFilter = v; refreshPairStage(); }
-function pairChangeAnswers() { pairAsked = { count: false, res: false }; refreshPairStage(); }
+function pairFilterSize(v) { pairSizeFilter = v; pairShelfAll = false; refreshPairStage(); }
+function pairFilterQuality(v) { pairQualityFilter = v; pairShelfAll = false; refreshPairStage(); }
+function pairFilterTech(v) { pairTechFilter = v; pairShelfAll = false; refreshPairStage(); }
+function pairChangeAnswers() { pairAsked = { count: false, res: false }; pairShelfAll = false; refreshPairStage(); }
 
 function pairScreensHTML() {
   const d = pairData;
@@ -171,13 +256,13 @@ function pairScreensHTML() {
     let h = '';
     if (!pairAsked.count) {
       h += `<p class="q">${d.type === 'laptop' ? 'Will you plug in extra screens?' : 'How many screens will you plug in?'}</p>`;
-      h += pairCountOpts().map(o =>
-        `<button class="opt" onclick="pairSetCount(${o.v})">${o.t}<small>${o.s}</small></button>`).join('');
+      h += '<div class="opt-grid">' + pairCountOpts().map(o =>
+        pairOptHTML(pairIconFor('count', pairData.type + ':' + o.v), o.t, o.s, `pairSetCount(${o.v})`)).join('') + '</div>';
     }
     if (!pairAsked.res && pairScreens.count !== 0) {
       h += `<p class="q">What resolution are the ${d.type === 'laptop' ? 'extra ' : ''}screens?</p>`;
-      h += PAIR_RES_OPTS.map(o =>
-        `<button class="opt" onclick="pairSetRes('${o.v}')">${o.t}<small>${o.s}</small></button>`).join('');
+      h += '<div class="opt-grid">' + PAIR_RES_OPTS.map(o =>
+        pairOptHTML(pairIconFor('res', o.v), o.t, o.s, `pairSetRes('${o.v}')`)).join('') + '</div>';
     }
     return h;
   }
@@ -189,7 +274,9 @@ function pairScreensHTML() {
     <button class="back" onclick="pairChangeAnswers()">↺ Change these answers</button>`;
   if (d.type === 'laptop') {
     if (n === 0) {
-      h += `<div class="note">No extra screens — nothing to match for displays. A dock can still tidy the desk (one cable for power and peripherals); see the Dock step.</div>`;
+      h += `<div class="note">No extra screens — nothing to match for displays. ${pairMode === 'both' ? 'A dock can still tidy the desk (one cable for power and peripherals).' : 'A dock can still tidy the desk (one cable for power and peripherals).'}</div>`;
+      if (pairMode === 'both')
+        h += `<button class="pairbtn" onclick="pairGo('dock')">${PAIR_TAB_ICONS.dock} Continue to the Dock step</button>`;
       return h;
     }
     const disp = d.display || {};
@@ -199,7 +286,7 @@ function pairScreensHTML() {
         h += `<div class="have">✅ <strong>Good news:</strong> ${esc(d.name)} drives up to ${mx} external screen${mx > 1 ? 's' : ''} on its own — your setup is covered natively.</div>`;
       } else {
         h += `<div class="note">⚠️ On its own, ${esc(d.name)} is rated for ${mx} external screen${mx > 1 ? 's' : ''} — getting to ${n} takes a dock that adds screens itself (DisplayLink).</div>
-          <button class="pairbtn" onclick="pairGo('dock')">🔌 See the Dock step</button>`;
+          ${pairMode === 'both' ? `<button class="pairbtn" onclick="pairGo('dock')">${PAIR_TAB_ICONS.dock} Continue to the Dock step</button>` : ''}`;
       }
       if (disp.max_resolution)
         h += `<p class="sortline">Maker-rated external output: up to ${esc(disp.max_resolution)}.</p>`;
@@ -216,13 +303,15 @@ function pairScreensHTML() {
   // Do they already have the screens?
   h += `<p class="q" style="margin-top:18px">Do you already have these screens?</p>
     <div class="sortrow">
-      <button class="sort${pairScreens.have === true ? ' on' : ''}" onclick="pairSetHave(true)">Yes, I have them</button>
-      <button class="sort${pairScreens.have === false ? ' on' : ''}" onclick="pairSetHave(false)">No — show me screens</button>
+      <button class="opt has-icon${pairScreens.have === true ? ' on' : ''}" onclick="pairSetHave(true)"><span class="opt-ic">${pairIconFor('have', 'yes')}</span><span class="opt-txt">Yes, I have them</span></button>
+      <button class="opt has-icon${pairScreens.have === false ? ' on' : ''}" onclick="pairSetHave(false)"><span class="opt-ic">${pairIconFor('have', 'no')}</span><span class="opt-txt">No — show me screens</span></button>
     </div>`;
   if (pairScreens.have === true)
-    h += `<div class="note">You're set for screens. If a dock would help — one cable for everything — the Dock step has this machine's vetted pairings.</div>`;
+    h += `<div class="note">You're set for screens. ${pairMode === 'both' ? 'Now for the dock — one cable for everything.' : 'Nothing more to match here.'}</div>`;
   else if (pairScreens.have === false)
     h += pairShelfHTML();
+  if (pairMode === 'both')
+    h += `<button class="pairbtn" onclick="pairGo('dock')">${PAIR_TAB_ICONS.dock} Screens done — continue to the Dock step</button>`;
   return h;
 }
 function pairShelfHTML() {
@@ -231,8 +320,8 @@ function pairShelfHTML() {
     return `<div class="note">🖥️ The screen shelf is still being stocked — check back soon.</div>`;
   if (!pairTier) {
     return `<p class="q" style="margin-top:14px">Which resolution should we match?</p>` +
-      Object.keys(PAIR_TIER_LABEL).map(t =>
-        `<button class="opt" onclick="pairSetTier('${t}')">${PAIR_TIER_LABEL[t]}<small>${(mons[t] || []).length} on the shelf</small></button>`).join('');
+      '<div class="opt-grid">' + Object.keys(PAIR_TIER_LABEL).map(t =>
+        pairOptHTML(pairIconFor('res', t), PAIR_TIER_LABEL[t], `${(mons[t] || []).length} on the shelf`, `pairSetTier('${t}')`)).join('') + '</div>';
   }
   const shelf = mons[pairTier] || [];
   let h = `<p class="picks-head">Screens at ${PAIR_TIER_LABEL[pairTier]}</p>`;
@@ -243,14 +332,14 @@ function pairShelfHTML() {
   const sizes = [['all', 'All sizes'], ['small', 'Small'], ['office', 'Office'], ['large', 'Large'], ['widescreen', 'Widescreen']];
   const quals = [['all', 'Any quality'], ['everyday', 'Everyday'], ['sharp', 'Sharp'], ['color', 'Color'], ['premium', 'Premium'], ['unspecified', 'Unspecified']];
   h += `<div class="sortrow wrap">${sizes.map(([v, t]) =>
-    `<button class="sort${pairSizeFilter === v ? ' on' : ''}" onclick="pairFilterSize('${v}')">${t}</button>`).join('')}</div>`;
+    `<button class="sort${pairSizeFilter === v ? ' on' : ''}" onclick="pairFilterSize('${v}')">${pairIconFor('size', v)}${t}</button>`).join('')}</div>`;
   h += `<div class="sortrow wrap">${quals.map(([v, t]) =>
-    `<button class="sort${pairQualityFilter === v ? ' on' : ''}" onclick="pairFilterQuality('${v}')">${t}</button>`).join('')}</div>`;
+    `<button class="sort${pairQualityFilter === v ? ' on' : ''}" onclick="pairFilterQuality('${v}')">${pairIconFor('quality', v)}${t}</button>`).join('')}</div>`;
   const techs = [...new Set(shelf.map(m => m.tech).filter(Boolean))].sort();
   if (techs.length > 1) {
     const techOpts = [['all', 'All panel types'], ...techs.map(t => [t, t])];
     h += `<div class="sortrow wrap">${techOpts.map(([v, t]) =>
-      `<button class="sort${pairTechFilter === v ? ' on' : ''}" onclick="pairFilterTech('${v}')">${t}</button>`).join('')}</div>`;
+      `<button class="sort${pairTechFilter === v ? ' on' : ''}" onclick="pairFilterTech('${v}')">${pairIconFor('tech', v)}${t}</button>`).join('')}</div>`;
   }
   const shown = shelf.filter(m =>
     (pairSizeFilter === 'all' || m.size_class === pairSizeFilter) &&
@@ -258,24 +347,30 @@ function pairShelfHTML() {
     (pairTechFilter === 'all' || m.tech === pairTechFilter));
   if (!shown.length)
     h += `<div class="note">No screens on this shelf match that combination yet — try clearing a filter.</div>`;
-  shown.forEach(m => { h += monitorCardHTML(m); });
+  const page = pairShelfAll ? shown : shown.slice(0, 6);
+  h += '<div class="picks-grid breakout">';
+  page.forEach(m => { h += monitorCardHTML(m); });
+  h += '</div>';
+  if (!pairShelfAll && shown.length > 6)
+    h += `<button class="more" onclick="pairShelfAll=true;refreshPairStage()">Show ${shown.length - 6} more ▼</button>`;
   return h;
 }
 const MON_SIZE_RANGE = { small: 'Small · under 27″', office: 'Office · 27–32″', large: 'Large · over 32″', widescreen: 'Widescreen · ultrawide' };
 function monSizeText(m) { return m.size_label || MON_SIZE_RANGE[m.size_class] || ''; }
 function monSizeHTML(m) {
   const t = monSizeText(m);
-  return t ? ` <span style="font-size:.95rem;font-weight:400;color:#cbd5e1;white-space:nowrap">${t}</span>` : '';
+  return t ? ` <span style="font-size:.95rem;font-weight:400;color:var(--muted);white-space:nowrap">${t}</span>` : '';
 }
 function monitorCardHTML(m) {
   const chips = [`📺 ${m.size_in}″`, esc(m.resolution), `${m.refresh_hz}Hz`, esc(m.panel_type)];
   if (m.usbc_video_input) chips.push('🔌 USB-C video input — one cable from a laptop');
   const inSetup = pairSetupMonitorQty(m.id);
-  return `<div class="card"><h3>${esc(m.name)}${monSizeHTML(m)}</h3>
+  return `<div class="card">${cardGallery('monitor', m.images, m.name)}
+    <h3>${PAIR_TAB_ICONS.screens}${esc(m.name)}${monSizeHTML(m)}</h3>
     <div class="price">$${m.price_usd.toLocaleString()}</div>
     <p class="permo" style="color:#94a3b8;font-size:.78rem;margin:2px 0 0">Price via ${esc(m.price_source || 'retailer')}, checked Oct 2026 · ${esc(m.role)}</p>
-    <div class="chips">${chips.map(c => `<span class="chip">${c}</span>`).join('')}</div>
     <p class="why">${esc(m.why)}</p>
+    ${factRowsHTML(chips)}
     <div class="sortrow" style="align-items:center;margin-top:10px">
       <button class="sort" onclick="pairMonQtyDelta('${m.id}',-1)">−</button>
       <span>×${pairQtyFor(m.id)}</span>
@@ -307,9 +402,10 @@ function dockCardHTML(o, beyond) {
     : `<p class="permo" style="color:#94a3b8;font-size:.8rem;margin:2px 0 0">No verified price yet — we list a price only when we've confirmed one</p>`;
   const inSetup = pairSetupDockId() === o.id;
   return `<div class="card"><span class="dockrole">${roleLabel}</span>
+    ${cardGallery('dock', o.images, o.name)}
     <h3>${esc(o.name)}</h3>
     ${price}
-    <div class="chips">${chips.map(c => `<span class="chip">${c}</span>`).join('')}</div>
+    ${factRowsHTML(chips)}
     ${tech}${flag}
     <button class="pairbtn" onclick="pairToggleDock('${o.id}')">${inSetup ? '✓ Dock in your setup — tap to remove' : '＋ Add this dock to my setup'}</button>
     <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
@@ -317,21 +413,23 @@ function dockCardHTML(o, beyond) {
 function pairDockHTML() {
   const d = pairData;
   if (d.type === 'desktop') {
-    return `<div class="note">Desktops plug screens in directly — the graphics card's own ports do the job, so there's no dock to pair with a desktop. Matching the screens themselves happens in the Screens step.</div>
-      <button class="pairbtn" onclick="pairGo('screens')">🖥️ Go to Screens</button>`;
+    return `<div class="note">Desktops plug screens in directly — the graphics card's own ports do the job, so there's no dock to pair with a desktop.${pairMode === 'both' ? '' : ' Matching the screens themselves happens in the Screens step.'}</div>
+      ${pairMode === 'both' ? '' : `<button class="pairbtn" onclick="pairGo('screens')">${PAIR_TAB_ICONS.screens} Go to Screens</button>`}`;
   }
   if (pairScreens.count === null) {
     return `<p class="q">First — how many extra screens should the dock handle?</p>
       <p class="sortline">A pairing only means something against a target setup.</p>` +
-      pairCountOpts().map(o =>
-        `<button class="opt" onclick="pairSetCount(${o.v})">${o.t}<small>${o.s}</small></button>`).join('');
+      '<div class="opt-grid">' + pairCountOpts().map(o =>
+        pairOptHTML(pairIconFor('count', pairData.type + ':' + o.v), o.t, o.s, `pairSetCount(${o.v})`)).join('') + '</div>';
   }
   const split = d.chassis_split;
   if (split && !pairChassis) {
     return `<p class="q">One question about this exact model</p>
       <div class="note">Dell sells this model in two chassis, and they differ where it matters: the plastic-chassis version's USB-C port is data-only, while the aluminum-chassis version's USB-C carries DisplayPort video. Which is yours?</div>
-      <button class="opt" onclick="pairSetChassis('plastic')">Plastic chassis<small>USB-C is data-only on this version</small></button>
-      <button class="opt" onclick="pairSetChassis('aluminum')">Aluminum chassis<small>USB-C carries DisplayPort video on this version</small></button>`;
+      <div class="opt-grid">
+      ${pairOptHTML(pairIconFor('chassis', 'plastic'), 'Plastic chassis', 'USB-C is data-only on this version', `pairSetChassis('plastic')`)}
+      ${pairOptHTML(pairIconFor('chassis', 'aluminum'), 'Aluminum chassis', 'USB-C carries DisplayPort video on this version', `pairSetChassis('aluminum')`)}
+      </div>`;
   }
   let effClass = d.dock_class;
   if (split && pairChassis) effClass = split[pairChassis];
