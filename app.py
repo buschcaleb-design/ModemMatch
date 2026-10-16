@@ -85,7 +85,9 @@ def api_about():
             {"method": "POST", "path": "/api/recommend-laptops",
              "description": "Laptop picks. JSON: {use, os, screen, budget, "
                             "snapdragon, usage, kid, ecosystem} -> "
-                            "{recommendations, notes, guides}. Prices are a "
+                            "{recommendations, notes, guides}. Each pick "
+                            "carries a summary plus a why list: the reasons "
+                            "it was picked for those answers. Prices are a "
                             "range: price (starting) and price_max."},
             {"method": "GET", "path": "/api/laptop-guides",
              "description": "Laptop setup-guide library: OS first-boot "
@@ -312,6 +314,14 @@ def _laptop_in_budget(price, band):
     return True
 
 
+def _fmt_price(p):
+    """499.99 -> '$499.99', 999.0 -> '$999', 1400.0 -> '$1,400'."""
+    s = f"{p:,.2f}"
+    if "." in s:
+        s = s.rstrip("0").rstrip(".")
+    return "$" + s
+
+
 @app.route("/api/recommend-laptops", methods=["POST"])
 def api_recommend_laptops():
     """
@@ -437,6 +447,118 @@ def api_recommend_laptops():
                             "and device perks line up best inside one brand's world.")
         return s, why_bits, eco_note
 
+    budget_label = {"under500": "under $500", "500-900": "$500–$900",
+                    "900-1400": "$900–$1,400",
+                    "1400plus": "over $1,400"}.get(budget)
+    screen_label = {"13-14": "13–14″", "15-16": "15–16″",
+                    "17plus": "17″+"}.get(screen)
+
+    def why_list_for(l, eco_note):
+        """Per-pick reasons for the 'Why we picked this laptop' dropdown.
+        Every bullet traces to a quiz answer or a data field — no filler."""
+        bullets = []
+        cat = l["laptop_category"]
+        frag = LAPTOP_CATEGORY_WHY.get(cat, "")
+        if frag and cat == want_cat:
+            bullets.append(f"For {use}: {frag[0].lower() + frag[1:]}.")
+        elif frag and cat in affinity:
+            bullets.append(f"Close match for {use}: {frag[0].lower() + frag[1:]}.")
+        if os_pref != "any":
+            bullets.append(f"Runs {l['platform']} — the system you asked for.")
+        band = _laptop_screen_band(l["display_inches"])
+        if screen != "any" and screen_label and l["display_inches"]:
+            if band == screen:
+                bullets.append(f"{l['display_inches']}″ screen — the "
+                               f"{screen_label} size you picked.")
+            elif band is not None:
+                bullets.append(
+                    f"{l['display_inches']}″ screen — outside the "
+                    f"{screen_label} size you picked; we widened the net "
+                    "because few laptops matched everything you asked for.")
+        if budget != "any" and budget_label:
+            price = l["price"]
+            if _laptop_in_budget(price, budget):
+                spot = ""
+                spans = {"under500": (0, 500), "500-900": (500, 900),
+                         "900-1400": (900, 1400)}
+                if budget in spans:
+                    lo, hi = spans[budget]
+                    r = (price - lo) / (hi - lo)
+                    spot = (" — near the low end of that budget" if r <= 0.34
+                            else " — near the top of that budget" if r >= 0.67
+                            else " — mid-range in that budget")
+                bullets.append(f"Starts at {_fmt_price(price)} — inside your "
+                               f"{budget_label} budget{spot}.")
+            else:
+                bullets.append(
+                    f"Starts at {_fmt_price(price)} — outside your "
+                    f"{budget_label} budget; it stayed in because few "
+                    "laptops matched your other answers.")
+        if usage == "heavy":
+            strong = []
+            if l["ram_max_gb"] and l["ram_max_gb"] >= 16:
+                strong.append(f"up to {l['ram_max_gb']}GB RAM")
+            if l["storage_max_gb"] and l["storage_max_gb"] >= 512:
+                strong.append(f"up to {l['storage_max_gb']}GB storage")
+            if strong:
+                bullets.append("Headroom for big apps and lots of files: "
+                               "configures " + " and ".join(strong) + ".")
+        elif l["ram_min_gb"]:
+            b = f"Starts at {l['ram_min_gb']}GB RAM"
+            if l["storage_min_gb"]:
+                b += f" and {l['storage_min_gb']}GB storage"
+            bullets.append(b + " — plenty for browser, email, "
+                               "and document work.")
+        if l["platform"] == "Windows":
+            if l["snapdragon"] and l["architecture"] == "both":
+                if snap_answer in ("yes", "unsure"):
+                    bullets.append(
+                        "Sold in Intel and Snapdragon versions — the "
+                        "Intel/AMD version is the safe pick for the programs, "
+                        "printers, or games you need to run.")
+                else:
+                    bullets.append(
+                        "Sold in Snapdragon and Intel versions — the "
+                        "Snapdragon version is the long-battery one, and "
+                        "you cleared the compatibility question.")
+            elif l["snapdragon"]:
+                bullets.append(
+                    "Snapdragon-powered — the battery-life lane, and you "
+                    "said you don't need the specific Windows programs, "
+                    "older printers, or anti-cheat games that can trip "
+                    "it up.")
+            elif snap_answer in ("yes", "unsure"):
+                bullets.append(
+                    "Intel/AMD inside — the compatibility-safe lane for "
+                    "specific Windows programs, older printers, and "
+                    "anti-cheat games.")
+        if eco_note:
+            bullets.append(eco_note)
+        if l["platform"] == "ChromeOS" and \
+                "chromebook plus" in l["name"].lower():
+            bullets.append("A Chromebook Plus — Google's higher-spec "
+                           "Chromebook tier.")
+        if l.get("formerly"):
+            bullets.append(f"Rebrand note: this is {l['brand']}'s successor "
+                           f"to the {l['formerly']} line — same family, "
+                           "new name.")
+        if kid:
+            par = LAPTOP_PARENTAL.get("platforms", {}).get(
+                LAPTOP_OS_KEY[l["platform"]]) or {}
+            cs = par.get("control_system")
+            if cs:
+                bullets.append(
+                    f"For your kid: {l['platform']} parental controls run "
+                    f"through {cs} — the setup page (button at the bottom "
+                    "of these results) walks through the child account, "
+                    "limits, and approvals.")
+            else:
+                bullets.append(
+                    "For your kid: this platform has built-in parental "
+                    "controls — the setup page (button at the bottom of "
+                    "these results) walks through them.")
+        return bullets
+
     scored = []
     for l in pool:
         s, why_bits, eco_note = score(l)
@@ -477,7 +599,8 @@ def api_recommend_laptops():
             "price": l["price"], "price_max": l["price_max"],
             "price_source": l["price_source"],
             "max_config_note": l["max_config_note"],
-            "score": round(s), "why": why, "ecosystem_note": eco_note,
+            "score": round(s), "why": why_list_for(l, eco_note),
+            "summary": why, "ecosystem_note": eco_note,
             "cpu_check": bool(l["snapdragon"] and l["architecture"] == "both"),
             "setup": {"os_key": os_key, "brand_key": brand_key},
         })

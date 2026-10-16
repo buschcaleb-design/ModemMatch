@@ -77,6 +77,8 @@
   .setupbox .gstep { padding: 10px 12px; }
   .setupbox .gstep p { font-size: .84rem; }
   .setupbox ul { margin: 4px 0 8px; padding-left: 18px; color: #94a3b8; font-size: .85rem; }
+  .setupbox ul.whylist li { color: #cbd5e1; margin-bottom: 5px; }
+  .setupcta { margin-top: 20px; border-color: #38bdf8 !important; }
   .picks-head { font-size: 1.15rem; font-weight: 700; margin: 22px 0 10px; }
   .card .blurb { color: #94a3b8; font-size: .85rem; margin: 4px 0 0; font-style: italic; }
   .savings { background: #052e16; border: 1px solid #16a34a; border-radius: 14px;
@@ -110,7 +112,7 @@
   <div id="results" style="display:none"></div>
   <div id="guide" style="display:none"></div>
   <div id="pc-guide" style="display:none"></div>
-  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.4 &middot; If a page looks outdated, read this stamp back to us</p>
+  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.5 &middot; If a page looks outdated, read this stamp back to us</p>
 </div>
 <script>const stepsEl = document.getElementById('steps');
 const bar = document.getElementById('bar');
@@ -596,43 +598,20 @@ function archBadge(p) {
   if (p.platform === 'ChromeOS') return ['Chromebook', 'x86'];
   return ['Intel / AMD', 'x86'];
 }
-function laptopSetupHTML(p) {
-  const g = laptopRes.guides;
-  const flow = g.os_flows[p.setup.os_key];
-  const layer = g.brand_layers[p.setup.brand_key];
-  if (!flow && !layer) return '';
-  let h = `<details class="setupbox"><summary>🔧 Setup path for this pick</summary>`;
-  if (flow) {
-    h += `<h4>First boot — ${esc(flow.os || p.platform)}</h4>`;
-    flow.steps.forEach((s, i) => {
-      h += `<div class="gstep"><span class="stepnum">${i + 1}</span><div><h3>${esc(s.title)}</h3><p>${esc(s.detail)}</p></div></div>`;
-    });
-    if (flow.honest_notes && flow.honest_notes.length)
-      h += `<div class="note">${esc(flow.honest_notes[0])}</div>`;
-  }
-  if (layer) {
-    h += `<h4>${esc(p.brand)} setup tools</h4>`;
-    const util = layer.utility;
-    if (util) {
-      const uname = typeof util === 'string' ? util : util.name;
-      const udesc = typeof util === 'string' ? '' : util.what_it_does;
-      if (uname) h += `<p class="why">Utility: <strong>${esc(uname)}</strong>${udesc ? ` — ${esc(udesc)}` : ''}</p>`;
-    }
-    if (layer.driver_bios_channel) h += `<p class="why">${esc(layer.driver_bios_channel)}</p>`;
-    if (layer.setup_notes && layer.setup_notes.length) {
-      h += `<ul>${layer.setup_notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>`;
-    }
-  }
-  const par = g.parental && g.parental.platforms[p.setup.os_key];
-  if (laptopRes.kid && par) {
-    h += `<h4>👨‍👩‍👧 Parental controls — ${esc(par.control_system || '')}</h4>`;
-    h += `<ol style="margin:4px 0 8px;padding-left:20px;color:#cbd5e1;font-size:.88rem">` +
-      par.first_setup_checklist.map(c => `<li style="margin-bottom:4px">${esc(typeof c === 'string' ? c : (c.title || c.item || ''))}${typeof c === 'object' && c.detail ? ` — <span style="color:#94a3b8">${esc(c.detail)}</span>` : ''}</li>`).join('') + `</ol>`;
-    if (par.honest_limits && par.honest_limits.length)
-      h += `<div class="note">${esc(typeof par.honest_limits[0] === 'string' ? par.honest_limits[0] : (par.honest_limits[0].detail || par.honest_limits[0].title || ''))}</div>`;
-  }
-  h += `</details>`;
-  return h;
+function laptopWhyHTML(p) {
+  const bullets = Array.isArray(p.why) ? p.why : [];
+  if (!bullets.length) return '';
+  return `<details class="setupbox"><summary>💡 Why we picked this laptop</summary>
+    <ul class="whylist">${bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul></details>`;
+}
+async function goLaptopSetup() {
+  // Results screen is for deciding; the setup page is for doing. Land in
+  // the PC guides browser with the top pick's OS preselected.
+  const top = laptopRes && laptopRes.recommendations && laptopRes.recommendations[0];
+  await startPcGuide();
+  if (top && top.setup && top.setup.os_key &&
+      pcGuides.setup_guides.os_flows[top.setup.os_key])
+    renderPcFormFactor(top.setup.os_key);
 }
 function laptopCardHTML(p, i, isTop) {
   const [badge, badgeCls] = archBadge(p);
@@ -652,9 +631,9 @@ function laptopCardHTML(p, i, isTop) {
     <div class="chips"><span class="badge ${badgeCls}">${badge}</span>${chips.map(c => `<span class="chip">${c}</span>`).join('')}</div>
     ${p.cpu_check ? `<p class="warnline">⚠️ Sold in Intel <em>and</em> Snapdragon versions — check which CPU the listing you're buying actually has.</p>` : ''}
     ${p.formerly ? `<p class="why">ℹ️ Line renamed in 2025 — this is the new ${esc(p.formerly)}.</p>` : ''}
-    <p class="why">${esc(p.why)}</p>
+    <p class="why">${esc(p.summary || (Array.isArray(p.why) ? (p.why[0] || '') : p.why) || '')}</p>
     ${p.ecosystem_note ? `<p class="why">🔗 ${esc(p.ecosystem_note)}</p>` : ''}
-    ${laptopSetupHTML(p)}</div>`;
+    ${laptopWhyHTML(p)}</div>`;
 }
 function renderLaptopResults() {
   const r = document.getElementById('results');
@@ -681,14 +660,8 @@ function renderLaptopResults() {
         h += `<button class="more" onclick="lshowAll=true;renderLaptopResults()">Show ${rest.length - 4} more ▼</button>`;
     }
   }
-  const fw = laptopRes.guides.first_week_checklist;
-  if (fw && fw.length) {
-    h += `<p class="picks-head">First week with any new laptop</p>`;
-    fw.forEach(c => {
-      h += `<div class="gstep"><span class="stepnum">✓</span><div><h3>${esc(c.item)}</h3><p>${esc(c.detail)}</p></div></div>`;
-    });
-  }
   laptopRes.notes.forEach(n => { h += `<div class="note">${esc(n)}</div>`; });
+  h += `<button class="opt setupcta" onclick="goLaptopSetup()">🔧 Set up your new laptop<small>First boot, brand setup tools${laptopRes.kid ? ', and parental controls' : ''} — step by step, on the setup page</small></button>`;
   h += `<button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
   r.innerHTML = h;
   window.scrollTo(0, 0);
