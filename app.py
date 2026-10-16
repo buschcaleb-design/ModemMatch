@@ -52,6 +52,18 @@ if os.path.exists(_pairing_path):
     with open(_pairing_path) as f:
         PAIRING = json.load(f)
 
+# Product photos for computers live in their own file (same push-size
+# split as the guides and desktops); attach them to the records in memory
+# so every computer endpoint serves them without the data files growing.
+_img_path = os.path.join(BASE, "computers-images.json")
+if os.path.exists(_img_path):
+    with open(_img_path) as f:
+        _img_doc = json.load(f)
+    for _rec in DB.get("laptops", []):
+        _rec["images"] = _img_doc.get("laptops", {}).get(_rec.get("id"), [])
+    for _rec in DESKTOPS:
+        _rec["images"] = _img_doc.get("desktops", {}).get(_rec.get("id"), [])
+
 SPEED_MIN = {
     "under100": 0, "100-300": 100, "300-600": 300,
     "600-1000": 600, "1000plus": 1000,
@@ -691,6 +703,7 @@ def api_recommend_laptops():
             "weight_text": l["weight_text"],
             "architecture": l["architecture"], "snapdragon": l["snapdragon"],
             "formerly": l["formerly"], "source_url": l["source_url"],
+            "images": l.get("images") or [],
             "price": l["price"], "price_max": l["price_max"],
             "price_source": l["price_source"],
             "max_config_note": l["max_config_note"],
@@ -1220,6 +1233,7 @@ def api_recommend_desktops():
             "weight_text": d["weight_text"],
             "architecture": d["architecture"], "snapdragon": d["snapdragon"],
             "formerly": d["formerly"], "source_url": d["source_url"],
+            "images": d.get("images") or [],
             "price": d["price"], "price_max": d["price_max"],
             "price_source": d["price_source"],
             "max_config_note": d["max_config_note"],
@@ -1310,6 +1324,7 @@ def _laptop_public(l):
         "weight_text": l["weight_text"],
         "architecture": l["architecture"], "snapdragon": l["snapdragon"],
         "formerly": l["formerly"], "source_url": l["source_url"],
+        "images": l.get("images") or [],
         "price": l["price"], "price_max": l["price_max"],
         "price_source": l["price_source"],
         "max_config_note": l["max_config_note"],
@@ -1348,6 +1363,7 @@ def _desktop_public(d):
         "weight_text": d["weight_text"],
         "architecture": d["architecture"], "snapdragon": d["snapdragon"],
         "formerly": d["formerly"], "source_url": d["source_url"],
+        "images": d.get("images") or [],
         "price": d["price"], "price_max": d["price_max"],
         "price_source": d["price_source"],
         "max_config_note": d["max_config_note"],
@@ -1747,7 +1763,7 @@ def index():
     return send_from_directory(BASE, "index.html")
 
 
-# Split frontend assets (Build 2026-10-16.34): index.html is a slim shell;
+# Split frontend assets (Build 2026-10-16.35): index.html is a slim shell;
 # the CSS/JS live in assets/ and are referenced with ?v=<build stamp>, so a
 # long cache is safe — every build bumps the stamp and the query together.
 ASSET_FILES = {"site.css", "app-core.js", "app-computers.js",
