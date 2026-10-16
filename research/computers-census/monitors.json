@@ -815,6 +815,96 @@
         "spec_source_url": "https://www.lg.com/us/monitors/lg-45gx950a-b-gaming-monitor",
         "vesa_mount": true,
         "why": "The biggest OLED canvas here: a 45-inch-class 5K2K panel at 165Hz (or 330Hz in Dual Mode) with DisplayHDR True Black 400 and 98.5% DCI-P3 - a sim cockpit and a giant editing desk in one."
+      },
+      {
+        "aspect": "21:9",
+        "brand": "LG",
+        "brightness_nits": 400,
+        "checked_date": "2026-10-16",
+        "color_gamut": {
+          "dci_p3_percent": 95,
+          "srgb_percent": null
+        },
+        "factory_calibrated": null,
+        "flags": [
+          "Brightness: LG's page lists 400 cd/m2 typical / 320 minimum (extraction order was ambiguous; recorded as typical 400).",
+          "HDMI and DisplayPort counts are not stated on LG's product page - inputs confirmed present, counts unverified.",
+          "Price is LG's own store price observed 2026-10-16 ($500 off $1,999.99); Caleb found this one himself."
+        ],
+        "hdr": "VESA DisplayHDR 600 / HDR10",
+        "inputs": {
+          "displayport": "DisplayPort 2.1",
+          "hdmi": "HDMI (count not stated)",
+          "kvm": false,
+          "usb_hub": true,
+          "usbc_note": "USB-C carries display, data, and up to 90W charging through one cable (per LG).",
+          "usbc_video_input": true
+        },
+        "name": "LG UltraGear evo 52G930B-B",
+        "panel_type": "VA",
+        "ppi": 107.7,
+        "price_source": {
+          "name": "LG (maker store)",
+          "url": "https://www.lg.com/us/monitors/lg-52g930b-b-gaming-monitor"
+        },
+        "price_usd": 1499.99,
+        "quality_basis": "LG publishes 95% DCI-P3 (typ) with a VESA DisplayHDR 600 class - wide gamut, but below the 98% premium bar, so it sits in the color band.",
+        "quality_class": "color",
+        "refresh_hz": 240,
+        "refresh_note": "240Hz at 5120x2160; 1000R curvature.",
+        "resolution": "5120x2160",
+        "role": "gaming-leaning (ultrawide)",
+        "size_class": "widescreen",
+        "size_in": 51.6,
+        "speakers": true,
+        "spec_source_url": "https://www.lg.com/us/monitors/lg-52g930b-b-gaming-monitor",
+        "vesa_mount": true,
+        "why": "A 52-inch 5K2K curved ultrawide - roughly two monitors wide in a single panel - with 240Hz, DisplayHDR 600, and one-cable USB-C video with 90W charging."
+      },
+      {
+        "aspect": "32:9",
+        "brand": "Samsung",
+        "brightness_nits": 420,
+        "checked_date": "2026-10-16",
+        "color_gamut": {
+          "dci_p3_percent": 95,
+          "srgb_percent": null
+        },
+        "factory_calibrated": null,
+        "flags": [
+          "No USB-C at all: video is DisplayPort 2.1 (x1) or HDMI 2.1 (x3) only; the USB 3.0 hub is data, not a video path. Laptops pair over HDMI/DP or a dock.",
+          "Panel type is left blank in Samsung's own spec table; Best Buy and Micro Center both list VA. Recorded as VA with a Mini-LED backlight (2,392 local-dimming zones).",
+          "Same $1,449.99 at Samsung US, Best Buy (direct), and Micro Center on 2026-10-16; the Walmart listing at that price is a marketplace seller (Beach Camera) and was not used.",
+          "Samsung US buy box showed delivery and pickup 'Not Available' at the checked ZIP despite an Add to Cart button; Best Buy direct showed pickup Oct 22 / delivery Oct 17."
+        ],
+        "hdr": "VESA DisplayHDR 1000 / HDR10+ Gaming",
+        "inputs": {
+          "displayport": "DisplayPort 2.1 x1",
+          "hdmi": "HDMI 2.1 x3",
+          "kvm": false,
+          "usb_hub": true,
+          "usbc_note": "No USB-C port on this model.",
+          "usbc_video_input": false
+        },
+        "name": "Samsung Odyssey Neo G9 57-inch - LS57CG952NNXZA",
+        "panel_type": "VA with Mini-LED backlight",
+        "ppi": 139.9,
+        "price_source": {
+          "name": "Best Buy",
+          "url": "https://www.bestbuy.com/product/samsung-57-odyssey-neo-g9-dual-4k-uhd-quantum-mini-led-240hz-1ms-hdr-1000-curved-gaming-monitor-hdmi-2-1-dp-2-1-usb-3-0-black/J3ZYG29PK6"
+        },
+        "price_usd": 1449.99,
+        "quality_basis": "Samsung publishes 95% DCI-P3 with VESA DisplayHDR 1000 and 2,392-zone Mini-LED local dimming - wide gamut, but below the 98% premium bar, so it sits in the color band.",
+        "quality_class": "color",
+        "refresh_hz": 240,
+        "refresh_note": "240Hz at 7680x2160; 1000R curvature; 1ms GTG.",
+        "resolution": "7680x2160",
+        "role": "gaming-leaning (super-ultrawide)",
+        "size_class": "widescreen",
+        "size_in": 57,
+        "spec_source_url": "https://www.samsung.com/us/monitors/gaming/57-inch-odyssey-neo-g9-dual-4k-uhd-quantum-mini-led-240hz-1ms-hdr-1000-curved-gaming-monitor-sku-ls57cg952nnxza/?modelCode=LS57CG952NNXZA",
+        "vesa_mount": true,
+        "why": "Two 32-inch 4K screens fused into one 57-inch Mini-LED panel - about three monitors of desk - with 240Hz and DisplayHDR 1000. No USB-C: it pairs over HDMI or DisplayPort."
       }
     ]
   }

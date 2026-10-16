@@ -197,6 +197,24 @@ def size_class_for(m):
     return "large"
 
 
+def size_label_for(m):
+    """Buyer-facing size label for the small print beside a monitor's name
+    (Caleb, 2026-10-16): widescreens say how many ordinary monitors wide
+    they feel like — 21:9 is ~2 monitors wide; 32:9 is ~3."""
+    cls = size_class_for(m)
+    if cls == "widescreen":
+        try:
+            w, h = (m.get("aspect") or "").split(":")
+            if float(w) / float(h) >= 3.0:
+                return "Widescreen · super ultrawide, ~3 monitors wide"
+        except (ValueError, ZeroDivisionError):
+            pass
+        return "Widescreen · ultrawide, ~2 monitors wide"
+    return {"small": "Small · under 27\u2033",
+            "office": "Office · 27\u201332\u2033",
+            "large": "Large · over 32\u2033"}[cls]
+
+
 def tech_for(panel):
     """Panel technology family for the shelf's technology filter (Caleb,
     2026-10-16): OLED / Mini-LED / IPS / VA / TN, from the maker's panel
@@ -223,6 +241,7 @@ for tier, items in monitors_doc["tiers"].items():
         "brand": m["brand"],
         "size_in": m["size_in"],
         "size_class": size_class_for(m),
+        "size_label": size_label_for(m),
         "tech": tech_for(m["panel_type"]),
         "resolution": m["resolution"],
         "quality_class": m["quality_class"],
