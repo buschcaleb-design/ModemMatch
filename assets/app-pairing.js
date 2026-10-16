@@ -251,11 +251,17 @@ function pairShelfHTML() {
   shown.forEach(m => { h += monitorCardHTML(m); });
   return h;
 }
+const MON_SIZE_RANGE = { small: 'Small · under 27″', office: 'Office · 27–32″', large: 'Large · over 32″', widescreen: 'Widescreen · ultrawide' };
+function monSizeText(m) { return MON_SIZE_RANGE[m.size_class] || ''; }
+function monSizeHTML(m) {
+  const t = monSizeText(m);
+  return t ? ` <span style="font-size:.95rem;font-weight:400;color:#cbd5e1;white-space:nowrap">${t}</span>` : '';
+}
 function monitorCardHTML(m) {
   const chips = [`📺 ${m.size_in}″`, esc(m.resolution), `${m.refresh_hz}Hz`, esc(m.panel_type)];
   if (m.usbc_video_input) chips.push('🔌 USB-C video input — one cable from a laptop');
   const inSetup = pairSetupMonitorQty(m.id);
-  return `<div class="card"><h3>${esc(m.name)}</h3>
+  return `<div class="card"><h3>${esc(m.name)}${monSizeHTML(m)}</h3>
     <div class="price">$${m.price_usd.toLocaleString()}</div>
     <p class="permo" style="color:#94a3b8;font-size:.78rem;margin:2px 0 0">Price via ${esc(m.price_source || 'retailer')}, checked Oct 2026 · ${esc(m.role)}</p>
     <div class="chips">${chips.map(c => `<span class="chip">${c}</span>`).join('')}</div>
@@ -485,7 +491,7 @@ function setupLinesHTML(s, comp, cat) {
     if (!mon)
       lines.push(`<p class="setupline">🖥️ A saved screen is no longer in the catalog. <button class="sort" onclick="setupRemoveMonitor('${s.id}','${m.id}')">✕ Remove</button></p>`);
     else
-      lines.push(`<p class="setupline">🖥️ ${esc(mon.name)} ×${m.qty} — ${mon.price_usd != null ? '$' + mon.price_usd.toLocaleString() + ' each' : 'price not shown (not counted in the total)'} <button class="sort" onclick="setupRemoveMonitor('${s.id}','${m.id}')">✕ Remove</button></p>`);
+      lines.push(`<p class="setupline">🖥️ ${esc(mon.name)}${monSizeHTML(mon)} ×${m.qty} — ${mon.price_usd != null ? '$' + mon.price_usd.toLocaleString() + ' each' : 'price not shown (not counted in the total)'} <button class="sort" onclick="setupRemoveMonitor('${s.id}','${m.id}')">✕ Remove</button></p>`);
   });
   return lines.join('');
 }
@@ -619,7 +625,7 @@ async function setupPrint(id) {
   }
   s.monitors.forEach(m => {
     const mon = cat.monitors[m.id];
-    rows.push(mon ? `☐ Screen ×${m.qty}: ${esc(mon.name)}${mon.price_usd != null ? ' — $' + mon.price_usd.toLocaleString() + ' each' : ' — price not shown'}`
+    rows.push(mon ? `☐ Screen ×${m.qty}: ${esc(mon.name)}${monSizeText(mon) ? ' (' + monSizeText(mon) + ')' : ''}${mon.price_usd != null ? ' — $' + mon.price_usd.toLocaleString() + ' each' : ' — price not shown'}`
                   : '☐ Screen: no longer in the catalog');
   });
   if (!s.dock_id && !s.monitors.length)
