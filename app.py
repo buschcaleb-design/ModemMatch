@@ -1747,16 +1747,18 @@ def index():
     return send_from_directory(BASE, "index.html")
 
 
-# Split frontend assets (Build 2026-10-16.31): index.html is a slim shell;
+# Split frontend assets (Build 2026-10-16.32): index.html is a slim shell;
 # the CSS/JS live in assets/ and are referenced with ?v=<build stamp>, so a
 # long cache is safe — every build bumps the stamp and the query together.
 ASSET_FILES = {"site.css", "app-core.js", "app-computers.js",
                "app-guides.js", "app-pairing.js"}
 
 
-@app.route("/assets/<name>")
+@app.route("/assets/<path:name>")
 def asset(name):
-    if name not in ASSET_FILES:
+    if name not in ASSET_FILES and not (
+            name.startswith("logos/") and ".." not in name
+            and name.rsplit(".", 1)[-1].lower() in ("png", "svg")):
         return ("Not found", 404)
     resp = send_from_directory(os.path.join(BASE, "assets"), name)
     resp.headers["Cache-Control"] = "public, max-age=86400"
