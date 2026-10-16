@@ -85,6 +85,12 @@
   .diagram svg { display: block; width: 100%; height: auto; background: #0f172a;
                  border: 1px solid #334155; border-radius: 12px; }
   .diagram figcaption { color: #64748b; font-size: .75rem; margin-top: 6px; font-style: italic; }
+  .phsoon { display: flex; align-items: center; justify-content: center; height: 84px;
+            border: 1px dashed #475569; border-radius: 12px; background: #16202f;
+            color: #64748b; font-size: .85rem; margin-bottom: 12px; }
+  .stepfig { margin: 0 0 12px; }
+  .stepfig img { display: block; width: 100%; height: auto; border-radius: 12px;
+                 border: 1px solid #334155; }
   .discbtn { display: block; margin: 18px auto 0; background: none; border: none;
              color: #64748b; font-size: .8rem; cursor: pointer; text-decoration: underline; }
   .discbtn:hover { color: #94a3b8; }
@@ -138,7 +144,7 @@
   <div id="model-lookup" style="display:none"></div>
   <div id="disclaimers" style="display:none"></div>
   <button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>
-  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.7 &middot; If a page looks outdated, read this stamp back to us</p>
+  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.8 &middot; If a page looks outdated, read this stamp back to us</p>
 </div>
 <script>const stepsEl = document.getElementById('steps');
 const bar = document.getElementById('bar');
@@ -925,7 +931,7 @@ function renderPcFormFactor(key) {
   const flow = pcGuides.setup_guides.os_flows[key];
   el.innerHTML = `<button class="back" onclick="renderPcMenu()">← All setup topics</button>
     <p class="q">Tower (desktop) or laptop?</p>
-    <button class="opt" onclick="renderPcOsFlow('${key}')">💻 Laptop<small>${esc(flow.os)} first-boot walkthrough</small></button>
+    <button class="opt" onclick="renderPcOsChoice('${key}')">💻 Laptop<small>${esc(flow.os)} first-boot walkthrough</small></button>
     <button class="opt" onclick="renderPcTowerSoon()">🖥️ Tower (desktop)<small>Desktop setup guides</small></button>`;
   window.scrollTo(0, 0);
 }
@@ -936,6 +942,75 @@ function renderPcTowerSoon() {
     <h1>Desktop setup guides are <span class="accent">coming soon</span></h1>
     <p class="sub">We're building our desktop catalog right now — when it lands, tower setup walkthroughs will live here. The laptop guides are ready today.</p>
     <button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="backHome()">↺ Start over</button>`;
+  window.scrollTo(0, 0);
+}
+// --------------------------------- setup entry: video or step by step
+// Caleb's design (2026-10-15): every guided flow opens with a choice —
+// watch a video of the whole process, or walk it step by step with
+// photos. Videos live in the data as a per-flow `video_url` (null until
+// filmed); photos as a per-step `photo` (null until shot). Null stays
+// honest: a "coming soon" panel (video) or a quiet placeholder (photo),
+// never a fabricated visual.
+function videoEmbedURL(u) {
+  if (!u) return '';
+  const s = String(u);
+  const yt = s.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/);
+  if (yt) return 'https://www.youtube-nocookie.com/embed/' + yt[1] + '?rel=0';
+  const vm = s.match(/(?:vimeo\.com\/|player\.vimeo\.com\/video\/)(\d+)/);
+  if (vm) return 'https://player.vimeo.com/video/' + vm[1];
+  return s;
+}
+function stepVisualHTML(item, ctx) {
+  if (!item || typeof item !== 'object') return '';
+  if (item.photo)
+    return `<figure class="stepfig"><img src="${esc(item.photo)}" alt="Photo showing this step" loading="lazy"></figure>`;
+  if (item.diagram)
+    return `<figure class="diagram">${diagramSVG(item.diagram, ctx)}<figcaption>${esc(diagramCaption(item.diagram, ctx))}</figcaption></figure>`;
+  return `<div class="phsoon">📷 Photo coming soon</div>`;
+}
+function renderPcOsChoice(key) {
+  const flow = pcGuides.setup_guides.os_flows[key];
+  const el = document.getElementById('pc-guide');
+  el.innerHTML = `<button class="back" onclick="renderPcFormFactor('${key}')">← Back</button>
+    <h1>First boot — <span class="accent">${esc(flow.os)}</span></h1>
+    <p class="sub">Two ways through it — pick whichever suits you.</p>
+    <button class="opt" onclick="renderPcFlowVideo('os','${key}')">🎬 Watch the video<small>The whole setup, start to finish</small></button>
+    <button class="opt" onclick="startPcOsWizard('${key}')">👣 Step by step<small>One step at a time, with photos</small></button>`;
+  window.scrollTo(0, 0);
+}
+function renderPcKidChoice(key) {
+  const p = pcGuides.parental_controls.platforms[key];
+  const el = document.getElementById('pc-guide');
+  el.innerHTML = `<button class="back" onclick="renderPcKidMenu()">← Kid setup</button>
+    <h1>${esc(p.platform)} — <span class="accent">${esc(p.control_system || 'parental controls')}</span></h1>
+    <p class="sub">Two ways through it — pick whichever suits you.</p>
+    <button class="opt" onclick="renderPcFlowVideo('kid','${key}')">🎬 Watch the video<small>The whole setup, start to finish</small></button>
+    <button class="opt" onclick="startPcKidWizard('${key}')">👣 Step by step<small>One step at a time, with photos</small></button>`;
+  window.scrollTo(0, 0);
+}
+function renderPcFlowVideo(kind, key) {
+  const isOs = kind === 'os';
+  const flow = isOs ? pcGuides.setup_guides.os_flows[key]
+                    : pcGuides.parental_controls.platforms[key];
+  const title = isOs
+    ? `First boot — <span class="accent">${esc(flow.os)}</span>`
+    : `${esc(flow.platform)} — <span class="accent">${esc(flow.control_system || 'parental controls')}</span>`;
+  const choiceFn = isOs ? `renderPcOsChoice('${key}')` : `renderPcKidChoice('${key}')`;
+  const stepsFn = isOs ? `startPcOsWizard('${key}')` : `startPcKidWizard('${key}')`;
+  const el = document.getElementById('pc-guide');
+  let h = `<button class="back" onclick="${choiceFn}">← Back</button>
+    <h1>${title}</h1>
+    <p class="wizprog">🎬 Watch the video</p>`;
+  const embed = videoEmbedURL(flow.video_url);
+  if (embed) {
+    h += `<div class="vid"><iframe src="${esc(embed)}" title="Setup walkthrough video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>
+    <button class="opt" onclick="${stepsFn}">👣 Step by step instead<small>One step at a time, with photos</small></button>`;
+  } else {
+    h += `<div class="vid soon" style="height:150px">🎬 Video coming soon — we're filming these now</div>
+    <p class="sub">The walkthrough video for this setup isn't ready yet. The step-by-step guide covers the same ground, one step at a time.</p>
+    <button class="opt" onclick="${stepsFn}">👣 Go step by step<small>One step at a time, with photos</small></button>`;
+  }
+  el.innerHTML = h;
   window.scrollTo(0, 0);
 }
 // ------------------------------------------ stepped guide wizard
@@ -967,15 +1042,15 @@ function wizMove(d) {
   wiz.i = Math.min(wiz.screens.length - 1, Math.max(0, wiz.i + d));
   wizRender();
 }
-function wizStepScreen(head, item, num) {
-  return { html: `${head ? `<p class="picks-head" style="margin-top:0">${head}</p>` : ''}<div class="gstep"><span class="stepnum">${num}</span><div>${guideItemHTML(item)}</div></div>` };
+function wizStepScreen(head, item, num, ctx) {
+  return { html: `${head ? `<p class="picks-head" style="margin-top:0">${head}</p>` : ''}<div class="gstep"><span class="stepnum">${num}</span><div>${stepVisualHTML(item, ctx)}${guideItemHTML(item)}</div></div>` };
 }
-function renderPcOsFlow(key) {
+function startPcOsWizard(key) {
   const flow = pcGuides.setup_guides.os_flows[key];
+  const ctx = { os: key, brand: guideBrand };
   const screens = flow.steps.map((x, i) => ({
-    html: (i === 0 ? `<div class="vid soon">🎬 Video walkthrough coming soon</div>` : '') +
-      (i === 0 && flow.applies_to ? `<div class="note">${esc(flow.applies_to)}</div>` : '') +
-      `<div class="gstep"><span class="stepnum">${i + 1}</span><div>${guideItemHTML(x)}</div></div>`
+    html: (i === 0 && flow.applies_to ? `<div class="note">${esc(flow.applies_to)}</div>` : '') +
+      `<div class="gstep"><span class="stepnum">${i + 1}</span><div>${stepVisualHTML(x, ctx)}${guideItemHTML(x)}</div></div>`
   }));
   const tokens = { windows_11: ['windows', 'all'], macos: ['macos', 'mac', 'all'],
                    chromeos: ['chromeos', 'chrome', 'all'] }[key] || ['all'];
@@ -988,7 +1063,7 @@ function renderPcOsFlow(key) {
   finalHtml += `<button class="opt" onclick="openDisclaimers()">📄 Disclaimers<small>The fine print for all our guides — coverage notes and version caveats, in one place</small></button>`;
   if (finalHtml) screens.push({ html: finalHtml });
   wiz = { title: `<h1>First boot — <span class="accent">${esc(flow.os)}</span></h1>`,
-          backAction: `renderPcFormFactor('${key}')`, backLabel: 'Back',
+          backAction: `renderPcOsChoice('${key}')`, backLabel: 'Back',
           doneAction: 'renderPcMenu()', doneLabel: '✓ Done — all setup topics',
           screens, i: 0 };
   wizRender();
@@ -1032,18 +1107,19 @@ function renderPcKidMenu() {
   if (par.core_principle) h += `<div class="note">${esc(par.core_principle)}</div>`;
   h += `<p class="q">Which system is the laptop?</p>`;
   Object.keys(par.platforms).forEach(k => {
-    h += `<button class="opt" onclick="renderPcKid('${k}')">${PC_OS_LABELS[k] || esc(par.platforms[k].platform)}<small>${esc(par.platforms[k].control_system || '')}</small></button>`;
+    h += `<button class="opt" onclick="renderPcKidChoice('${k}')">${PC_OS_LABELS[k] || esc(par.platforms[k].platform)}<small>${esc(par.platforms[k].control_system || '')}</small></button>`;
   });
   el.innerHTML = h;
   window.scrollTo(0, 0);
 }
-function renderPcKid(key) {
+function startPcKidWizard(key) {
   const p = pcGuides.parental_controls.platforms[key];
+  const ctx = { os: key, brand: guideBrand };
   const screens = [];
   (p.account_setup || []).forEach((x, i) =>
-    screens.push(wizStepScreen("Set up the child's account", x, i + 1)));
+    screens.push(wizStepScreen("Set up the child's account", x, i + 1, ctx)));
   (p.enable_steps || []).forEach((x, i) =>
-    screens.push(wizStepScreen('Turn the controls on', x, i + 1)));
+    screens.push(wizStepScreen('Turn the controls on', x, i + 1, ctx)));
   if (p.controls_available && p.controls_available.length)
     screens.push({ html: `<p class="picks-head" style="margin-top:0">What you can control</p>` + checkListHTML(p.controls_available) });
   let finalHtml = '';
@@ -1058,7 +1134,7 @@ function renderPcKid(key) {
   finalHtml += `<button class="opt" onclick="openDisclaimers()">📄 Disclaimers<small>The fine print for all our guides — coverage notes and version caveats, in one place</small></button>`;
   if (finalHtml) screens.push({ html: finalHtml });
   wiz = { title: `<h1>${esc(p.platform)} — <span class="accent">${esc(p.control_system || 'parental controls')}</span></h1>`,
-          backAction: 'renderPcKidMenu()', backLabel: 'Kid setup',
+          backAction: `renderPcKidChoice('${key}')`, backLabel: 'Back',
           doneAction: 'renderPcMenu()', doneLabel: '✓ Done — all setup topics',
           screens, i: 0 };
   wizRender();
