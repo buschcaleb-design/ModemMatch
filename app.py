@@ -1747,6 +1747,22 @@ def index():
     return send_from_directory(BASE, "index.html")
 
 
+# Split frontend assets (Build 2026-10-15.16): index.html is a slim shell;
+# the CSS/JS live in assets/ and are referenced with ?v=<build stamp>, so a
+# long cache is safe — every build bumps the stamp and the query together.
+ASSET_FILES = {"site.css", "app-core.js", "app-computers.js",
+               "app-guides.js", "app-pairing.js"}
+
+
+@app.route("/assets/<name>")
+def asset(name):
+    if name not in ASSET_FILES:
+        return ("Not found", 404)
+    resp = send_from_directory(os.path.join(BASE, "assets"), name)
+    resp.headers["Cache-Control"] = "public, max-age=86400"
+    return resp
+
+
 def _step(title, body, t):
     # video_id is a placeholder until real walkthrough videos are picked
     return {"title": title, "body": body,
