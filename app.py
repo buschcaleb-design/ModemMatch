@@ -670,6 +670,113 @@ def api_recommend_laptops():
     })
 
 
+# ------------------------------------------------- desktop perf signals
+# Relative performance signals (0 = weakest in class, 100 = strongest) for
+# the desktop results sort modes (Build 2026-10-15.11). Parsed ONLY from
+# spec text the catalog actually carries (GPU/CPU strings, RAM ceilings);
+# a field that can't be scored stays None — the sorter renormalizes over
+# the signals a machine does have, never invents one. These are rough
+# class-level signals for sorting, not benchmarks, and never shown as
+# numbers to the buyer.
+_GPU_TIERS = [
+    (r"5090", 100), (r"rtx pro 6000|rtx 6000 ada", 98), (r"4090", 97),
+    (r"5080", 94), (r"rtx pro 5000|rtx 5000 ada", 92), (r"4080", 90),
+    (r"5070 ti", 89), (r"9070 xt", 88), (r"rtx pro 4000", 87),
+    (r"gb10|grace blackwell", 86), (r"5070(?![0-9a-z])", 84),
+    (r"9070(?! [0-9a-z])", 84), (r"9070 gre", 83), (r"5060 ti", 78),
+    (r"rtx pro 2000|rtx 2000 ada", 70), (r"9060 xt", 71), (r"5060", 73),
+    (r"w7600", 68), (r"4060", 66), (r"5050", 64), (r"w7500", 60),
+    (r"w7400", 54), (r"3050 ti", 48), (r"3050", 43), (r"mx570", 40),
+    (r"a1000", 38), (r"6400", 28), (r"a400", 26), (r"gt ?730|gt ?1030", 12),
+]
+_CPU_TIERS = [
+    (r"9950x3d", 98), (r"m[456] ultra", 96), (r"9800x3d|9850x3d", 95),
+    (r"285k|\b285\b", 94), (r"14900", 93), (r"9900x", 92),
+    (r"7800x3d", 90), (r"270k plus|270k", 90), (r"ryzen 9", 90),
+    (r"core i9", 88), (r"m[456] max", 86), (r"7700x3d", 85),
+    (r"265k", 84), (r"9700x", 82), (r"265(?![0-9])", 82),
+    (r"14700", 80), (r"ryzen ai 9", 80), (r"ultra 7", 78),
+    (r"8000 hx", 78), (r"ryzen 7", 74), (r"m[456] pro", 74),
+    (r"ryzen ai(?![0-9])|ryzen ai [34]00|ryzen ai [34]50", 72),
+    (r"core i7", 72), (r"gb10|grace", 75), (r"m6(?![0-9a-z])", 70),
+    (r"8700f", 68), (r"13620h|13420h", 66), (r"245k", 66),
+    (r"155h", 62), (r"14500t?|14700t", 62), (r"ultra 5", 58),
+    (r"9500f", 58), (r"258v", 58), (r"ryzen 5", 57), (r"m4(?![0-9a-z])", 56),
+    (r"14400", 56), (r"8500g", 55), (r"core 7", 52), (r"\b32[25]\b", 50),
+    (r"core 5", 45), (r"1334u|120u|150u", 44), (r"7430u", 42),
+    (r"14100", 40), (r"core i3", 36), (r"ryzen 3", 34), (r"core 3", 32),
+    (r"ryzen 200", 45), (r"n100|n200", 12),
+    # Vague family-only strings (chassis/category listings that name no
+    # model) get a conservative mid-family score, below every named tier.
+    (r"core ultra", 62), (r"amd ryzen", 55), (r"intel core", 52),
+]
+
+
+def _tier_score(text, tiers):
+    """Best (highest) tier matched in a spec string, else None."""
+    if not text:
+        return None
+    t = text.lower()
+    best = None
+    for pat, sc in tiers:
+        if re.search(pat, t):
+            best = sc if best is None else max(best, sc)
+    return best
+
+
+def _gpu_perf(gpu_text, gpu_type):
+    """(gpu score, vram_gb). Score from the GPU string's model names; the
+    string describes options 'up to' a top card, so the best tier named
+    is the machine's ceiling. Falls back to a mid/neutral class score
+    from gpu_type when the string names no known model."""
+    if not gpu_text:
+        return None, None
+    t = gpu_text.lower()
+    vram = None
+    gb = [int(x) for x in re.findall(r"(\d+)\s*gb", t)]
+    if gb and ("gddr" in t or "geforce" in t or "radeon" in t or "rtx" in t):
+        vram = max(gb)
+    score = _tier_score(t, _GPU_TIERS)
+    if score is None:
+        cores = [int(x) for x in re.findall(r"(\d+)-core gpu", t)]
+        if cores:  # Apple silicon: scale off the biggest GPU core count
+            score = min(94, round(28 + max(cores) * 0.85))
+    if score is None:
+        if "arc 140" in t or "140v" in t or "140t" in t:
+            score = 34
+        elif "800m" in t:
+            score = 33
+        elif "arc" in t:
+            score = 30
+        elif "iris xe" in t:
+            score = 24
+        elif "uhd" in t:
+            score = 15
+    if score is None:
+        score = {"discrete": 55, "both": 45,
+                 "integrated": 18}.get(gpu_type or "")
+    return score, vram
+
+
+def _ram_perf(ram_max_gb, ram_min_gb):
+    gb = ram_max_gb or ram_min_gb
+    if not gb:
+        return None
+    import math
+    return min(100, round(18 + 14 * math.log2(max(gb, 1) / 4.0)))
+
+
+def _desktop_perf(d):
+    gpu, vram = _gpu_perf(d.get("gpu"), d.get("gpu_type"))
+    gpu_ai = gpu
+    if gpu is not None and vram:
+        vram_score = min(100, round(vram * 3.5))
+        gpu_ai = round(0.7 * gpu + 0.3 * vram_score)
+    return {"gpu": gpu, "gpu_ai": gpu_ai, "vram_gb": vram,
+            "cpu": _tier_score(d.get("cpu"), _CPU_TIERS),
+            "ram": _ram_perf(d.get("ram_max_gb"), d.get("ram_min_gb"))}
+
+
 # ---------------------------------------------------------------- desktops
 DESKTOP_PLATFORM_OF = {"windows": "Windows", "mac": "macOS",
                        "chromebook": "ChromeOS"}
@@ -931,6 +1038,11 @@ def api_recommend_desktops():
             "cpu": d["cpu"], "ram_text": d["ram_text"],
             "storage_text": d["storage_text"], "gpu": d["gpu"],
             "gpu_type": d["gpu_type"],
+            "ram_min_gb": d["ram_min_gb"], "ram_max_gb": d["ram_max_gb"],
+            # Sort-mode signals (Build .11): relative class scores parsed
+            # from the spec fields above; None where a field can't be
+            # scored. Internal sorting fuel — never displayed as numbers.
+            "perf": _desktop_perf(d),
             "dimensions": d["dimensions"],
             "volume_liters": d["volume_liters"],
             "weight_text": d["weight_text"],
