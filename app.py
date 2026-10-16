@@ -1747,7 +1747,7 @@ def index():
     return send_from_directory(BASE, "index.html")
 
 
-# Split frontend assets (Build 2026-10-16.20): index.html is a slim shell;
+# Split frontend assets (Build 2026-10-16.21): index.html is a slim shell;
 # the CSS/JS live in assets/ and are referenced with ?v=<build stamp>, so a
 # long cache is safe — every build bumps the stamp and the query together.
 ASSET_FILES = {"site.css", "app-core.js", "app-computers.js",
