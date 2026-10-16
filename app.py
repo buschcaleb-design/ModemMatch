@@ -120,6 +120,16 @@ def api_about():
                             "Prices are a range: price (starting) and "
                             "price_max (null when only a starting price "
                             "could be verified)."},
+            {"method": "GET", "path": "/api/computer/<laptop|desktop>/<id>",
+             "description": "One catalog computer by id, in the public "
+                            "result-card shape (with the Build .14 "
+                            "compact spec summaries alongside the "
+                            "verbatim spec text)."},
+            {"method": "GET", "path": "/api/pairing-data",
+             "description": "The full screen + dock pairing dataset: "
+                            "per-brand dock pairings with stable ids, "
+                            "and the curated monitors shelf by "
+                            "resolution tier."},
             {"method": "GET", "path": "/api/pairing/<laptop|desktop>/<id>",
              "description": "Screen + dock pairing for one catalog "
                             "computer: the maker's stated external-"
@@ -1450,6 +1460,7 @@ def api_pairing(kind, mid):
         rec = next((d for d in DESKTOPS if d["id"] == mid), None)
         if rec is None:
             return jsonify({"error": "unknown desktop id"}), 404
+
         return jsonify({
             "type": "desktop", "id": rec["id"], "name": rec["name"],
             "brand": rec["brand"], "platform": rec["platform"],
@@ -1665,6 +1676,34 @@ def _spec_shorts(rec):
     return {"cpu_short": _cpu_short(rec), "gpu_short": _gpu_short(rec),
             "ram_short": _ram_short(rec),
             "storage_short": _storage_short(rec)}
+
+
+@app.route("/api/computer/<kind>/<mid>")
+def api_computer(kind, mid):
+    """One catalog computer by id, in the same public shape the result
+    cards use (Build .15: saved setups and shared setup links resolve
+    their stored ids back to current catalog data through here)."""
+    if kind == "laptop":
+        rec = next((l for l in LAPTOPS if l["id"] == mid), None)
+        if rec is None:
+            return jsonify({"error": "unknown laptop id"}), 404
+        return jsonify(_laptop_public(rec))
+    if kind == "desktop":
+        rec = next((d for d in DESKTOPS if d["id"] == mid), None)
+        if rec is None:
+            return jsonify({"error": "unknown desktop id"}), 404
+        return jsonify(_desktop_public(rec))
+    return jsonify({"error": "kind must be laptop or desktop"}), 404
+
+
+@app.route("/api/pairing-data")
+def api_pairing_data():
+    """The full pairing dataset (docks + monitors shelf with stable
+    ids), so saved setups can resolve dock/monitor ids to current
+    names and prices (Build .15)."""
+    if not PAIRING:
+        return jsonify({"error": "pairing data unavailable"}), 404
+    return jsonify(PAIRING)
 
 
 @app.route("/api/laptop-guides")
