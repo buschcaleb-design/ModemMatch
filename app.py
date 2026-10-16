@@ -43,6 +43,14 @@ if os.path.exists(_desktops_path):
     with open(_desktops_path) as f:
         _desktops_file = json.load(f)
 DESKTOPS = _desktops_file.get("desktops", DB.get("desktops", []))
+# Pairing data (screens + docks), built from the research datasets by
+# research/computers-census/build_pairing_data.py. Absent file = the
+# pairing flow shows its honest "still being stocked" state.
+PAIRING = {}
+_pairing_path = os.path.join(BASE, "pairing.json")
+if os.path.exists(_pairing_path):
+    with open(_pairing_path) as f:
+        PAIRING = json.load(f)
 
 SPEED_MIN = {
     "under100": 0, "100-300": 100, "300-600": 300,
@@ -82,6 +90,9 @@ def api_about():
             "isps": len(DB["isps"]),
             "laptops": len(LAPTOPS),
             "desktops": len(DESKTOPS),
+            "pairing_monitors": sum(len(v) for v in
+                                    PAIRING.get("monitors", {}).values()),
+            "pairing_laptops": len(PAIRING.get("laptops", {})),
         },
         "endpoints": [
             {"method": "GET", "path": "/api/about",
@@ -109,6 +120,15 @@ def api_about():
                             "Prices are a range: price (starting) and "
                             "price_max (null when only a starting price "
                             "could be verified)."},
+            {"method": "GET", "path": "/api/pairing/<laptop|desktop>/<id>",
+             "description": "Screen + dock pairing for one catalog "
+                            "computer: the maker's stated external-"
+                            "display support (null where unpublished), "
+                            "the laptop's dock class and its two vetted "
+                            "dock pairings (manufacturer + third party, "
+                            "or two third parties), the USB-A DisplayLink "
+                            "route for data-only-USB-C laptops, and the "
+                            "curated monitors shelf by resolution tier."},
             {"method": "GET", "path": "/api/laptop-guides",
              "description": "Laptop setup-guide library: OS first-boot "
                             "flows, per-brand setup layers, first-week "
@@ -1379,6 +1399,66 @@ def api_laptop_search():
         hits.append((tier, d["price"], _desktop_public(d)))
     hits.sort(key=lambda t: (t[0], t[1]))
     return jsonify({"matches": [pub for _, _, pub in hits[:8]]})
+
+
+@app.route("/api/pairing/<kind>/<mid>")
+def api_pairing(kind, mid):
+    """Screen + dock pairing for one catalog computer (Build .13).
+    GET /api/pairing/laptop/<id> or /api/pairing/desktop/<id>.
+    Everything here traces to a manufacturer statement or a vetted
+    catalog record: display counts are the maker's published figures
+    (null where the maker publishes none — never inferred), dock
+    pairings come from the per-brand pairing map, and prices appear
+    only where one was observed."""
+    monitors = PAIRING.get("monitors", {})
+    dl_options = PAIRING.get("meta", {}).get("displaylink_options", [])
+    if kind == "laptop":
+        rec = next((l for l in LAPTOPS if l["id"] == mid), None)
+        entry = PAIRING.get("laptops", {}).get(mid)
+        if rec is None or entry is None:
+            return jsonify({"error": "unknown laptop id"}), 404
+        options = None
+        if entry.get("pairing_key"):
+            options = PAIRING.get("brand_options", {}).get(
+                entry["pairing_key"])
+        return jsonify({
+            "type": "laptop", "id": rec["id"], "name": rec["name"],
+            "brand": rec["brand"], "platform": rec["platform"],
+            "gpu": rec["gpu"],
+            "display": {
+                "max_external": entry["display_max_external"],
+                "max_resolution": entry["display_max_resolution"],
+                "ports": entry["display_ports"],
+                "detail": entry["display_detail"],
+            },
+            "dock_class": entry["dock_class"],
+            "usbc_charging": entry["usbc_charging"],
+            "pairing_key": entry["pairing_key"],
+            "pairing_options": options,
+            "usba_displaylink_options":
+                entry["usba_displaylink_options"],
+            "chassis_split": entry["chassis_split"],
+            "unknown_reason": entry["unknown_reason"],
+            "displaylink_options": dl_options,
+            "monitors": monitors,
+        })
+    if kind == "desktop":
+        rec = next((d for d in DESKTOPS if d["id"] == mid), None)
+        if rec is None:
+            return jsonify({"error": "unknown desktop id"}), 404
+        return jsonify({
+            "type": "desktop", "id": rec["id"], "name": rec["name"],
+            "brand": rec["brand"], "platform": rec["platform"],
+            "gpu": rec["gpu"],
+            "form_factor_label": rec["form_factor_label"],
+            "display_inches": rec["display_inches"],
+            "display": None, "dock_class": None,
+            "pairing_options": None, "usba_displaylink_options": None,
+            "chassis_split": None, "unknown_reason": None,
+            "displaylink_options": [],
+            "monitors": monitors,
+        })
+    return jsonify({"error": "kind must be laptop or desktop"}), 404
 
 
 @app.route("/api/laptop-guides")
