@@ -537,6 +537,51 @@
         "spec_source_url": "https://www.asus.com/displays-desktops/monitors/proart/proart-display-pa34vcnv/techspec/",
         "vesa_mount": true,
         "why": "The creator ultrawide value pick: factory-calibrated IPS with Delta E < 2, 100% sRGB and Rec.709, a 96W USB-C dock with Ethernet and daisy-chaining, at a mid-range price."
+      },
+      {
+        "aspect": "32:9",
+        "brand": "MSI",
+        "brightness_nits": 250,
+        "checked_date": "2026-10-16",
+        "color_gamut": {
+          "dci_p3_percent": 99,
+          "srgb_percent": 146
+        },
+        "factory_calibrated": null,
+        "flags": [
+          "The $799.99 Walmart listing Caleb spotted is a marketplace offer (Newegg Inc.); the shelf price is MSI's own US store, which sells it direct at the same $799.99. Best Buy carries it only via marketplace sellers too (from $863.99).",
+          "No built-in speakers.",
+          "Brightness is 250 nits typical; the 1,000-nit figure is the HDR peak."
+        ],
+        "hdr": "VESA DisplayHDR True Black 400",
+        "inputs": {
+          "displayport": "DisplayPort 1.4a x1",
+          "hdmi": "HDMI 2.1 x2",
+          "kvm": true,
+          "usb_hub": true,
+          "usbc_note": "USB-C with DisplayPort Alt Mode video plus 90W power delivery - a true one-cable laptop input.",
+          "usbc_video_input": true
+        },
+        "name": "MSI MPG 491CQP QD-OLED",
+        "panel_type": "OLED (QD-OLED)",
+        "ppi": 108.5,
+        "price_source": {
+          "name": "MSI (maker store)",
+          "url": "https://us-store.msi.com/Monitors/MPG-491CQP-QD-OLED"
+        },
+        "price_usd": 799.99,
+        "quality_basis": "QD-OLED panel per MSI's specification page, with 99% DCI-P3 and a VESA DisplayHDR True Black 400 class - premium rests on the OLED rule.",
+        "quality_class": "premium",
+        "refresh_hz": 144,
+        "refresh_note": "144Hz at 5120x1440; 0.03ms GTG; 1800R curvature.",
+        "resolution": "5120x1440",
+        "role": "gaming-leaning (super-ultrawide OLED)",
+        "size_class": "widescreen",
+        "size_in": 49,
+        "speakers": false,
+        "spec_source_url": "https://www.msi.com/Monitor/MPG-491CQP-QD-OLED/Specification",
+        "vesa_mount": true,
+        "why": "A 49-inch QD-OLED super-ultrawide - about three monitors of desk - with true blacks, 144Hz, and one-cable USB-C video with 90W charging, for $200 less than Samsung's OLED G9."
       }
     ],
     "4k": [
