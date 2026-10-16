@@ -12,6 +12,7 @@ Then open http://localhost:5002
 """
 import json
 import os
+import re
 from flask import Flask, jsonify, request, send_from_directory
 
 app = Flask(__name__)
@@ -93,6 +94,11 @@ def api_about():
              "description": "Laptop setup-guide library: OS first-boot "
                             "flows, per-brand setup layers, first-week "
                             "checklist, and parental controls per platform."},
+            {"method": "GET", "path": "/api/laptop-search?q=<text>",
+             "description": "'Know your model?' lookup: matches a typed "
+                            "name, an old line name (formerly), or a "
+                            "model-number code from the name (CX34, "
+                            "DB04250) against the laptop catalog."},
             {"method": "GET", "path": "/api/setup-guide/<isp_id>?gear=separate|combo",
              "description": "Networking setup walkthrough for an ISP."},
         ],
@@ -366,10 +372,6 @@ def api_recommend_laptops():
                 continue  # Snapdragon-only machine — not the safe lane
             kept.append(l)
         pool = kept
-        notes.append(
-            "Playing it safe on compatibility: Snapdragon-only laptops are "
-            "hidden, because specific Windows programs, older printers and "
-            "accessories, and anti-cheat games can be a problem on them.")
     elif snap_answer == "no":
         notes.append(
             "Snapdragon laptops are in the mix — that's the battery-life "
@@ -389,10 +391,6 @@ def api_recommend_laptops():
             pool = in_budget
         else:
             relaxed.append("budget")
-    if relaxed:
-        notes.append("Only a few laptops matched your " +
-                     " and ".join(relaxed) +
-                     ", so we widened the net rather than show you almost nothing.")
     if any(l["platform"] == "ChromeOS" for l in pool):
         notes.append(
             "There is no Google-made laptop — Chromebooks are built by "
@@ -630,15 +628,99 @@ def api_recommend_laptops():
                           if LAPTOP_PARENTAL.get("platforms", {}).get(k)},
         }
 
+    # Catalog fact for the results screen's filter fallback: does a
+    # touchscreen 2-in-1 exist at all for the requested system? (macOS has
+    # none — Apple doesn't make one — so the UI can say the feature isn't
+    # available there instead of dead-ending on an empty filter.)
+    cat_platform = LAPTOP_PLATFORM_OF.get(os_pref)
+    two_in_one_available = any(
+        l["laptop_category"] == "2-in-1" and
+        (cat_platform is None or l["platform"] == cat_platform)
+        for l in LAPTOPS)
+
     return jsonify({
         "recommendations": recs,
         "notes": notes,
         "guides": guides,
         "kid": kid,
+        "filter_facts": {"two_in_one_available": two_in_one_available},
         "query": {"use": use, "os": os_pref, "screen": screen,
                   "budget": budget, "snapdragon": snap_answer,
                   "usage": usage},
     })
+
+
+def _squash(s):
+    """Lowercase, alphanumerics only — for forgiving model matching."""
+    return re.sub(r"[^a-z0-9]", "", (s or "").lower())
+
+
+def _word_tokens(s):
+    return re.findall(r"[a-z0-9]+", (s or "").lower())
+
+
+def _laptop_public(l):
+    """The fields the result cards use, for a directly-looked-up model.
+    The summary is built from data facts only (category + spec ceiling) —
+    no quiz-based reasons are invented for a model the user named."""
+    frag = LAPTOP_CATEGORY_WHY.get(l["laptop_category"], "")
+    summary = (frag + ".") if frag else "A solid all-rounder."
+    if l["ram_max_gb"]:
+        summary += (f" Specs go up to {l['ram_max_gb']}GB RAM"
+                    + (f" and {l['storage_max_gb']}GB storage"
+                       if l["storage_max_gb"] else "") + ".")
+    return {
+        "id": l["id"], "name": l["name"], "brand": l["brand"],
+        "type": "laptop", "laptop_category": l["laptop_category"],
+        "platform": l["platform"], "display_inches": l["display_inches"],
+        "cpu": l["cpu"], "ram_text": l["ram_text"],
+        "storage_text": l["storage_text"], "gpu": l["gpu"],
+        "weight_text": l["weight_text"],
+        "architecture": l["architecture"], "snapdragon": l["snapdragon"],
+        "formerly": l["formerly"], "source_url": l["source_url"],
+        "price": l["price"], "price_max": l["price_max"],
+        "price_source": l["price_source"],
+        "max_config_note": l["max_config_note"],
+        "score": 0, "why": [], "summary": summary, "ecosystem_note": None,
+        "cpu_check": bool(l["snapdragon"] and l["architecture"] == "both"),
+        "setup": {"os_key": LAPTOP_OS_KEY[l["platform"]],
+                  "brand_key": l["brand"].lower()},
+    }
+
+
+@app.route("/api/laptop-search")
+def api_laptop_search():
+    """'Know your model?' lookup. GET ?q= — matches the typed text against
+    model names, the old line names (formerly: a user typing 'Inspiron'
+    finds the renamed Dell Plus), and the model-number codes carried in
+    names (the 'CX34' / 'DB04250' / 'B14W' style tokens). NOTE: the laptop
+    data has no dedicated model-number/SKU field — codes are matched from
+    the tokens present in names."""
+    q = (request.args.get("q") or "").strip()
+    if len(q) < 2:
+        return jsonify({"matches": []})
+    qs = _squash(q)
+    qtoks = _word_tokens(q)
+    hits = []
+    for l in LAPTOPS:
+        name_s = _squash(l["name"])
+        form_s = _squash(l.get("formerly") or "")
+        name_toks = _word_tokens(l["name"])
+        all_toks = set(name_toks) | set(_word_tokens(l.get("formerly") or "")) \
+            | set(_word_tokens(l["brand"]))
+        if qs and qs in name_toks:
+            tier = 0          # exact model-code token: CX34, B14W, DB04250
+        elif qs and qs in name_s:
+            tier = 1          # typed name (or part of it), squashed
+        elif qtoks and all(any(t in tok for tok in all_toks) for t in qtoks):
+            tier = 2          # every typed word matches somewhere in the name
+        elif qs and qs in form_s:
+            tier = 3          # the old line name (formerly)
+        else:
+            continue
+        hits.append((tier, l["price"], l))
+    hits.sort(key=lambda t: (t[0], t[1]))
+    return jsonify({"matches": [_laptop_public(l) for _, _, l in hits[:8]]})
 
 
 @app.route("/api/laptop-guides")
