@@ -4,20 +4,40 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ByteMatch — Buy the right gear, set it up right</title>
-<link rel="stylesheet" href="/assets/site.css?v=2026-10-16.31">
+<link rel="stylesheet" href="/assets/site.css?v=2026-10-16.32">
 </head>
 <body>
 <div class="wrap">
   <div id="home">
     <h1>Byte<span class="accent">Match</span></h1>
     <p class="sub">Buy the right gear — and set it up. Networking gear that kills the rental fee, plus laptops and desktops matched to how you'll actually use them.</p>
-    <button class="opt" onclick="chooseFlow('buy')">🛒 Buy New Gear<small>Quick quiz → top picks matched to your home or how you'll use a laptop</small></button>
-    <button class="opt" onclick="chooseFlow('setup')">🔧 Set Up New Gear<small>Already have the gear? Step-by-step setup guides</small></button>
+    <div class="hero-grid">
+      <button class="hero-card" onclick="chooseFlow('buy')"><svg class="hero-art" viewBox="0 0 120 120" aria-hidden="true">
+<circle cx="63" cy="13" r="11" fill="#fbbf24" stroke="#10304f" stroke-width="4"/>
+<text x="63" y="19" text-anchor="middle" font-size="14" font-weight="800" fill="#10304f">$</text>
+<rect x="51" y="33" width="24" height="6" rx="3" fill="#10304f"/>
+<path d="M31 51 l5 -11 l9 6 z" fill="#f472b6" stroke="#10304f" stroke-width="4" stroke-linejoin="round"/>
+<ellipse cx="60" cy="73" rx="39" ry="29" fill="#f8a5c2" stroke="#10304f" stroke-width="4"/>
+<circle cx="27" cy="67" r="17" fill="#f8a5c2" stroke="#10304f" stroke-width="4"/>
+<ellipse cx="17" cy="69" rx="7" ry="5.5" fill="#f472b6" stroke="#10304f" stroke-width="3"/>
+<circle cx="30" cy="62" r="2.6" fill="#10304f"/>
+<path d="M97 64 q14 -2 10 -12 q-3 -6 -8 -3" fill="none" stroke="#10304f" stroke-width="4" stroke-linecap="round"/>
+<rect x="36" y="97" width="9" height="11" rx="3" fill="#f8a5c2" stroke="#10304f" stroke-width="3.5"/>
+<rect x="72" y="97" width="9" height="11" rx="3" fill="#f8a5c2" stroke="#10304f" stroke-width="3.5"/>
+</svg><span class="hero-title">Buy New Gear</span><small>Quick quiz → top picks matched to your home or how you'll actually use them</small></button>
+      <button class="hero-card" onclick="chooseFlow('setup')"><svg class="hero-art" viewBox="0 0 120 120" aria-hidden="true">
+<path d="M101,73 L99,78 L106,86 L99,95 L89,91 L83,96 L79,99 L79,110 L67,112 L62,103 L55,103 L49,102 L43,110 L32,105 L34,94 L28,89 L25,85 L14,87 L10,76 L18,70 L17,62 L17,57 L8,52 L11,40 L22,41 L26,34 L29,30 L25,20 L35,13 L43,20 L50,18 L56,17 L59,7 L71,8 L72,19 L80,22 L84,25 L93,19 L102,27 L96,36 L100,43 L101,48 L112,50 L113,62 L103,65 Z" fill="#00c853" fill-opacity=".16" stroke="#10304f" stroke-width="4.5" stroke-linejoin="round"/>
+<circle cx="60" cy="60" r="24" fill="#ffffff" fill-opacity=".9" stroke="#10304f" stroke-width="4"/>
+<g stroke="#10304f" stroke-width="7" stroke-linejoin="round" fill="none"><path d="M47 43 L32 26 A20 20 0 1 0 62 28 Z"/><rect x="50" y="48" width="12" height="38" rx="6" transform="rotate(-32 56 67)"/></g>
+<g fill="#00c853"><path d="M47 43 L32 26 A20 20 0 1 0 62 28 Z"/><rect x="50" y="48" width="12" height="38" rx="6" transform="rotate(-32 56 67)"/></g>
+</svg><span class="hero-title">Set Up New Gear</span><small>Already have the gear? Step-by-step setup guides</small></button>
+    </div>
   </div>
   <div id="flow-pick" style="display:none"></div>
   <div id="isp-pick" style="display:none"></div>
   <div id="quiz" style="display:none">
     <div class="progress"><i id="bar" style="width:20%"></i></div>
+    <div id="scene-slot"></div>
     <div id="steps"></div>
   </div>
   <div id="results" style="display:none"></div>
@@ -29,11 +49,11 @@
   <div id="disclaimers" style="display:none"></div>
   <div id="setupbtn-wrap"><button id="setupbtn" onclick="openMySetup()">🧩 My Setup</button></div>
   <button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>
-  <p class="buildstamp">ByteMatch &middot; Build 2026-10-16.31 &middot; If a page looks outdated, read this stamp back to us</p>
+  <p class="buildstamp">ByteMatch &middot; Build 2026-10-16.32 &middot; If a page looks outdated, read this stamp back to us</p>
 </div>
-<script src="/assets/app-core.js?v=2026-10-16.31"></script>
-<script src="/assets/app-computers.js?v=2026-10-16.31"></script>
-<script src="/assets/app-guides.js?v=2026-10-16.31"></script>
-<script src="/assets/app-pairing.js?v=2026-10-16.31"></script>
+<script src="/assets/app-core.js?v=2026-10-16.32"></script>
+<script src="/assets/app-computers.js?v=2026-10-16.32"></script>
+<script src="/assets/app-guides.js?v=2026-10-16.32"></script>
+<script src="/assets/app-pairing.js?v=2026-10-16.32"></script>
 </body>
 </html>
