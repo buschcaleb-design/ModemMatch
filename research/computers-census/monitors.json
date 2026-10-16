@@ -178,6 +178,51 @@
         "ppi": 91.8,
         "quality_class": "everyday",
         "quality_basis": "Standard published panel with no wide-gamut or factory-calibration claim beyond basic sRGB."
+      },
+      {
+        "aspect": "32:9",
+        "brand": "Deco Gear",
+        "brightness_nits": 320,
+        "checked_date": "2026-10-16",
+        "color_gamut": {
+          "dci_p3_percent": 95,
+          "srgb_percent": 100
+        },
+        "factory_calibrated": null,
+        "flags": [
+          "Cheaper prices exist ($439.98 Walmart, $519.99 Best Buy) but both are marketplace listings run by the maker's own brand storefronts there; the shelf price is the maker's direct store price under the direct-price rule.",
+          "Curvature: Deco Gear's own spec table says 1800R; the Walmart listing title says 1500R. The maker's figure is recorded.",
+          "No built-in speakers, and the stand tilts/swivels but has no height adjustment."
+        ],
+        "hdr": "HDR400",
+        "inputs": {
+          "displayport": "DisplayPort 1.4 x1",
+          "hdmi": "HDMI 2.0 x1",
+          "kvm": true,
+          "usb_hub": true,
+          "usbc_note": "USB-C 3.1 with DisplayPort Alt Mode video plus 65W power delivery - a true one-cable laptop input.",
+          "usbc_video_input": true
+        },
+        "name": "Deco Gear 49-inch Curved Ultrawide - DGVIEW490",
+        "panel_type": "VA",
+        "ppi": 81.4,
+        "price_source": {
+          "name": "Deco Gear (maker store)",
+          "url": "https://www.decogear.com/products/49-curved-ultrawide-led-120hz-gaming-monitor"
+        },
+        "price_usd": 599.99,
+        "quality_basis": "Deco Gear publishes 95% DCI-P3 (with 100% sRGB), which meets the color band's wide-gamut evidence bar - the same 95% line as the LG 52 and Neo G9 57 records.",
+        "quality_class": "color",
+        "refresh_hz": 144,
+        "refresh_note": "144Hz at 3840x1080; 4ms response (3ms OD); Adaptive Sync / FreeSync.",
+        "resolution": "3840x1080",
+        "role": "gaming-leaning (super-ultrawide)",
+        "size_class": "widescreen",
+        "size_in": 49,
+        "speakers": false,
+        "spec_source_url": "https://www.decogear.com/products/49-curved-ultrawide-led-120hz-gaming-monitor",
+        "vesa_mount": true,
+        "why": "Two 27-inch 1080p screens fused into one 49-inch curved panel, with one-cable USB-C video (65W charging), a built-in KVM, and 144Hz - the budget way to replace a two-monitor desk with a single screen."
       }
     ],
     "1440p": [
