@@ -38,6 +38,9 @@
   .sort { flex: 1; background: #1e293b; border: 2px solid #334155; color: #cbd5e1;
           border-radius: 12px; padding: 10px 4px; font-size: .82rem; cursor: pointer; }
   .sort.on { border-color: #38bdf8; color: #fff; background: #273449; }
+  .sortrow.wrap { flex-wrap: wrap; }
+  .sortrow.wrap .sort { flex: 1 1 42%; }
+  .sortline { color: #94a3b8; font-size: .82rem; margin: -6px 0 12px; }
   .more { display: block; width: 100%; background: #1e293b; border: 2px solid #334155;
           color: #cbd5e1; border-radius: 14px; padding: 14px; font-size: .95rem;
           cursor: pointer; margin-bottom: 4px; }
@@ -144,7 +147,7 @@
   <div id="model-lookup" style="display:none"></div>
   <div id="disclaimers" style="display:none"></div>
   <button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>
-  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.10 &middot; If a page looks outdated, read this stamp back to us</p>
+  <p class="buildstamp">ByteMatch &middot; Build 2026-10-15.11 &middot; If a page looks outdated, read this stamp back to us</p>
 </div>
 <script>const stepsEl = document.getElementById('steps');
 const bar = document.getElementById('bar');
@@ -820,6 +823,53 @@ function dpick(k, v) {
 function dback() { if (dstep > 0) { dstep--; drender(); } }
 
 let desktopRes = null, dshowAll = false;
+// Desktop result sort modes (Build .11) — re-sorts only, never filters:
+// the same result set, re-ranked client-side from the payload's perf
+// signals. 'match' is the quiz's own scored order, untouched.
+let dsortMode = 'match';
+const DSORT_MODES = {
+  match: { label: '🎯 Best match', w: null,
+    info: 'Best match: ranked by how well each desktop fits all your answers.' },
+  gaming: { label: '🎮 Gaming / performance', w: { gpu: 0.5, cpu: 0.3, ram: 0.2 },
+    info: 'Sorted for gaming/performance: the graphics card weighs most, then the processor, then memory.' },
+  ai: { label: '🤖 AI', w: { gpu_ai: 0.7, ram: 0.2, cpu: 0.1 },
+    info: 'Sorted for AI: the graphics card (and its memory) weighs most, memory next for model headroom — the processor counts for little.' },
+  value: { label: '💰 Bang for your buck', w: { gpu: 0.5, cpu: 0.3, ram: 0.2 },
+    info: 'Sorted for value: gaming-grade performance per dollar of starting price — a cheaper strong machine beats a pricier one.' },
+};
+// A machine whose spec fields can't be scored at all sorts by its
+// category's neutral position — never top, never dropped.
+const DCAT_NEUTRAL = { gaming: 55, workstation: 50, creator: 48, business: 30, everyday: 28 };
+function dWeightedScore(p, w) {
+  const perf = p.perf || {};
+  let num = 0, den = 0;
+  for (const k in w) {
+    const v = perf[k];
+    if (v !== null && v !== undefined) { num += v * w[k]; den += w[k]; }
+  }
+  if (!den) return DCAT_NEUTRAL[p.desktop_category] ?? 30;
+  return num / den;
+}
+function sortedDesktopPicks() {
+  const picks = (desktopRes && desktopRes.recommendations) || [];
+  const arr = picks.map((p, i) => [p, i]);
+  if (dsortMode !== 'match' && DSORT_MODES[dsortMode]) {
+    const w = DSORT_MODES[dsortMode].w;
+    arr.sort((a, b) => {
+      let sa = dWeightedScore(a[0], w), sb = dWeightedScore(b[0], w);
+      if (dsortMode === 'value') { sa /= (a[0].price || 1); sb /= (b[0].price || 1); }
+      return (sb - sa) || (a[1] - b[1]);  // ties keep Best-match order
+    });
+  }
+  return arr.map(x => x[0]);
+}
+function setDSort(m) { dsortMode = m; dshowAll = false; renderDesktopResults(); }
+function desktopSortHTML() {
+  if (!desktopRes || !desktopRes.recommendations || desktopRes.recommendations.length < 2) return '';
+  const btns = Object.keys(DSORT_MODES).map(k =>
+    `<button class="sort${dsortMode === k ? ' on' : ''}" onclick="setDSort('${k}')">${DSORT_MODES[k].label}</button>`).join('');
+  return `<div class="sortrow wrap">${btns}</div><p class="sortline">${esc(DSORT_MODES[dsortMode].info)}</p>`;
+}
 function desktopBadge(p) {
   if (p.platform === 'macOS') return ['Apple silicon', ''];
   if (p.platform === 'DGX OS') return ['NVIDIA DGX', ''];
@@ -836,7 +886,7 @@ async function goDesktopSetup() {
   // Land in the PC guides browser on the Tower path, with the top
   // pick's OS preselected. (A pick with no OS flow of its own — the
   // DGX specialist — lands on the general setup menu instead.)
-  const top = desktopRes && desktopRes.recommendations && desktopRes.recommendations[0];
+  const top = sortedDesktopPicks()[0];
   guideBrand = (top && top.setup && top.setup.brand_key) || null;
   await startPcGuide();
   if (top && top.setup && top.setup.os_key &&
@@ -870,12 +920,13 @@ function desktopCardHTML(p, i, isTop, rankLabel) {
 }
 function renderDesktopResults() {
   const r = document.getElementById('results');
-  const picks = desktopRes.recommendations;
+  const picks = sortedDesktopPicks();
   const q = desktopRes.query;
   const useLabel = { school: 'School', everyday: 'Everyday use', work: 'Work', gaming: 'Gaming', creative: 'Creative work' }[q.use] || q.use;
   const caseLabel = { mini: 'Mini PC', sff: 'Small form factor', tower: 'Tower', full: 'Full tower', aio: 'All-in-one' }[q.case] || 'Any case';
   let h = `<h1>Your top <span class="accent">desktop picks</span></h1>
            <p class="sub">${useLabel} · ${q.os === 'any' ? 'Any system' : q.os} · ${caseLabel} · prices shown as a range (starting → fully loaded)</p>`;
+  h += desktopSortHTML();
   if (!picks.length) {
     h += `<div class="note">No desktops matched those answers — a fresh start with a few different answers may turn some up.</div>`;
   } else {
@@ -913,7 +964,7 @@ async function finishDesktops() {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   }).then(x => x.json());
-  dshowAll = false;
+  dshowAll = false; dsortMode = 'match';
   renderDesktopResults();
 }
 function renderDesktopModelCard(m) {
