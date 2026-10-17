@@ -345,3 +345,9 @@
   .dots::after { content: ""; animation: dots 1s steps(3) infinite; }
   @keyframes dots { 0% { content: ""; } 33% { content: "."; } 66% { content: ".."; } 100% { content: "..."; } }
   .nophoto { color: var(--faint); font-size: .82rem; line-height: 1.45; margin: 8px 2px 0; }
+  .opt.wide { grid-column: 1 / -1; }
+  .big-ico { display: block; font-size: 2.4rem; line-height: 1.2; margin-bottom: 2px; }
+  .sortrow.bigs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .sortrow .sort.bigbtn { padding: 15px 10px; font-size: 1rem; border-radius: 14px; width: 100%; }
+  .card .savebtn { margin-top: 8px; }
+  .setuph { margin: 18px 0 8px; font-size: 1.15rem; }
