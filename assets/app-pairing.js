@@ -496,14 +496,16 @@ function loadSetups() {
   return { version: 1, active_id: null, setups: [] };
 }
 let setupStore = loadSetups();
+updateSetupBtn();
 function persistSetups() {
   try { localStorage.setItem(SETUPS_KEY, JSON.stringify(setupStore)); } catch (e) {}
   updateSetupBtn();
 }
 function updateSetupBtn() {
   const b = document.getElementById('setupbtn');
-  if (b) b.textContent = setupStore.setups.length
-    ? `🧩 My Setup (${setupStore.setups.length})` : '🧩 My Setup';
+  if (!b) return;
+  const n = setupStore.setups.length + (typeof savedGear !== 'undefined' ? savedGear.length : 0);
+  b.innerHTML = `${rico('bookmark')}Saved stuff${n ? ` (${n})` : ''}`;
 }
 function newSetupId() {
   return 's' + Date.now().toString(36) + Math.floor(Math.random() * 1e5).toString(36);
