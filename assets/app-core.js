@@ -176,6 +176,9 @@ function rico(name) {
     laptop: `<rect x="11" y="12.5" width="26" height="18.5" rx="3" fill="#e0e7ff"/><path d="M5.5 38 h37 l-3.8 -5.5 H9.3 Z" fill="#c7d2fe"/><circle cx="24" cy="21.8" r="2" fill="#0284c7" stroke="none"/>`,
     tv: `<path d="M16.5 14.5 L24 5.5 L31.5 14.5"/><rect x="7.5" y="14.5" width="33" height="22" rx="3.5" fill="#99f6e4"/><path d="M17 42.5 h14 M24 36.5 v6"/><circle cx="35" cy="20" r="1.5" fill="#e84393" stroke="none"/><circle cx="35" cy="26" r="1.5" fill="#f59e0b" stroke="none"/>`,
     search: `<circle cx="20.5" cy="20.5" r="12" fill="#e0f2fe"/><path d="M29 29 L41.5 41.5" stroke-width="5"/>`,
+    target: `<circle cx="24" cy="24" r="17" fill="#ffffff"/><circle cx="24" cy="24" r="11" fill="#fda4af"/><circle cx="24" cy="24" r="4.6" fill="#e84393"/>`,
+    gamepad: `<rect x="6.5" y="15.5" width="35" height="19.5" rx="9.5" fill="#ddd6fe"/><path d="M16.5 21.5 v7 M13 25 h7"/><circle cx="31.5" cy="22.8" r="1.8" fill="#e84393" stroke="none"/><circle cx="35.2" cy="27.8" r="1.8" fill="#0284c7" stroke="none"/>`,
+    chip: `<rect x="15" y="15" width="18" height="18" rx="3.5" fill="#bae6fd"/><path d="M20.5 15 V8.5 M27.5 15 V8.5 M20.5 39.5 V33 M27.5 39.5 V33 M15 20.5 H8.5 M15 27.5 H8.5 M39.5 20.5 H33 M39.5 27.5 H33"/><circle cx="24" cy="24" r="3" fill="#0284c7" stroke="none"/>`,
   };
   return `<svg class="ric" viewBox="0 0 48 48" aria-hidden="true"><g ${G}>${arts[name] || ''}</g></svg>`;
 }
