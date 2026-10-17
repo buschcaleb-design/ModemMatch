@@ -313,6 +313,7 @@ function toggleSaveGear(btn, id) {
   document.querySelectorAll('[data-savedbtn]').forEach(b => {
     b.innerHTML = savedBtnHTML();
   });
+  if (typeof updateSetupBtn === 'function') updateSetupBtn();
 }
 
 function cardHTML(p, i, isHero) {
