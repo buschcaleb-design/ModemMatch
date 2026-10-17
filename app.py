@@ -64,6 +64,28 @@ if os.path.exists(_img_path):
     for _rec in DESKTOPS:
         _rec["images"] = _img_doc.get("desktops", {}).get(_rec.get("id"), [])
 
+# Networking catalog (Build .36): the full manufacturer census merged with
+# direct-store prices by research/build_networking_data.py, split across
+# three files to stay pushable. equipment_db's seed gear stays as the
+# fallback if the files are ever absent.
+_net_equip = []
+for _net_file in ("networking.json", "networking-routers.json",
+                  "networking-mesh.json"):
+    _net_path = os.path.join(BASE, _net_file)
+    if os.path.exists(_net_path):
+        with open(_net_path) as f:
+            _net_equip.extend(json.load(f).get("equipment", []))
+if _net_equip:
+    EQUIP = _net_equip
+    DB["equipment"] = EQUIP
+GEAR = {e["id"]: e for e in EQUIP}
+_net_img_path = os.path.join(BASE, "networking-images.json")
+if os.path.exists(_net_img_path):
+    with open(_net_img_path) as f:
+        _net_imgs = json.load(f)
+    for _rec in EQUIP:
+        _rec["images"] = _net_imgs.get(_rec.get("id"), [])
+
 SPEED_MIN = {
     "under100": 0, "100-300": 100, "300-600": 300,
     "600-1000": 600, "1000plus": 1000,
@@ -216,8 +238,11 @@ def api_recommend():
     picks = []   # (equipment, why, score)
 
     def by_type(*types):
+        # Priced records only: a model with no direct-store price gets a
+        # page, never a quiz pick (the catalog carries unpriced models).
         return [e for e in EQUIP
-                if e["type"] in types and isp_id in e["compatible_isps"]]
+                if e["type"] in types and isp_id in e["compatible_isps"]
+                and e.get("price") is not None]
 
     if conn == "cable":
         need_31 = speed >= 600
@@ -296,6 +321,11 @@ def api_recommend():
                            "saves_over_life": fee * life_mo - e["price"],
                            "life_years": life_mo // 12,
                            "blurb": e.get("blurb", ""), "why": why,
+                           "images": e.get("images") or [],
+                           "docsis": e.get("docsis"), "wifi": e.get("wifi"),
+                           "max_speed_mbps": e.get("max_speed_mbps"),
+                           "brand": e.get("brand"),
+                           "price_source": e.get("price_source"),
                            "affiliate_url": ""})
         if len(ranked) == 10:
             break
@@ -1427,6 +1457,22 @@ def api_laptop_search():
         else:
             continue
         hits.append((tier, d["price"], _desktop_public(d)))
+    for g in EQUIP:
+        name_s = _squash(g["name"])
+        name_toks = _word_tokens(g["name"])
+        all_toks = set(name_toks) | set(_word_tokens(g.get("brand") or ""))
+        if qs and qs in name_toks:
+            tier = 0          # exact model code: SB8200, CM1200, AX55…
+        elif qs and qs in name_s:
+            tier = 1
+        elif qtoks and all(any(t in tok for tok in all_toks) for t in qtoks):
+            tier = 2
+        else:
+            continue
+        pub = _gear_public(g)
+        pub["kind"] = "gear"
+        hits.append((tier, g.get("price") if g.get("price") is not None
+                     else 10 ** 9, pub))
     hits.sort(key=lambda t: (t[0], t[1]))
     return jsonify({"matches": [pub for _, _, pub in hits[:8]]})
 
@@ -1694,6 +1740,54 @@ def _spec_shorts(rec):
             "storage_short": _storage_short(rec)}
 
 
+GEAR_TYPE_LABELS = {
+    "modem": "Cable modem", "combo": "Modem + Wi-Fi combo",
+    "dsl_modem": "DSL modem", "router": "Wi-Fi router",
+    "mesh": "Mesh Wi-Fi system", "gateway": "Gateway",
+    "gateway_router": "Gateway router", "access_point": "Access point",
+    "switch": "Network switch", "extender": "Wi-Fi extender",
+    "satellite": "Satellite kit", "ont": "ONT", "accessory": "Accessory",
+    "receiver": "Receiver", "other": "Networking gear",
+}
+
+
+def _gear_public(e):
+    """One networking catalog item in page shape (Build .36): specs,
+    honest price block (absent when no direct-store price exists), the
+    ISPs it works with and what each charges to rent theirs instead."""
+    isp_rows = []
+    for iid in e.get("compatible_isps", []):
+        isp = ISPS.get(iid)
+        if isp:
+            isp_rows.append({"id": iid, "name": isp.get("name", iid),
+                             "rental_fee_monthly": isp.get("rental_fee_monthly", 0)})
+    out = {"id": e["id"], "name": e["name"], "brand": e.get("brand"),
+           "type": e["type"], "type_label": GEAR_TYPE_LABELS.get(e["type"], "Networking gear"),
+           "docsis": e.get("docsis"), "wifi": e.get("wifi"),
+           "max_speed_mbps": e.get("max_speed_mbps"),
+           "performance": e.get("performance", 5),
+           "stability": e.get("stability", 5),
+           "blurb": e.get("blurb", ""), "images": e.get("images") or [],
+           "source_url": e.get("source_url"),
+           "compatible_isps": isp_rows}
+    if e.get("price") is not None:
+        out["price"] = e["price"]
+        out["price_source"] = e.get("price_source")
+        out["price_url"] = e.get("price_url")
+        out["price_checked"] = e.get("price_checked")
+    return out
+
+
+@app.route("/api/gear/<gid>")
+def api_gear(gid):
+    """One networking catalog item by id (Build .36) — the data behind
+    the gear detail pages, mirroring /api/computer for PCs."""
+    rec = GEAR.get(gid)
+    if rec is None:
+        return jsonify({"error": "unknown gear id"}), 404
+    return jsonify(_gear_public(rec))
+
+
 @app.route("/api/computer/<kind>/<mid>")
 def api_computer(kind, mid):
     """One catalog computer by id, in the same public shape the result
@@ -1763,7 +1857,7 @@ def index():
     return send_from_directory(BASE, "index.html")
 
 
-# Split frontend assets (Build 2026-10-16.35): index.html is a slim shell;
+# Split frontend assets (Build 2026-10-16.36): index.html is a slim shell;
 # the CSS/JS live in assets/ and are referenced with ?v=<build stamp>, so a
 # long cache is safe — every build bumps the stamp and the query together.
 ASSET_FILES = {"site.css", "app-core.js", "app-computers.js",
@@ -1773,8 +1867,10 @@ ASSET_FILES = {"site.css", "app-core.js", "app-computers.js",
 @app.route("/assets/<path:name>")
 def asset(name):
     if name not in ASSET_FILES and not (
-            name.startswith("logos/") and ".." not in name
-            and name.rsplit(".", 1)[-1].lower() in ("png", "svg")):
+            (name.startswith("logos/") or name.startswith("photos/"))
+            and ".." not in name
+            and name.rsplit(".", 1)[-1].lower()
+            in ("png", "svg", "jpg", "jpeg", "webp")):
         return ("Not found", 404)
     resp = send_from_directory(os.path.join(BASE, "assets"), name)
     resp.headers["Cache-Control"] = "public, max-age=86400"
