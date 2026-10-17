@@ -351,3 +351,61 @@
   .sortrow .sort.bigbtn { padding: 15px 10px; font-size: 1rem; border-radius: 14px; width: 100%; }
   .card .savebtn { margin-top: 8px; }
   .setuph { margin: 18px 0 8px; font-size: 1.15rem; }
+  /* Desktop scale-up (Caleb, Build .39): phones keep the compact layout;
+     bigger screens get a wider column and larger type so the page fills
+     its space instead of floating in it. */
+  html { font-size: 17px; }
+  @media (min-width: 760px) {
+    html { font-size: 19px; }
+    .wrap { max-width: 840px; }
+  }
+  @media (min-width: 1200px) {
+    html { font-size: 21px; }
+    .wrap { max-width: 1100px; }
+  }
+  .ric { width: 1.55em; height: 1.55em; vertical-align: -0.42em; margin-right: .32em; }
+  .sort.bigbtn .ric { display: block; width: 2.7em; height: 2.7em; margin: 0 auto .18em; }
+  .pairbtn .ric { width: 1.9em; height: 1.9em; vertical-align: -0.55em; }
+  /* Web layout for the results header (Caleb, Build .39): on wide screens
+     all the header buttons sit side by side in one row so their icons can
+     be as big as the start-screen art. Phones keep the 2-up grid. */
+  @media (min-width: 760px) {
+    .sortrow.bigs { grid-template-columns: repeat(3, 1fr); }
+    .sort.bigbtn .ric { width: 3.1em; height: 3.1em; }
+  }
+  @media (min-width: 1200px) {
+    .sortrow.bigs { grid-template-columns: repeat(4, 1fr); }
+    .sortrow.bigs:has(> :nth-child(6)) { grid-template-columns: repeat(6, 1fr); }
+    .sort.bigbtn .ric { width: 4.3em; height: 4.3em; }
+  }
+  /* Icons pop on bigger screens (Caleb, Build .39): on desktop the drawn
+     icons outrank the words next to them. */
+  .big-ico .ric { width: 2.7em; height: 2.7em; display: block; margin: 0; }
+  @media (min-width: 760px) {
+    .big-ico .ric { width: 3.5em; height: 3.5em; }
+    .opt-ic { flex-basis: 84px; width: 84px; height: 84px; }
+    .opt-ic svg { width: 62px; height: 62px; }
+  }
+  @media (min-width: 1200px) {
+    .big-ico .ric { width: 4.5em; height: 4.5em; }
+    .opt-ic { flex-basis: 118px; width: 118px; height: 118px; border-radius: 20px; }
+    .opt-ic svg { width: 88px; height: 88px; }
+  }
+  .opt.flowrow { display: flex; align-items: center; gap: 20px; text-align: left; }
+  .opt.flowrow .big-ico { flex: 0 0 auto; margin: 0; }
+  .opt.flowrow .opt-txt { flex: 1 1 auto; }
+  @media (min-width: 1200px) {
+    #flow-pick .big-ico .ric { width: 5.2em; height: 5.2em; }
+  }
+  /* Words beside the picture, everywhere it fits (Caleb, Build .39):
+     icon options and provider buttons lay out in a row — image left,
+     words right — instead of stacked. */
+  .opt-grid .opt.has-icon { flex-direction: row; text-align: left; align-items: center; gap: 16px; padding: 14px 16px; }
+  @media (min-width: 760px) {
+    .opt.has-logo { display: flex; align-items: center; gap: 18px; text-align: left; }
+    .opt.has-logo .opt-logo { margin: 0; flex: 0 0 auto; height: 56px; }
+    .opt.has-logo .opt-txt { flex: 1 1 auto; }
+  }
+  @media (min-width: 1200px) {
+    .opt.has-logo .opt-logo { height: 68px; }
+  }
