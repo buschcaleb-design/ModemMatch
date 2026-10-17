@@ -133,7 +133,7 @@ function render() {
   opts.forEach((o, i) => {
     const wide = o.wide || (!anyWide && i === opts.length - 1 && opts.length % 2 === 1) ? ' wide' : '';
     h += o.logo
-      ? `<button class="opt has-logo${wide}" onclick="pick('${Q.key}','${o.v}')"><img class="opt-logo" src="/assets/logos/${o.logo}.${logoExt(o.logo)}" alt=""><span class="opt-name">${o.t}</span>${o.s ? `<small>${o.s}</small>` : ''}</button>`
+      ? `<button class="opt has-logo${wide}" onclick="pick('${Q.key}','${o.v}')"><img class="opt-logo" src="/assets/logos/${o.logo}.${logoExt(o.logo)}" alt="" onerror="this.style.display='none'"><span class="opt-name">${o.t}</span>${o.s ? `<small>${o.s}</small>` : ''}</button>`
       : `<button class="opt${wide}" onclick="pick('${Q.key}','${o.v}')">${o.t}${o.s ? `<small>${o.s}</small>` : ''}</button>`;
   });
   h += '</div>';
@@ -434,7 +434,7 @@ function startSetup() {
            <p class="q">Who's your internet provider?</p>`;
   isps.forEach(i => {
     const conn = i.connection === 'fiber' ? 'Fiber' : i.connection === 'dsl' ? 'DSL' : 'Cable';
-    h += `<button class="opt has-logo" onclick="pickGear('${i.id}')"><img class="opt-logo" src="/assets/logos/${i.id}.${logoExt(i.id)}" alt=""><span class="opt-name">${i.name}</span><small>${conn}</small></button>`;
+    h += `<button class="opt has-logo" onclick="pickGear('${i.id}')"><img class="opt-logo" src="/assets/logos/${i.id}.${logoExt(i.id)}" alt="" onerror="this.style.display='none'"><span class="opt-name">${i.name}</span><small>${conn}</small></button>`;
   });
   el.innerHTML = h;
   window.scrollTo(0, 0);
