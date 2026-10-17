@@ -344,3 +344,4 @@
   .orline { text-align: center; color: var(--faint); font-size: .85rem; margin: 18px 0 10px; }
   .dots::after { content: ""; animation: dots 1s steps(3) infinite; }
   @keyframes dots { 0% { content: ""; } 33% { content: "."; } 66% { content: ".."; } 100% { content: "..."; } }
+  .nophoto { color: var(--faint); font-size: .82rem; line-height: 1.45; margin: 8px 2px 0; }
