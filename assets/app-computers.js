@@ -296,10 +296,10 @@ function renderLaptopResults() {
   let h = `<div class="scene">${(laptopRes.kid || q.use === 'school') ? FAMILY_SCENE : q.use === 'gaming' ? GAMING_SCENE : q.use === 'work' ? OFFICE_SCENE : q.use === 'creative' ? CREATOR_SCENE : DESK_SCENE}</div>
            <h1>Your top <span class="accent">laptop picks</span></h1>
            <p class="sub">${useLabel} · ${q.os === 'any' ? 'Any system' : q.os} · prices shown as a range (starting → fully loaded)</p>`;
-  h += `<div class="sortrow">
-    <button class="sort wide${!ltwoInOne && !lbattery ? ' on' : ''}" onclick="ltwoInOne=false;lbattery=false;lshowAll=false;renderLaptopResults()"><svg viewBox="0 0 48 48" fill="none" stroke="#10304f" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M24 5l5.4 12.4L43 19l-10.2 9.2L35.6 42 24 35.4 12.4 42l2.8-13.8L5 19l13.6-1.6z" fill="#ffd166"/></svg>Best fit</button>
-    <button class="sort${ltwoInOne ? ' on' : ''}" onclick="ltwoInOne=!ltwoInOne;lshowAll=false;renderLaptopResults()"><svg viewBox="0 0 48 48" fill="none" stroke="#10304f" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="12" width="24" height="17" rx="2.6" fill="#bfe8f5"/><path d="M5 33h32l3 6H2z" fill="#fbcfe8"/><path d="M36 6a10 10 0 0 1 6 8" stroke="#e84393"/><path d="M42 8v6h-6" stroke="#e84393"/></svg> Touchscreen 2-in-1</button>
-    <button class="sort${lbattery ? ' on' : ''}" onclick="lbattery=!lbattery;lshowAll=false;renderLaptopResults()"><svg viewBox="0 0 48 48" fill="none" stroke="#10304f" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="14" width="34" height="20" rx="5" fill="#a7e8c9"/><path d="M43 20v8" stroke-width="4.4"/><path d="M25 18l-7 9h5l-2 8 8-10h-5.4z" fill="#e8912d" stroke="none"/></svg> Battery priority</button>
+  h += `<div class="sortrow bigs">
+    <button class="sort bigbtn${!ltwoInOne && !lbattery ? ' on' : ''}" onclick="ltwoInOne=false;lbattery=false;lshowAll=false;renderLaptopResults()"><svg viewBox="0 0 48 48" fill="none" stroke="#10304f" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M24 5l5.4 12.4L43 19l-10.2 9.2L35.6 42 24 35.4 12.4 42l2.8-13.8L5 19l13.6-1.6z" fill="#ffd166"/></svg>Best fit</button>
+    <button class="sort bigbtn${ltwoInOne ? ' on' : ''}" onclick="ltwoInOne=!ltwoInOne;lshowAll=false;renderLaptopResults()"><svg viewBox="0 0 48 48" fill="none" stroke="#10304f" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="12" width="24" height="17" rx="2.6" fill="#bfe8f5"/><path d="M5 33h32l3 6H2z" fill="#fbcfe8"/><path d="M36 6a10 10 0 0 1 6 8" stroke="#e84393"/><path d="M42 8v6h-6" stroke="#e84393"/></svg> Touchscreen 2-in-1</button>
+    <button class="sort bigbtn${lbattery ? ' on' : ''}" onclick="lbattery=!lbattery;lshowAll=false;renderLaptopResults()"><svg viewBox="0 0 48 48" fill="none" stroke="#10304f" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="14" width="34" height="20" rx="5" fill="#a7e8c9"/><path d="M43 20v8" stroke-width="4.4"/><path d="M25 18l-7 9h5l-2 8 8-10h-5.4z" fill="#e8912d" stroke="none"/></svg> Battery priority</button>
   </div>`;
   if (unavailableNote) h += `<div class="note">${esc(unavailableNote)}</div>`;
   if (!picks.length) {
@@ -456,14 +456,15 @@ let desktopRes = null, dshowAll = false;
 // the same result set, re-ranked client-side from the payload's perf
 // signals. 'match' is the quiz's own scored order, untouched.
 let dsortMode = 'match';
+const DSORT_ICONS = { match: 'target', gaming: 'gamepad', ai: 'chip', value: 'pig' };
 const DSORT_MODES = {
-  match: { label: '🎯 Best match', w: null,
+  match: { label: 'Best match', w: null,
     info: 'Best match: ranked by how well each desktop fits all your answers.' },
-  gaming: { label: '🎮 Gaming / performance', w: { gpu: 0.5, cpu: 0.3, ram: 0.2 },
+  gaming: { label: 'Gaming / performance', w: { gpu: 0.5, cpu: 0.3, ram: 0.2 },
     info: 'Sorted for gaming/performance: the graphics card weighs most, then the processor, then memory.' },
-  ai: { label: '🤖 AI', w: { gpu_ai: 0.7, ram: 0.2, cpu: 0.1 },
+  ai: { label: 'AI', w: { gpu_ai: 0.7, ram: 0.2, cpu: 0.1 },
     info: 'Sorted for AI: the graphics card (and its memory) weighs most, memory next for model headroom — the processor counts for little.' },
-  value: { label: '💰 Bang for your buck', w: { gpu: 0.5, cpu: 0.3, ram: 0.2 },
+  value: { label: 'Bang for your buck', w: { gpu: 0.5, cpu: 0.3, ram: 0.2 },
     info: 'Sorted for value: gaming-grade performance per dollar of starting price — a cheaper strong machine beats a pricier one.' },
 };
 // A machine whose spec fields can't be scored at all sorts by its
@@ -496,8 +497,8 @@ function setDSort(m) { dsortMode = m; dshowAll = false; renderDesktopResults(); 
 function desktopSortHTML() {
   if (!desktopRes || !desktopRes.recommendations || desktopRes.recommendations.length < 2) return '';
   const btns = Object.keys(DSORT_MODES).map(k =>
-    `<button class="sort${dsortMode === k ? ' on' : ''}" onclick="setDSort('${k}')">${DSORT_MODES[k].label}</button>`).join('');
-  return `<div class="sortrow wrap">${btns}</div><p class="sortline">${esc(DSORT_MODES[dsortMode].info)}</p>`;
+    `<button class="sort bigbtn${dsortMode === k ? ' on' : ''}" onclick="setDSort('${k}')">${rico(DSORT_ICONS[k])}${DSORT_MODES[k].label}</button>`).join('');
+  return `<div class="sortrow bigs">${btns}</div><p class="sortline">${esc(DSORT_MODES[dsortMode].info)}</p>`;
 }
 function desktopBadge(p) {
   if (p.platform === 'macOS') return ['Apple silicon', ''];
