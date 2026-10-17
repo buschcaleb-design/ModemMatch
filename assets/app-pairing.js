@@ -650,9 +650,22 @@ async function renderSetupList() {
   const cat = await loadSetupCatalog();
   let h = `<button class="back" onclick="closeMySetup()">← Back</button>
     <h1>My <span class="accent">Setup</span></h1>
-    <p class="sub">Computers, docks, and screens you've saved on this device. This is not a cart — nothing is reserved or ordered, and prices are re-read from the catalog each time you look.</p>`;
-  if (!setupStore.setups.length)
-    h += `<div class="note">No saved setups yet — save one from any computer result with the 💾 Save this setup button, and it'll wait for you here.</div>`;
+    <p class="sub">Gear, computers, docks, and screens you've saved on this device. This is not a cart — nothing is reserved or ordered, and prices are re-read from the catalog each time you look.</p>`;
+  if (savedGear.length) {
+    h += `<h2 class="setuph">🔖 Saved gear</h2>`;
+    for (const gid of savedGear) {
+      let g = null;
+      try { g = await (await fetch('/api/gear/' + gid)).json(); } catch (e) {}
+      if (!g || g.error) continue;
+      const price = g.price != null ? `$${Number(g.price).toLocaleString()}` : 'no verified price yet';
+      h += `<div class="card"><h3>${esc(g.name)}</h3>
+        <p class="why">${esc(g.brand)} · ${esc(g.type_label)} · ${price}</p>
+        <button class="pairbtn" onclick="openGearPage('${g.id}','setup')">📄 View its page</button>
+        <button class="pairbtn savebtn" onclick="removeSavedGear('${g.id}')">✕ Remove</button></div>`;
+    }
+  }
+  if (!setupStore.setups.length && !savedGear.length)
+    h += `<div class="note">Nothing saved yet — save gear from any result with its 🔖 Save button, or a computer setup with the 💾 Save this setup button, and it'll wait for you here.</div>`;
   const sorted = [...setupStore.setups].sort((a, b) => (b.updated || 0) - (a.updated || 0));
   for (const s of sorted) {
     const comp = await resolveComputer(s.computer.kind, s.computer.id);
@@ -660,6 +673,11 @@ async function renderSetupList() {
     h += setupCardHTML(s, comp, cat, true);
   }
   el.innerHTML = h;
+}
+function removeSavedGear(id) {
+  const i = savedGear.indexOf(id);
+  if (i >= 0) { savedGear.splice(i, 1); persistSavedGear(); }
+  renderSetupList();
 }
 async function setupOpen(id) {
   const s = getSetup(id);
