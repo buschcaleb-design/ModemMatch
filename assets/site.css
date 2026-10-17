@@ -213,7 +213,7 @@
   .factrow .fv { font-weight: 600; text-align: right; }
   .factrow .fv.left { text-align: left; }
   .sortrow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
-  .sortrow:not(:has(.wide)) .sort:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .sortrow:not(.bigs):not(:has(.wide)) .sort:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .sortrow .sort.wide { grid-column: 1 / -1; padding: 15px 4px; font-size: .95rem; font-weight: 700; }
   .sort svg { width: 20px; height: 20px; vertical-align: -4px; margin-right: 5px; }
   .sort { flex: 1; background: var(--panel); border: 2px solid var(--line); color: var(--ink-soft);
@@ -408,4 +408,11 @@
   }
   @media (min-width: 1200px) {
     .opt.has-logo .opt-logo { height: 68px; }
+  }
+  .sort.bigbtn > svg { display: block; width: 2.7em; height: 2.7em; margin: 0 auto .18em; }
+  @media (min-width: 760px) { .sort.bigbtn > svg { width: 3.1em; height: 3.1em; } }
+  @media (min-width: 1200px) { .sort.bigbtn > svg { width: 4.3em; height: 4.3em; } }
+
+  @media (min-width: 1200px) {
+    .sortrow.bigs:has(> :nth-child(3)):not(:has(> :nth-child(4))) { grid-template-columns: repeat(3, 1fr); }
   }
