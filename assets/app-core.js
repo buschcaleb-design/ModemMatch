@@ -7,7 +7,7 @@ let isps = [];
 // First screen: Buy New Gear / Set Up New Gear. Second: Internet / PC.
 // Then route into the matching existing flow.
 let flowType = 'buy';   // 'buy' | 'setup'
-const SECTION_IDS = ['home', 'flow-pick', 'isp-pick', 'quiz', 'results', 'gear-page', 'guide', 'pc-guide', 'model-lookup', 'pairing', 'setup', 'disclaimers'];
+const SECTION_IDS = ['home', 'flow-pick', 'isp-pick', 'quiz', 'results', 'gear-page', 'theater', 'guide', 'pc-guide', 'model-lookup', 'pairing', 'setup', 'disclaimers'];
 function hideAllSections() {
   SECTION_IDS.forEach(id => document.getElementById(id).style.display = 'none');
 }
@@ -21,21 +21,37 @@ function renderFlowPick() {
   el.innerHTML = `<button class="back" onclick="backHome()">← Back</button>
     <p class="q">${buying ? 'What are you buying?' : 'What are you setting up?'}</p>
     <div class="opt-grid">
-    <button class="opt" onclick="routeFlow('internet')">🌐 Internet<small>${buying ? 'Modems, routers & mesh — ditch the ISP rental fee' : 'Activate and set up your modem or router, step by step'}</small></button>
-    <button class="opt" onclick="routeFlow('pc')">💻 PC<small>${buying ? "Laptops & desktops matched to how you'll actually use them" : 'First-boot walkthroughs, brand setup tools & kid setup'}</small></button>
+    <button class="opt" onclick="routeFlow('internet')"><span class="big-ico">🌐</span>Internet<small>${buying ? 'Modems, routers & mesh — ditch the ISP rental fee' : 'Activate and set up your modem or router, step by step'}</small></button>
+    <button class="opt" onclick="routeFlow('pc')"><span class="big-ico">💻</span>PC<small>${buying ? "Laptops & desktops matched to how you'll actually use them" : 'First-boot walkthroughs, brand setup tools & kid setup'}</small></button>
+    <button class="opt wide" onclick="routeFlow('theater')"><span class="big-ico">📺</span>Home Theater<small>${buying ? 'TVs & sound — matched to your room and your couch' : 'TV and sound setup, step by step'}</small></button>
     </div>
     <p class="orline">— or —</p>
-    <button class="opt" onclick="startModelLookup()">🔎 Know your model?<small>Type the name — or the model number off the box — and jump straight to it</small></button>`;
+    <button class="opt" onclick="startModelLookup()"><span class="big-ico">🔎</span>Know your model?<small>Type the name — or the model number off the box — and jump straight to it</small></button>`;
   window.scrollTo(0, 0);
 }
 function backToFlowPick() { renderFlowPick(); }
 function routeFlow(kind) {
+  if (kind === 'theater') { showTheater(); return; }
   if (flowType === 'buy') {
     if (kind === 'internet') startBuy(); else startLaptopBuy();
   } else {
     if (kind === 'internet') startSetup();
     else { guideBrand = null; startPcGuide(); }   // generic entry: no model context
   }
+}
+function showTheater() {
+  hideAllSections();
+  const el = document.getElementById('theater');
+  el.style.display = 'block';
+  const buying = flowType === 'buy';
+  el.innerHTML = `<button class="back" onclick="backToFlowPick()">← Back</button>
+    <p class="q"><span class="big-ico">📺</span>Home Theater</p>
+    <div class="note">🚧 <b>We're stocking this aisle now.</b> ${buying
+      ? 'TVs and sound are next — picked the same way as everything else here: real prices we verified at the store, specs from the maker, and matched to your room instead of a spec sheet.'
+      : 'TV and sound setup guides are coming with this aisle — same step-by-step style as the internet and PC guides.'}</div>
+    <p class="factline">On the way: TVs by room size and light · soundbars & speakers · the "will it fit my stand?" check</p>
+    <p class="factline">Nothing is listed until its price is verified — that's the rule everywhere in this store.</p>`;
+  window.scrollTo(0, 0);
 }
 
 const LOGO_EXT = { centurylink: 'svg', frontier: 'svg' };
@@ -65,9 +81,9 @@ const QUESTIONS = [
       { v: '3plus', t: '3+ floors' } ] },
   { key: 'yard', q: "Want WiFi out in the yard?",
     opts: () => [
-      { v: 'no', t: 'No, inside is fine' },
       { v: 'small', t: 'Small yard or patio', s: 'Grilling, porch sitting' },
-      { v: 'large', t: 'Large yard', s: 'Kids playing, workshop, pool area' } ] },
+      { v: 'large', t: 'Large yard', s: 'Kids playing, workshop, pool area' },
+      { v: 'no', t: 'No, inside is fine' } ] },
   { key: 'garage', q: "Need WiFi in the garage?",
     opts: () => [
       { v: 'no', t: 'No' },
@@ -81,19 +97,19 @@ const QUESTIONS = [
       { v: '5plus', t: '5+ people' } ] },
   { key: 'tvs', q: "How many TVs connect to WiFi?",
     opts: () => [
-      { v: '0', t: 'None' },
       { v: '1', t: '1 TV' },
       { v: '2', t: '2 TVs' },
       { v: '3', t: '3 TVs' },
-      { v: '4plus', t: '4+ TVs' } ] },
+      { v: '4plus', t: '4+ TVs' },
+      { v: '0', t: 'None' } ] },
   { key: 'smart_home', q: "Smart home gadgets?",
     opts: () => [
-      { v: 'none', t: 'None', s: 'Just phones, laptops, TVs' },
       { v: 'some', t: 'A few', s: 'Robot vacuum, smart speaker, doorbell' },
-      { v: 'lots', t: 'Loaded', s: 'Lights, locks, cameras, the works' } ] },
+      { v: 'lots', t: 'Loaded', s: 'Lights, locks, cameras, the works' },
+      { v: 'none', t: 'None', s: 'Just phones, laptops, TVs' } ] },
   { key: 'setup', q: "How do you want your setup?",
     opts: () => [
-      { v: 'combo', t: 'All-in-one box', s: 'Easiest to set up and manage — one box, one app. Tradeoff: when it\'s time to upgrade, you replace the whole thing.' },
+      { v: 'combo', t: 'All-in-one box', wide: true, s: 'Easiest to set up and manage — one box, one app. Tradeoff: when it\'s time to upgrade, you replace the whole thing.' },
       { v: 'separate', t: 'Separate modem + router', s: 'Most reliable, best performance. A bit more to manage, but you can upgrade each piece on its own.' },
       { v: 'one_piece', t: 'Just one piece', s: 'I only need to replace part of my setup' } ] },
   { key: 'which_piece', when: () => answers.setup === 'one_piece',
@@ -112,10 +128,13 @@ function render() {
   let h = `<button class="back" onclick="${step === 0 ? 'backToFlowPick()' : 'back()'}">← Back</button>`;
   h += `<p class="q">${Q.q}</p>`;
   h += '<div class="opt-grid">';
-  Q.opts().forEach(o => {
+  const opts = Q.opts();
+  const anyWide = opts.some(o => o.wide);
+  opts.forEach((o, i) => {
+    const wide = o.wide || (!anyWide && i === opts.length - 1 && opts.length % 2 === 1) ? ' wide' : '';
     h += o.logo
-      ? `<button class="opt has-logo" onclick="pick('${Q.key}','${o.v}')"><img class="opt-logo" src="/assets/logos/${o.logo}.${logoExt(o.logo)}" alt=""><span class="opt-name">${o.t}</span>${o.s ? `<small>${o.s}</small>` : ''}</button>`
-      : `<button class="opt" onclick="pick('${Q.key}','${o.v}')">${o.t}${o.s ? `<small>${o.s}</small>` : ''}</button>`;
+      ? `<button class="opt has-logo${wide}" onclick="pick('${Q.key}','${o.v}')"><img class="opt-logo" src="/assets/logos/${o.logo}.${logoExt(o.logo)}" alt=""><span class="opt-name">${o.t}</span>${o.s ? `<small>${o.s}</small>` : ''}</button>`
+      : `<button class="opt${wide}" onclick="pick('${Q.key}','${o.v}')">${o.t}${o.s ? `<small>${o.s}</small>` : ''}</button>`;
   });
   h += '</div>';
   stepsEl.innerHTML = h;
@@ -143,10 +162,11 @@ function setTab(t) { activeTab = t; showAll = false; renderResults(); }
 let activeTab = 'modems';
 
 function sortButtonsHTML() {
-  return `<div class="sortrow">
-    <button class="sort${sortMode === 'value' ? ' on' : ''}" onclick="setSort('value')">💪 Best value</button>
-    <button class="sort${sortMode === 'stability' ? ' on' : ''}" onclick="setSort('stability')">🛡️ Most reliable</button>
-    <button class="sort${sortMode === 'cheapest' ? ' on' : ''}" onclick="setSort('cheapest')">💲 Cheapest</button>
+  return `<div class="sortrow bigs">
+    <button class="sort bigbtn${sortMode === 'value' ? ' on' : ''}" onclick="setSort('value')">💪 Best value</button>
+    <button class="sort bigbtn${sortMode === 'stability' ? ' on' : ''}" onclick="setSort('stability')">🛡️ Most reliable</button>
+    <button class="sort bigbtn${sortMode === 'cheapest' ? ' on' : ''}" onclick="setSort('cheapest')">💲 Cheapest</button>
+    <button class="sort bigbtn" data-savedbtn="1" onclick="openMySetup()">🔖 Saved gear${savedGear.length ? ` (${savedGear.length})` : ''}</button>
   </div>`;
 }
 
@@ -171,9 +191,9 @@ function comboCardHTML() {
 }
 
 function tabButtonsHTML(modems, routers) {
-  return `<div class="sortrow">
-    <button class="sort${activeTab === 'modems' ? ' on' : ''}" onclick="setTab('modems')">🔌 Modems (${modems.length})</button>
-    <button class="sort${activeTab === 'routers' ? ' on' : ''}" onclick="setTab('routers')">📶 Routers (${routers.length})</button>
+  return `<div class="sortrow bigs">
+    <button class="sort bigbtn${activeTab === 'modems' ? ' on' : ''}" onclick="setTab('modems')">🔌 Modems (${modems.length})</button>
+    <button class="sort bigbtn${activeTab === 'routers' ? ' on' : ''}" onclick="setTab('routers')">📶 Routers (${routers.length})</button>
   </div>`;
 }
 
@@ -238,6 +258,36 @@ function factRowsHTML(chips) {
   return `<div class="factrows">${rows}</div>`;
 }
 
+// ------------------------------------------------------------ saved gear
+// A lightweight save list for individual gear picks (Build .37), kept in
+// localStorage like the pairing setups: stable ids only, names/prices
+// re-read from the catalog at display time in My Setup.
+const SAVED_GEAR_KEY = 'bytematch.saved.v1';
+function loadSavedGear() {
+  try {
+    const j = JSON.parse(localStorage.getItem(SAVED_GEAR_KEY) || '[]');
+    return Array.isArray(j) ? j.filter(x => typeof x === 'string') : [];
+  } catch (e) { return []; }
+}
+let savedGear = loadSavedGear();
+function persistSavedGear() {
+  try { localStorage.setItem(SAVED_GEAR_KEY, JSON.stringify(savedGear)); } catch (e) {}
+}
+function saveBtnLabel(id) {
+  return savedGear.includes(id) ? '✓ Saved — tap to remove' : '🔖 Save this one';
+}
+function toggleSaveGear(btn, id) {
+  const i = savedGear.indexOf(id);
+  if (i >= 0) savedGear.splice(i, 1); else savedGear.push(id);
+  persistSavedGear();
+  document.querySelectorAll(`[data-savegear="${id}"]`).forEach(b => {
+    b.textContent = saveBtnLabel(id);
+  });
+  document.querySelectorAll('[data-savedbtn]').forEach(b => {
+    b.textContent = `🔖 Saved gear${savedGear.length ? ` (${savedGear.length})` : ''}`;
+  });
+}
+
 function cardHTML(p, i, isHero) {
   const saveLine = p.saves_over_life > 0
     ? `saves you $${p.saves_over_life} over ${p.life_years} years`
@@ -255,7 +305,8 @@ function cardHTML(p, i, isHero) {
     <p class="why">${p.why}</p>
     ${p.blurb ? `<p class="blurb">${p.blurb}</p>` : ''}
     ${factRowsHTML(chips)}
-    <button class="pairbtn" onclick="openGearPage('${p.id}','results')">📄 View its page</button></div>`;
+    <button class="pairbtn" onclick="openGearPage('${p.id}','results')">📄 View its page</button>
+    <button class="pairbtn savebtn" data-savegear="${p.id}" onclick="toggleSaveGear(this,'${p.id}')">${saveBtnLabel(p.id)}</button></div>`;
 }
 
 // ------------------------------------------------------------ gear pages
@@ -285,7 +336,8 @@ async function openGearPage(id, backTo) {
 }
 function closeGearPage() {
   hideAllSections();
-  const target = gearBackTo === 'lookup' ? 'model-lookup' : 'results';
+  const target = gearBackTo === 'lookup' ? 'model-lookup'
+    : gearBackTo === 'setup' ? 'setup' : 'results';
   document.getElementById(target).style.display = 'block';
   window.scrollTo(0, 0);
 }
@@ -324,7 +376,8 @@ function gearPageHTML(g) {
     ${g.blurb ? `<p class="blurb">${esc(g.blurb)}</p>` : ''}
     ${factRowsHTML(facts)}
     ${ispRows.length ? `<p class="why" style="margin-top:12px">Works with:</p>${factRowsHTML(ispRows)}` : ''}
-    ${buyBtn}${makerBtn}</div>`;
+    ${buyBtn}${makerBtn}
+    <button class="pairbtn savebtn" data-savegear="${g.id}" onclick="toggleSaveGear(this,'${g.id}')">${saveBtnLabel(g.id)}</button></div>`;
 }
 
 function renderResults() {
