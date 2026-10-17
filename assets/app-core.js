@@ -21,12 +21,12 @@ function renderFlowPick() {
   el.innerHTML = `<button class="back" onclick="backHome()">← Back</button>
     <p class="q">${buying ? 'What are you buying?' : 'What are you setting up?'}</p>
     <div class="opt-grid">
-    <button class="opt" onclick="routeFlow('internet')"><span class="big-ico">🌐</span>Internet<small>${buying ? 'Modems, routers & mesh — ditch the ISP rental fee' : 'Activate and set up your modem or router, step by step'}</small></button>
-    <button class="opt" onclick="routeFlow('pc')"><span class="big-ico">💻</span>PC<small>${buying ? "Laptops & desktops matched to how you'll actually use them" : 'First-boot walkthroughs, brand setup tools & kid setup'}</small></button>
-    <button class="opt wide" onclick="routeFlow('theater')"><span class="big-ico">📺</span>Home Theater<small>${buying ? 'TVs & sound — matched to your room and your couch' : 'TV and sound setup, step by step'}</small></button>
+    <button class="opt flowrow" onclick="routeFlow('internet')"><span class="big-ico">${rico('globe')}</span><span class="opt-txt">Internet<small>${buying ? 'Modems, routers & mesh — ditch the ISP rental fee' : 'Activate and set up your modem or router, step by step'}</small></span></button>
+    <button class="opt flowrow" onclick="routeFlow('pc')"><span class="big-ico">${rico('laptop')}</span><span class="opt-txt">PC<small>${buying ? "Laptops & desktops matched to how you'll actually use them" : 'First-boot walkthroughs, brand setup tools & kid setup'}</small></span></button>
+    <button class="opt wide flowrow" onclick="routeFlow('theater')"><span class="big-ico">${rico('tv')}</span><span class="opt-txt">Home Theater<small>${buying ? 'TVs & sound — matched to your room and your couch' : 'TV and sound setup, step by step'}</small></span></button>
     </div>
     <p class="orline">— or —</p>
-    <button class="opt" onclick="startModelLookup()"><span class="big-ico">🔎</span>Know your model?<small>Type the name — or the model number off the box — and jump straight to it</small></button>`;
+    <button class="opt flowrow" onclick="startModelLookup()"><span class="big-ico">${rico('search')}</span><span class="opt-txt">Know your model?<small>Type the name — or the model number off the box — and jump straight to it</small></span></button>`;
   window.scrollTo(0, 0);
 }
 function backToFlowPick() { renderFlowPick(); }
@@ -45,7 +45,7 @@ function showTheater() {
   el.style.display = 'block';
   const buying = flowType === 'buy';
   el.innerHTML = `<button class="back" onclick="backToFlowPick()">← Back</button>
-    <p class="q"><span class="big-ico">📺</span>Home Theater</p>
+    <p class="q"><span class="big-ico">${rico('tv')}</span>Home Theater</p>
     <div class="note">🚧 <b>We're stocking this aisle now.</b> ${buying
       ? 'TVs and sound are next — picked the same way as everything else here: real prices we verified at the store, specs from the maker, and matched to your room instead of a spec sheet.'
       : 'TV and sound setup guides are coming with this aisle — same step-by-step style as the internet and PC guides.'}</div>
@@ -133,7 +133,7 @@ function render() {
   opts.forEach((o, i) => {
     const wide = o.wide || (!anyWide && i === opts.length - 1 && opts.length % 2 === 1) ? ' wide' : '';
     h += o.logo
-      ? `<button class="opt has-logo${wide}" onclick="pick('${Q.key}','${o.v}')"><img class="opt-logo" src="/assets/logos/${o.logo}.${logoExt(o.logo)}" alt="" onerror="this.style.display='none'"><span class="opt-name">${o.t}</span>${o.s ? `<small>${o.s}</small>` : ''}</button>`
+      ? `<button class="opt has-logo${wide}" onclick="pick('${Q.key}','${o.v}')"><img class="opt-logo" src="/assets/logos/${o.logo}.${logoExt(o.logo)}" alt="" onerror="this.style.display='none'"><span class="opt-txt"><span class="opt-name">${o.t}</span>${o.s ? `<small>${o.s}</small>` : ''}</span></button>`
       : `<button class="opt${wide}" onclick="pick('${Q.key}','${o.v}')">${o.t}${o.s ? `<small>${o.s}</small>` : ''}</button>`;
   });
   h += '</div>';
@@ -161,13 +161,35 @@ function setSort(m) { sortMode = m; showAll = false; renderResults(); }
 function setTab(t) { activeTab = t; showAll = false; renderResults(); }
 let activeTab = 'modems';
 
-function sortButtonsHTML() {
+// Fun hand-drawn icons for the results header (Build .39) — same style
+// as the home-page piggy bank and gear: chunky navy outlines, soft fills.
+function rico(name) {
+  const G = 'fill="none" stroke="#10304f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
+  const arts = {
+    pig: `<circle cx="24" cy="28" r="12.5" fill="#f8a5c2"/><path d="M14.5 18.5 L12 12 l7 2.5 z" fill="#f8a5c2"/><ellipse cx="24" cy="30" rx="5.4" ry="4.1" fill="#f472b6"/><circle cx="22.2" cy="29.6" r="1" fill="#10304f" stroke="none"/><circle cx="25.8" cy="29.6" r="1" fill="#10304f" stroke="none"/><circle cx="16" cy="23" r="1.7" fill="#10304f" stroke="none"/><circle cx="25" cy="7.5" r="4.2" fill="#fbbf24"/><text x="25" y="10.4" text-anchor="middle" font-size="7.5" font-weight="800" fill="#10304f" stroke="none">$</text>`,
+    shield: `<path d="M24 5 l13 4 v10 c0 9.5 -5.5 15.5 -13 19.5 C16.5 34.5 11 28.5 11 19 V9 Z" fill="#00c853" fill-opacity=".28"/><path d="M17.5 23.5 l4.5 4.5 l8.5 -9.5" stroke="#0a8a3a"/>`,
+    tag: `<path d="M6 6 h14.5 L35 20.5 a4 4 0 0 1 0 5.7 l-8.8 8.8 a4 4 0 0 1 -5.7 0 L6 20.5 Z" fill="#fbbf24" fill-opacity=".55"/><circle cx="14" cy="14" r="2.6" fill="#ffffff"/>`,
+    bookmark: `<path d="M15 4.5 h18 V43 l-9 -6.8 L15 43 Z" fill="#7dd3fc"/>`,
+    plug: `<path d="M17.5 5 v9 M30.5 5 v9"/><rect x="11.5" y="14" width="25" height="13.5" rx="4.5" fill="#cbd5e1"/><path d="M24 27.5 v5 a6.5 6.5 0 0 0 6.5 6.5 H35"/>`,
+    signal: `<rect x="7" y="31" width="34" height="11" rx="4" fill="#a7f3d0"/><path d="M14.5 31 V21 M33.5 31 V21" /><path d="M17.5 25 a9.5 9.5 0 0 1 13 0 M14.8 20.2 a14.5 14.5 0 0 1 18.4 0" stroke="#e84393"/><circle cx="13.5" cy="36.5" r="1.6" fill="#16a34a" stroke="none"/>`,
+    globe: `<circle cx="24" cy="24" r="17" fill="#bae6fd"/><ellipse cx="24" cy="24" rx="8" ry="17"/><path d="M7.8 18.5 h32.4 M7.8 29.5 h32.4"/>`,
+    laptop: `<rect x="11" y="12.5" width="26" height="18.5" rx="3" fill="#e0e7ff"/><path d="M5.5 38 h37 l-3.8 -5.5 H9.3 Z" fill="#c7d2fe"/><circle cx="24" cy="21.8" r="2" fill="#0284c7" stroke="none"/>`,
+    tv: `<path d="M16.5 14.5 L24 5.5 L31.5 14.5"/><rect x="7.5" y="14.5" width="33" height="22" rx="3.5" fill="#99f6e4"/><path d="M17 42.5 h14 M24 36.5 v6"/><circle cx="35" cy="20" r="1.5" fill="#e84393" stroke="none"/><circle cx="35" cy="26" r="1.5" fill="#f59e0b" stroke="none"/>`,
+    search: `<circle cx="20.5" cy="20.5" r="12" fill="#e0f2fe"/><path d="M29 29 L41.5 41.5" stroke-width="5"/>`,
+  };
+  return `<svg class="ric" viewBox="0 0 48 48" aria-hidden="true"><g ${G}>${arts[name] || ''}</g></svg>`;
+}
+
+function sortButtonsHTML(extra) {
   return `<div class="sortrow bigs">
-    <button class="sort bigbtn${sortMode === 'value' ? ' on' : ''}" onclick="setSort('value')">💪 Best value</button>
-    <button class="sort bigbtn${sortMode === 'stability' ? ' on' : ''}" onclick="setSort('stability')">🛡️ Most reliable</button>
-    <button class="sort bigbtn${sortMode === 'cheapest' ? ' on' : ''}" onclick="setSort('cheapest')">💲 Cheapest</button>
-    <button class="sort bigbtn" data-savedbtn="1" onclick="openMySetup()">🔖 Saved gear${savedGear.length ? ` (${savedGear.length})` : ''}</button>
+    <button class="sort bigbtn${sortMode === 'value' ? ' on' : ''}" onclick="setSort('value')">${rico('pig')}Best value</button>
+    <button class="sort bigbtn${sortMode === 'stability' ? ' on' : ''}" onclick="setSort('stability')">${rico('shield')}Most reliable</button>
+    <button class="sort bigbtn${sortMode === 'cheapest' ? ' on' : ''}" onclick="setSort('cheapest')">${rico('tag')}Cheapest</button>
+    <button class="sort bigbtn" data-savedbtn="1" onclick="openMySetup()">${savedBtnHTML()}</button>${extra || ''}
   </div>`;
+}
+function savedBtnHTML() {
+  return `${rico('bookmark')}Saved gear${savedGear.length ? ` (${savedGear.length})` : ''}`;
 }
 
 function bestCombo() {
@@ -191,10 +213,9 @@ function comboCardHTML() {
 }
 
 function tabButtonsHTML(modems, routers) {
-  return `<div class="sortrow bigs">
-    <button class="sort bigbtn${activeTab === 'modems' ? ' on' : ''}" onclick="setTab('modems')">🔌 Modems (${modems.length})</button>
-    <button class="sort bigbtn${activeTab === 'routers' ? ' on' : ''}" onclick="setTab('routers')">📶 Routers (${routers.length})</button>
-  </div>`;
+  return `
+    <button class="sort bigbtn${activeTab === 'modems' ? ' on' : ''}" onclick="setTab('modems')">${rico('plug')}Modems (${modems.length})</button>
+    <button class="sort bigbtn${activeTab === 'routers' ? ' on' : ''}" onclick="setTab('routers')">${rico('signal')}Routers (${routers.length})</button>`;
 }
 
 function listHTML(picks) {
@@ -274,17 +295,20 @@ function persistSavedGear() {
   try { localStorage.setItem(SAVED_GEAR_KEY, JSON.stringify(savedGear)); } catch (e) {}
 }
 function saveBtnLabel(id) {
-  return savedGear.includes(id) ? '✓ Saved — tap to remove' : '🔖 Save this one';
+  return savedGear.includes(id) ? '✓ Saved — tap to remove' : 'Save this one';
+}
+function saveBtnHTML(id) {
+  return savedGear.includes(id) ? saveBtnLabel(id) : `${rico('bookmark')}Save this one`;
 }
 function toggleSaveGear(btn, id) {
   const i = savedGear.indexOf(id);
   if (i >= 0) savedGear.splice(i, 1); else savedGear.push(id);
   persistSavedGear();
   document.querySelectorAll(`[data-savegear="${id}"]`).forEach(b => {
-    b.textContent = saveBtnLabel(id);
+    b.innerHTML = saveBtnHTML(id);
   });
   document.querySelectorAll('[data-savedbtn]').forEach(b => {
-    b.textContent = `🔖 Saved gear${savedGear.length ? ` (${savedGear.length})` : ''}`;
+    b.innerHTML = savedBtnHTML();
   });
 }
 
@@ -306,7 +330,7 @@ function cardHTML(p, i, isHero) {
     ${p.blurb ? `<p class="blurb">${p.blurb}</p>` : ''}
     ${factRowsHTML(chips)}
     <button class="pairbtn" onclick="openGearPage('${p.id}','results')">📄 View its page</button>
-    <button class="pairbtn savebtn" data-savegear="${p.id}" onclick="toggleSaveGear(this,'${p.id}')">${saveBtnLabel(p.id)}</button></div>`;
+    <button class="pairbtn savebtn" data-savegear="${p.id}" onclick="toggleSaveGear(this,'${p.id}')">${saveBtnHTML(p.id)}</button></div>`;
 }
 
 // ------------------------------------------------------------ gear pages
@@ -377,21 +401,21 @@ function gearPageHTML(g) {
     ${factRowsHTML(facts)}
     ${ispRows.length ? `<p class="why" style="margin-top:12px">Works with:</p>${factRowsHTML(ispRows)}` : ''}
     ${buyBtn}${makerBtn}
-    <button class="pairbtn savebtn" data-savegear="${g.id}" onclick="toggleSaveGear(this,'${g.id}')">${saveBtnLabel(g.id)}</button></div>`;
+    <button class="pairbtn savebtn" data-savegear="${g.id}" onclick="toggleSaveGear(this,'${g.id}')">${saveBtnHTML(g.id)}</button></div>`;
 }
 
 function renderResults() {
   const r = document.getElementById('results');
   let h = `<h1>Your top <span class="accent">picks</span></h1>
            <p class="sub">${meta.isp} · ${meta.conn} · ~${meta.devices} devices</p>`;
-  h += sortButtonsHTML();
   if (meta.setup === 'separate') {
     const modems = sortedPicks().filter(p => p.type === 'modem');
     const routers = sortedPicks().filter(p => p.type === 'router' || p.type === 'mesh');
+    h += sortButtonsHTML(tabButtonsHTML(modems, routers));
     h += comboCardHTML();
-    h += tabButtonsHTML(modems, routers);
     h += listHTML(activeTab === 'modems' ? modems : routers);
   } else {
+    h += sortButtonsHTML();
     h += listHTML(sortedPicks());
   }
   meta.notes.forEach(n => { h += `<div class="note">${n}</div>`; });
@@ -434,7 +458,7 @@ function startSetup() {
            <p class="q">Who's your internet provider?</p>`;
   isps.forEach(i => {
     const conn = i.connection === 'fiber' ? 'Fiber' : i.connection === 'dsl' ? 'DSL' : 'Cable';
-    h += `<button class="opt has-logo" onclick="pickGear('${i.id}')"><img class="opt-logo" src="/assets/logos/${i.id}.${logoExt(i.id)}" alt="" onerror="this.style.display='none'"><span class="opt-name">${i.name}</span><small>${conn}</small></button>`;
+    h += `<button class="opt has-logo" onclick="pickGear('${i.id}')"><img class="opt-logo" src="/assets/logos/${i.id}.${logoExt(i.id)}" alt="" onerror="this.style.display='none'"><span class="opt-txt"><span class="opt-name">${i.name}</span><small>${conn}</small></span></button>`;
   });
   el.innerHTML = h;
   window.scrollTo(0, 0);
