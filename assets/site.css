@@ -416,3 +416,8 @@
   @media (min-width: 1200px) {
     .sortrow.bigs:has(> :nth-child(3)):not(:has(> :nth-child(4))) { grid-template-columns: repeat(3, 1fr); }
   }
+  /* Saved stuff lives up top now (Caleb, Build .41): a fixed pill in the
+     top-right corner on every page, counting everything saved. */
+  #setupbtn-wrap { position: fixed; top: 10px; right: 12px; z-index: 80; max-width: none; margin: 0; padding: 0; }
+  #setupbtn { display: inline-flex; align-items: center; background: var(--panel); border: 2px solid var(--line); color: var(--ink); font-size: .92rem; font-weight: 800; border-radius: 999px; padding: 8px 15px 8px 11px; box-shadow: 0 4px 14px rgba(16,48,79,.20); cursor: pointer; }
+  #setupbtn .ric { width: 1.4em; height: 1.4em; margin-right: .3em; vertical-align: 0; }
