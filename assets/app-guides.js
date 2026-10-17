@@ -440,18 +440,21 @@ async function modelSearch(v) {
   modelMatches = d.matches || [];
   if (!modelMatches.length) {
     const buying = flowType === 'buy';
-    box.innerHTML = `<div class="note">We don't have that model in our catalog yet — we're adding computers as we research them, and ${buying ? 'the quiz' : 'the setup topics'} can still get you where you're going.</div>
+    box.innerHTML = `<div class="note">We don't have that model in our catalog yet — we're adding gear and computers as we research them, and ${buying ? 'the quiz' : 'the setup topics'} can still get you where you're going.</div>
       <button class="opt" onclick="${buying ? 'startLaptopBuy()' : 'startPcGuide()'}">${buying ? '💻 Take the buying quiz instead' : '🔧 Browse the setup topics'}</button>`;
     return;
   }
   box.innerHTML = modelMatches.map((m, i) =>
-    `<button class="opt" onclick="pickModel(${i})">${esc(m.name)}<small>${m.type === 'desktop'
+    `<button class="opt" onclick="pickModel(${i})">${esc(m.name)}<small>${m.kind === 'gear'
+      ? `${esc(m.brand || '')} · ${esc(m.type_label)} · ${m.price != null ? '$' + Number(m.price).toLocaleString() : 'specs page — no verified price yet'}`
+      : m.type === 'desktop'
       ? `${esc(m.brand)} · Desktop · ${esc(m.form_factor_label)} · ${esc(m.platform)} · from $${m.price.toLocaleString()}`
       : `${esc(m.brand)} · ${esc(m.platform)} · from $${m.price.toLocaleString()}`}</small></button>`).join('');
 }
 async function pickModel(i) {
   const m = modelMatches[i];
   if (!m) return;
+  if (m.kind === 'gear') { openGearPage(m.id, 'lookup'); return; }
   if (m.type === 'desktop') {
     if (flowType === 'buy') renderDesktopModelCard(m);
     else { guideBrand = (m.setup && m.setup.brand_key) || null;
