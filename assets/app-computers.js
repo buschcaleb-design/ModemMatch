@@ -168,13 +168,15 @@ function lrender() {
   let h = `<button class="back" onclick="${lstep === 0 ? 'backToFlowPick()' : 'lback()'}">← Back</button>`;
   h += `<p class="q">${Q.q}</p>`;
   h += '<div class="opt-grid">';
-  Q.opts().forEach(o => {
+  const lopts = Q.opts();
+  lopts.forEach((o, i) => {
+    const wide = i === lopts.length - 1 && lopts.length % 2 === 1 ? ' wide' : '';
     const icon = pcIconFor(Q.key, o.v);
     if (icon) {
       const t = o.t.replace(/^[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]\s*/u, '');
-      h += `<button class="opt has-icon" onclick="lpick('${Q.key}','${o.v}')"><span class="opt-ic">${icon}</span><span class="opt-txt">${t}${o.s ? `<small>${o.s}</small>` : ''}</span></button>`;
+      h += `<button class="opt has-icon${wide}" onclick="lpick('${Q.key}','${o.v}')"><span class="opt-ic">${icon}</span><span class="opt-txt">${t}${o.s ? `<small>${o.s}</small>` : ''}</span></button>`;
     } else {
-      h += `<button class="opt" onclick="lpick('${Q.key}','${o.v}')">${o.t}${o.s ? `<small>${o.s}</small>` : ''}</button>`;
+      h += `<button class="opt${wide}" onclick="lpick('${Q.key}','${o.v}')">${o.t}${o.s ? `<small>${o.s}</small>` : ''}</button>`;
     }
   });
   h += '</div>';
