@@ -7,7 +7,7 @@ let isps = [];
 // First screen: Buy New Gear / Set Up New Gear. Second: Internet / PC.
 // Then route into the matching existing flow.
 let flowType = 'buy';   // 'buy' | 'setup'
-const SECTION_IDS = ['home', 'flow-pick', 'isp-pick', 'quiz', 'results', 'guide', 'pc-guide', 'model-lookup', 'pairing', 'setup', 'disclaimers'];
+const SECTION_IDS = ['home', 'flow-pick', 'isp-pick', 'quiz', 'results', 'gear-page', 'guide', 'pc-guide', 'model-lookup', 'pairing', 'setup', 'disclaimers'];
 function hideAllSections() {
   SECTION_IDS.forEach(id => document.getElementById(id).style.display = 'none');
 }
@@ -208,7 +208,8 @@ function cardArt(kind) {
 // the slot rotates through them like a store gallery; until then the drawn
 // stand-in holds the slot.
 function cardGallery(kind, images, name) {
-  if (!images || !images.length) return cardArt(kind);
+  if (!images || !images.length)
+    return cardArt(kind) + `<p class="nophoto">📷 Sorry — we don't have a photo of this device yet. We only show photos we've verified are really this model, so until one checks out, our drawing stands in.</p>`;
   const enc = encodeURIComponent(JSON.stringify(images));
   const nav = images.length > 1 ? `<button class="galnav prev" onclick="galCycle(this,-1)" aria-label="Previous photo">‹</button><button class="galnav next" onclick="galCycle(this,1)" aria-label="Next photo">›</button><span class="galcount">1 / ${images.length}</span>` : '';
   return `<div class="pimg gal" data-imgs="${enc}" data-idx="0"><img src="${images[0]}" alt="${esc(name || 'Product photo')}" loading="lazy" onerror="galFallback(this,'${kind}')">${nav}</div>`;
@@ -242,12 +243,88 @@ function cardHTML(p, i, isHero) {
     ? `saves you $${p.saves_over_life} over ${p.life_years} years`
     : `WiFi upgrade — no rental fee on your plan`;
   const kind = p.type.includes('mesh') ? 'mesh' : p.type.includes('router') ? 'router' : 'modem';
+  const chips = [];
+  if (p.docsis) chips.push('DOCSIS · ' + p.docsis);
+  if (p.wifi) chips.push('Wi-Fi · ' + esc(p.wifi));
+  if (p.max_speed_mbps) chips.push('Top speed · ' + Number(p.max_speed_mbps).toLocaleString() + ' Mbps');
   return `<div class="card${isHero ? ' hero' : ''}"><span class="rank">#${i + 1} ${p.type.replace('_', ' ').toUpperCase()}</span>
     ${cardGallery(kind, p.images, p.name)}
     <h3>${p.name}</h3>
     <div class="price">$${p.price} <span class="permo">— ${saveLine}</span></div>
+    ${p.price_source ? `<p class="permo" style="color:#94a3b8;font-size:.78rem;margin:2px 0 0">Price via ${esc(p.price_source)}, checked Oct 2026</p>` : ''}
     <p class="why">${p.why}</p>
-    ${p.blurb ? `<p class="blurb">${p.blurb}</p>` : ''}</div>`;
+    ${p.blurb ? `<p class="blurb">${p.blurb}</p>` : ''}
+    ${factRowsHTML(chips)}
+    <button class="pairbtn" onclick="openGearPage('${p.id}','results')">📄 View its page</button></div>`;
+}
+
+// ------------------------------------------------------------ gear pages
+// Every networking catalog model has a page (Build .36), same treatment
+// as the PCs: gallery, the maker's specs as fact rows, an honest price
+// block, and what the ISPs charge to rent theirs instead.
+let gearBackTo = 'results';
+async function openGearPage(id, backTo) {
+  gearBackTo = backTo || 'results';
+  hideAllSections();
+  const el = document.getElementById('gear-page');
+  el.style.display = 'block';
+  el.innerHTML = `<button class="back" onclick="closeGearPage()">← Back</button><p class="sub">Loading…</p>`;
+  window.scrollTo(0, 0);
+  let g = null;
+  try {
+    const r = await fetch('/api/gear/' + encodeURIComponent(id));
+    if (r.ok) g = await r.json();
+  } catch (e) {}
+  if (!g) {
+    el.innerHTML = `<button class="back" onclick="closeGearPage()">← Back</button>
+      <div class="note">That model isn't in the catalog anymore.</div>`;
+    return;
+  }
+  el.innerHTML = gearPageHTML(g);
+  window.scrollTo(0, 0);
+}
+function closeGearPage() {
+  hideAllSections();
+  const target = gearBackTo === 'lookup' ? 'model-lookup' : 'results';
+  document.getElementById(target).style.display = 'block';
+  window.scrollTo(0, 0);
+}
+function gearPageHTML(g) {
+  const kind = g.type.includes('mesh') ? 'mesh' : g.type.includes('router') ? 'router' : 'modem';
+  const facts = [];
+  facts.push('Type · ' + g.type_label);
+  if (g.docsis) facts.push('DOCSIS · ' + g.docsis);
+  if (g.wifi) facts.push('Wi-Fi · ' + esc(g.wifi));
+  if (g.max_speed_mbps) facts.push('Top speed · ' + Number(g.max_speed_mbps).toLocaleString() + ' Mbps');
+  facts.push('Performance · ' + g.performance + ' / 10');
+  facts.push('Stability · ' + g.stability + ' / 10');
+  let priceBlock;
+  if (g.price != null) {
+    priceBlock = `<div class="price">$${Number(g.price).toLocaleString()}</div>
+      ${g.price_source ? `<p class="permo" style="color:#94a3b8;font-size:.78rem;margin:2px 0 0">Price via ${esc(g.price_source)}, checked ${esc(g.price_checked || 'Oct 2026')}</p>` : ''}`;
+  } else {
+    priceBlock = `<div class="note">No direct-store price yet — we only show prices we've verified at the store, so this one's page carries its specs until a price checks out.</div>`;
+  }
+  const ispRows = (g.compatible_isps || []).map(i => {
+    if (g.price != null && i.rental_fee_monthly > 0 && (g.type === 'modem' || g.type === 'combo' || g.type === 'dsl_modem')) {
+      const mo = Math.max(1, Math.ceil(g.price / i.rental_fee_monthly));
+      return `${esc(i.name)} · rents theirs for $${i.rental_fee_monthly}/mo — this pays for itself in ~${mo} months`;
+    }
+    return `${esc(i.name)} · works on this provider`;
+  });
+  const buyBtn = (g.price != null && g.price_url)
+    ? `<div class="buylinks"><a class="buybtn" href="${esc(g.price_url)}" target="_blank" rel="noopener">🛒 See it at ${esc(g.price_source || 'the store')}</a></div>` : '';
+  const makerBtn = g.source_url
+    ? `<p style="margin:10px 0 0"><a href="${esc(g.source_url)}" target="_blank" rel="noopener">Manufacturer's page ↗</a></p>` : '';
+  return `<button class="back" onclick="closeGearPage()">← Back</button>
+    <div class="card hero"><span class="rank">${esc(g.type_label).toUpperCase()}</span>
+    ${cardGallery(kind, g.images, g.name)}
+    <h3>${esc(g.name)}</h3>
+    ${priceBlock}
+    ${g.blurb ? `<p class="blurb">${esc(g.blurb)}</p>` : ''}
+    ${factRowsHTML(facts)}
+    ${ispRows.length ? `<p class="why" style="margin-top:12px">Works with:</p>${factRowsHTML(ispRows)}` : ''}
+    ${buyBtn}${makerBtn}</div>`;
 }
 
 function renderResults() {
