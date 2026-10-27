@@ -685,14 +685,13 @@ def api_recommend_laptops():
             if cs:
                 bullets.append(
                     f"For your kid: {l['platform']} parental controls run "
-                    f"through {cs} — the setup page (button at the bottom "
-                    "of these results) walks through the child account, "
-                    "limits, and approvals.")
+                    f"through {cs} — that's where the child account, "
+                    "limits, and approvals live.")
             else:
                 bullets.append(
                     "For your kid: this platform has built-in parental "
-                    "controls — the setup page (button at the bottom of "
-                    "these results) walks through them.")
+                    "controls — worth turning on before you hand "
+                    "it over.")
         return bullets
 
     scored = []
@@ -1201,14 +1200,13 @@ def api_recommend_desktops():
             if cs:
                 bullets.append(
                     f"For your kid: {d['platform']} parental controls run "
-                    f"through {cs} — the setup page (button at the bottom "
-                    "of these results) walks through the child account, "
-                    "limits, and approvals.")
+                    f"through {cs} — that's where the child account, "
+                    "limits, and approvals live.")
             else:
                 bullets.append(
                     "For your kid: this platform has built-in parental "
-                    "controls — the setup page (button at the bottom of "
-                    "these results) walks through them.")
+                    "controls — worth turning on before you hand "
+                    "it over.")
         return bullets
 
     scored = []
