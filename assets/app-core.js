@@ -4,26 +4,24 @@ const answers = {};
 let isps = [];
 
 // ------------------------------------------------------------- front door
-// First screen: Buy New Gear / Set Up New Gear. Second: Internet / PC.
+// First screen: Buy New Gear. Second: Internet / PC / Home Theater.
 // Then route into the matching existing flow.
-let flowType = 'buy';   // 'buy' | 'setup'
-const SECTION_IDS = ['home', 'flow-pick', 'isp-pick', 'quiz', 'results', 'gear-page', 'theater', 'guide', 'pc-guide', 'model-lookup', 'pairing', 'setup', 'disclaimers'];
+const SECTION_IDS = ['home', 'flow-pick', 'quiz', 'results', 'gear-page', 'theater', 'model-lookup', 'pairing', 'setup', 'disclaimers'];
 function hideAllSections() {
   SECTION_IDS.forEach(id => document.getElementById(id).style.display = 'none');
 }
-function chooseFlow(f) { flowType = f; renderFlowPick(); }
+function chooseFlow() { renderFlowPick(); }
 function renderFlowPick() {
   if (typeof setScene === 'function') setScene('');
   hideAllSections();
   const el = document.getElementById('flow-pick');
   el.style.display = 'block';
-  const buying = flowType === 'buy';
   el.innerHTML = `<button class="back" onclick="backHome()">← Back</button>
-    <p class="q">${buying ? 'What are you buying?' : 'What are you setting up?'}</p>
+    <p class="q">What are you buying?</p>
     <div class="opt-grid">
-    <button class="opt flowrow" onclick="routeFlow('internet')"><span class="big-ico">${rico('globe')}</span><span class="opt-txt">Internet<small>${buying ? 'Modems, routers & mesh — ditch the ISP rental fee' : 'Activate and set up your modem or router, step by step'}</small></span></button>
-    <button class="opt flowrow" onclick="routeFlow('pc')"><span class="big-ico">${rico('laptop')}</span><span class="opt-txt">PC<small>${buying ? "Laptops & desktops matched to how you'll actually use them" : 'First-boot walkthroughs, brand setup tools & kid setup'}</small></span></button>
-    <button class="opt wide flowrow" onclick="routeFlow('theater')"><span class="big-ico">${rico('tv')}</span><span class="opt-txt">Home Theater<small>${buying ? 'TVs & sound — matched to your room and your couch' : 'TV and sound setup, step by step'}</small></span></button>
+    <button class="opt flowrow" onclick="routeFlow('internet')"><span class="big-ico">${rico('globe')}</span><span class="opt-txt">Internet<small>Modems, routers & mesh — ditch the ISP rental fee</small></span></button>
+    <button class="opt flowrow" onclick="routeFlow('pc')"><span class="big-ico">${rico('laptop')}</span><span class="opt-txt">PC<small>Laptops & desktops matched to how you'll actually use them</small></span></button>
+    <button class="opt wide flowrow" onclick="routeFlow('theater')"><span class="big-ico">${rico('tv')}</span><span class="opt-txt">Home Theater<small>TVs & sound — matched to your room and your couch</small></span></button>
     </div>
     <p class="orline">— or —</p>
     <button class="opt flowrow" onclick="startModelLookup()"><span class="big-ico">${rico('search')}</span><span class="opt-txt">Know your model?<small>Type the name — or the model number off the box — and jump straight to it</small></span></button>`;
@@ -32,23 +30,15 @@ function renderFlowPick() {
 function backToFlowPick() { renderFlowPick(); }
 function routeFlow(kind) {
   if (kind === 'theater') { showTheater(); return; }
-  if (flowType === 'buy') {
-    if (kind === 'internet') startBuy(); else startLaptopBuy();
-  } else {
-    if (kind === 'internet') startSetup();
-    else { guideBrand = null; startPcGuide(); }   // generic entry: no model context
-  }
+  if (kind === 'internet') startBuy(); else startLaptopBuy();
 }
 function showTheater() {
   hideAllSections();
   const el = document.getElementById('theater');
   el.style.display = 'block';
-  const buying = flowType === 'buy';
   el.innerHTML = `<button class="back" onclick="backToFlowPick()">← Back</button>
     <p class="q"><span class="big-ico">${rico('tv')}</span>Home Theater</p>
-    <div class="note">🚧 <b>We're stocking this aisle now.</b> ${buying
-      ? 'TVs and sound are next — picked the same way as everything else here: real prices we verified at the store, specs from the maker, and matched to your room instead of a spec sheet.'
-      : 'TV and sound setup guides are coming with this aisle — same step-by-step style as the internet and PC guides.'}</div>
+    <div class="note">🚧 <b>We're stocking this aisle now.</b> TVs and sound are next — picked the same way as everything else here: real prices we verified at the store, specs from the maker, and matched to your room instead of a spec sheet.</div>
     <p class="factline">On the way: TVs by room size and light · soundbars & speakers · the "will it fit my stand?" check</p>
     <p class="factline">Nothing is listed until its price is verified — that's the rule everywhere in this store.</p>`;
   window.scrollTo(0, 0);
@@ -423,17 +413,10 @@ function renderResults() {
     h += listHTML(sortedPicks());
   }
   meta.notes.forEach(n => { h += `<div class="note">${n}</div>`; });
-  h += `<button class="restart" onclick="showGuide()">🔧 Guide me through setup</button>`;
   h += `<button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
   r.innerHTML = h;
   window.scrollTo(0, 0);
 }
-
-let guide = null, guideLevel = 'basic', guideMethod = 'online';
-
-let guideFrom = 'results';
-let setupGear = 'separate';
-let guideStep = 'activate';
 
 function backHome() {
   setPageTheme('everyday');
@@ -450,123 +433,6 @@ function startBuy() {
   step = 0;
   render();
 }
-// Setup flow: ISP -> gear type -> activation -> (Next) -> instructions
-function startSetup() {
-  if (typeof setScene === 'function') setScene('');
-  setPageTheme('store');
-  document.getElementById('home').style.display = 'none';
-  document.getElementById('flow-pick').style.display = 'none';
-  const el = document.getElementById('isp-pick');
-  el.style.display = 'block';
-  let h = `<button class="back" onclick="backToFlowPick()">← Back</button>
-           <p class="q">Who's your internet provider?</p>`;
-  isps.forEach(i => {
-    const conn = i.connection === 'fiber' ? 'Fiber' : i.connection === 'dsl' ? 'DSL' : 'Cable';
-    h += `<button class="opt has-logo" onclick="pickGear('${i.id}')"><img class="opt-logo" src="/assets/logos/${i.id}.${logoExt(i.id)}" alt="" onerror="this.style.display='none'"><span class="opt-txt"><span class="opt-name">${i.name}</span><small>${conn}</small></span></button>`;
-  });
-  el.innerHTML = h;
-  window.scrollTo(0, 0);
-}
-function pickGear(ispId) {
-  const el = document.getElementById('isp-pick');
-  el.innerHTML = `<button class="back" onclick="startSetup()">← Back</button>
-    <p class="q">What kind of setup do you have?</p>
-    <button class="opt" onclick="guideFrom='isp-pick';setupGear='separate';openGuide('${ispId}')">🔌 Separate modem + router<small>Two boxes. Best performance and reliability — a bit more to manage.</small></button>
-    <button class="opt" onclick="guideFrom='isp-pick';setupGear='combo';openGuide('${ispId}')">📦 All-in-one box<small>One box does both. Easiest to set up — but you replace the whole thing at upgrade time.</small></button>`;
-  window.scrollTo(0, 0);
-}
-async function showGuide() {
-  guideFrom = 'results';
-  document.getElementById('results').style.display = 'none';
-  openGuide(meta.isp_id);
-}
-async function openGuide(ispId) {
-  document.getElementById('isp-pick').style.display = 'none';
-  const g = document.getElementById('guide');
-  g.style.display = 'block';
-  g.innerHTML = `<div class="loading"><span class="dots">Loading your guide</span></div>`;
-  guide = await fetch('/api/setup-guide/' + ispId + '?gear=' + setupGear).then(x => x.json());
-  meta.isp = guide.isp; meta.isp_id = ispId;
-  guideStep = 'activate';
-  guideLevel = 'basic';
-  guideMethod = (guide.activation.online && guide.activation.online.allowed) ? 'online' : 'phone';
-  renderGuide();
-}
-function renderGuide() {
-  if (guideStep === 'activate') renderActivation();
-  else renderInstructions();
-}
-function guideSub() {
-  return `${guide.isp} · ${guide.gear === 'combo' ? 'All-in-one box' : 'Separate modem + router'}`;
-}
-function backTarget() {
-  // where the top back button goes from the activation screen
-  return guideFrom === 'results' ? 'backFromGuide()' : "pickGear('" + meta.isp_id + "')";
-}
-function backLabel() {
-  return guideFrom === 'results' ? '← Back to picks' : '← Back';
-}
-function renderActivation() {
-  const g = document.getElementById('guide');
-  const act = guide.activation;
-  let h = `<button class="back" onclick="${backTarget()}">${backLabel()}</button>
-    <h1>Activate your <span class="accent">modem</span></h1>
-    <p class="sub">${guideSub()}</p>`;
-  h += `<div class="sortrow">`;
-  if (act.online && act.online.allowed)
-    h += `<button class="sort${guideMethod === 'online' ? ' on' : ''}" onclick="guideMethod='online';renderGuide()">🌐 Do it online</button>`;
-  h += `<button class="sort${guideMethod === 'phone' ? ' on' : ''}" onclick="guideMethod='phone';renderGuide()">📞 Call them</button></div>`;
-  if (guideMethod === 'online' && act.online && act.online.allowed) {
-    h += `<div class="have">Go to <strong>${act.online.url}</strong> and follow these steps:</div>`;
-    act.online.steps.forEach((s, i) => {
-      h += `<div class="gstep"><span class="stepnum">${i + 1}</span><p>${s}</p></div>`;
-    });
-  } else {
-    h += `<div class="have">Call <strong class="bignum">${act.phone.number}</strong><br>Have ready:<br>• ${act.phone.have_ready.join('<br>• ')}</div>`;
-  }
-  h += `<button class="restart" onclick="guideStep='instructions';stepIdx=0;renderGuide()">Next: setup instructions →</button>`;
-  g.innerHTML = h;
-  window.scrollTo(0, 0);
-}
-let stepIdx = 0;
-function renderInstructions() {
-  const steps = guideLevel === 'basic' ? guide.basic : guide.advanced;
-  if (stepIdx >= steps.length) stepIdx = steps.length - 1;
-  if (stepIdx < 0) stepIdx = 0;
-  const s = steps[stepIdx];
-  const g = document.getElementById('guide');
-  let h = `<button class="back" onclick="guideStep='activate';renderGuide()">← Back to activation</button>
-    <h1>${guideLevel === 'basic' ? 'Basic' : 'Advanced'} <span class="accent">setup</span></h1>
-    <p class="sub">${guideSub()} · Step ${stepIdx + 1} of ${steps.length}</p>
-    <div class="sortrow">
-      <button class="sort${guideLevel === 'basic' ? ' on' : ''}" onclick="guideLevel='basic';stepIdx=0;renderInstructions()">🙂 Basic</button>
-      <button class="sort${guideLevel === 'advanced' ? ' on' : ''}" onclick="guideLevel='advanced';stepIdx=0;renderInstructions()">🧰 Advanced</button>
-    </div>
-    <div class="progress"><i style="width:${Math.round((stepIdx + 1) / steps.length * 100)}%"></i></div>
-    <div class="gstep"><span class="stepnum">${stepIdx + 1}</span><div><h3>${s.title}</h3><p>${s.body}</p></div></div>`;
-  if (s.video_id && s.video_id !== 'REPLACE_ME')
-    h += `<div class="vid"><iframe src="https://www.youtube-nocookie.com/embed/${s.video_id}?start=${s.video_start || 0}&rel=0" title="${s.title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`;
-  else
-    h += `<div class="vid soon">🎥 Walkthrough video coming soon</div>`;
-  h += `<div class="sortrow">`;
-  if (stepIdx > 0) h += `<button class="sort" onclick="stepIdx--;renderInstructions()">← Back</button>`;
-  if (stepIdx < steps.length - 1) h += `<button class="sort on" onclick="stepIdx++;renderInstructions()">Next →</button>`;
-  else h += `<button class="sort on" onclick="backHome()">Done ✓</button>`;
-  h += `</div>`;
-  g.innerHTML = h;
-  window.scrollTo(0, 0);
-}
-function backFromGuide() {
-  document.getElementById('guide').style.display = 'none';
-  if (guideFrom === 'results') {
-    document.getElementById('results').style.display = 'block';
-  } else {
-    backHome();
-  }
-  window.scrollTo(0, 0);
-}
-
-
 async function finish() {
   document.getElementById('quiz').style.display = 'none';
   const r = document.getElementById('results');
@@ -601,15 +467,66 @@ function setPageTheme(name) {
   else delete document.body.dataset.theme;
 }
 
-// Setup themes: each OS has a plain "first look" (stage 1) that evolves
-// into its full modern look (stage 2) as the setup wizard advances.
-const OS_THEMES = { windows_11: ['win98', 'winxp', 'win11'], macos: ['mac-classic', 'mac-aqua', 'mac-modern'],
-                    chromeos: ['chrome-early', 'chrome-mid', 'chromeos'] };
-function setOsTheme(key, stage, frac) {
-  const t = OS_THEMES[key];
-  if (!t) return;
-  // Long ladders (Windows generations) map the wizard's progress onto the
-  // whole ladder, oldest first, newest on the final screen.
-  if (typeof frac === 'number' && t.length > 2) setPageTheme(t[Math.round(frac * (t.length - 1))]);
-  else setPageTheme(t[stage === 2 ? t.length - 1 : 0]);
+// ------------------------------------------ Know your model? lookup
+// Type a name — or the model number off the box or sticker — and jump
+// straight to that model's card.
+let modelMatches = [], modelTimer = null;
+function startModelLookup() {
+  hideAllSections();
+  const el = document.getElementById('model-lookup');
+  el.style.display = 'block';
+  el.innerHTML = `<button class="back" onclick="backToFlowPick()">← Back</button>
+    <p class="q">Know your model?</p>
+    <p class="sub">Type the name — or the model number off the box or sticker — and we'll pull it right up.</p>
+    <input class="minput" id="mq" type="text" placeholder="e.g. Katana, CX34, Inspiron…" autocomplete="off" oninput="modelType(this.value)">
+    <div id="mresults"></div>`;
+  window.scrollTo(0, 0);
+  const inp = document.getElementById('mq');
+  if (inp && inp.focus) inp.focus();
+}
+function modelType(v) {
+  clearTimeout(modelTimer);
+  modelTimer = setTimeout(() => modelSearch(v), 180);
+}
+async function modelSearch(v) {
+  const box = document.getElementById('mresults');
+  const q = (v || '').trim();
+  if (q.length < 2) { box.innerHTML = ''; return; }
+  const d = await fetch('/api/laptop-search?q=' + encodeURIComponent(q)).then(x => x.json());
+  modelMatches = d.matches || [];
+  if (!modelMatches.length) {
+    box.innerHTML = `<div class="note">We don't have that model in our catalog yet — we're adding gear and computers as we research them, and the quiz can still get you where you're going.</div>
+      <button class="opt" onclick="startLaptopBuy()">💻 Take the buying quiz instead</button>`;
+    return;
+  }
+  box.innerHTML = modelMatches.map((m, i) =>
+    `<button class="opt" onclick="pickModel(${i})">${esc(m.name)}<small>${m.kind === 'gear'
+      ? `${esc(m.brand || '')} · ${esc(m.type_label)} · ${m.price != null ? '$' + Number(m.price).toLocaleString() : 'specs page — no verified price yet'}`
+      : m.type === 'desktop'
+      ? `${esc(m.brand)} · Desktop · ${esc(m.form_factor_label)} · ${esc(m.platform)} · from $${m.price.toLocaleString()}`
+      : `${esc(m.brand)} · ${esc(m.platform)} · from $${m.price.toLocaleString()}`}</small></button>`).join('');
+}
+async function pickModel(i) {
+  const m = modelMatches[i];
+  if (!m) return;
+  if (m.kind === 'gear') { openGearPage(m.id, 'lookup'); return; }
+  if (m.type === 'desktop') { renderDesktopModelCard(m); return; }
+  renderModelCard(m);
+}
+function renderModelCard(m) {
+  setPageTheme('laptop');
+  hideAllSections();
+  const r = document.getElementById('results');
+  r.style.display = 'block';
+  laptopRes = { recommendations: [m], notes: [], kid: false,
+                query: { use: 'everyday', os: 'any', screen: 'any',
+                         budget: 'any', snapdragon: 'unsure', usage: 'light' } };
+  ltwoInOne = false; lbattery = false; lshowAll = false;
+  r.innerHTML = `<button class="back" onclick="startModelLookup()">← Search again</button>
+    <h1>Your <span class="accent">model</span></h1>
+    ${laptopCardHTML(m, 0, true, '🔎 YOUR MODEL')}
+    <button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>
+    <button class="opt" onclick="startLaptopBuy()">💻 Not the one? Take the laptop quiz<small>Answer a few questions and we'll match you</small></button>
+    <button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
+  window.scrollTo(0, 0);
 }

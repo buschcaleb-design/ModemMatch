@@ -839,10 +839,6 @@ if (location.hash && location.hash.indexOf('#setup=') === 0)
 // section visibility, so the previous section's DOM and state are intact.
 let discReturn = { section: 'home', y: 0 };
 async function openDisclaimers() {
-  if (!pcGuides) {
-    try { pcGuides = await fetch('/api/laptop-guides').then(x => x.json()); }
-    catch (e) { /* page still renders its static sections */ }
-  }
   const cur = SECTION_IDS.find(id => id !== 'disclaimers' &&
     document.getElementById(id).style.display !== 'none');
   discReturn = { section: cur || 'home', y: window.scrollY || 0 };
@@ -866,7 +862,7 @@ function renderDisclaimers() {
   const el = document.getElementById('disclaimers');
   let h = `<button class="back" onclick="closeDisclaimers()">← Back</button>
     <h1>Disclaimers</h1>
-    <p class="sub">The fine print, all in one place: what our data is based on, where it can differ from the screen in front of you, and what we couldn't verify. The guides themselves only keep the notes that change what you should do.</p>`;
+    <p class="sub">The fine print, all in one place: what our data is based on, where it can differ from the screen in front of you, and what we couldn't verify.</p>`;
   h += discSection('What we don\'t cover yet', [
     "ByteMatch covers whole computers and networking gear — not individual PC parts. We don't work with standalone components like CPUs, graphics cards, motherboards, or cases today. Parts may be added at a later date; when they are, they'll get the same research-first treatment as everything else here.",
   ]);
@@ -879,21 +875,6 @@ function renderDisclaimers() {
     "Rental fees and savings figures come from each provider's published equipment fees in our data, checked in October 2026. Promotions, bundles, and regional pricing can change what you actually pay — your own bill is the source of truth.",
     "Modem and router compatibility is checked against each provider's published approved-device information. A provider can change its list at any time, so confirm on the provider's site before you buy.",
   ]);
-  const sg = pcGuides && pcGuides.setup_guides;
-  if (sg && sg.os_flows) {
-    const labels = { windows_11: 'Setup guides — Windows 11', macos: 'Setup guides — macOS', chromeos: 'Setup guides — ChromeOS' };
-    Object.keys(labels).forEach(k => {
-      if (sg.os_flows[k]) h += discSection(labels[k], sg.os_flows[k].disclaimers);
-    });
-  }
-  const par = pcGuides && pcGuides.parental_controls;
-  if (par && par.platforms) {
-    const all = [];
-    Object.keys(par.platforms).forEach(k => {
-      (par.platforms[k].disclaimers || []).forEach(n => all.push(n));
-    });
-    h += discSection('Parental controls', all);
-  }
   el.innerHTML = h;
 }
 
