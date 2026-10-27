@@ -63,7 +63,7 @@ const LAPTOP_QUESTIONS = [
   { key: 'kid', q: "Is this laptop for a kid?",
     opts: () => [
       { v: 'no', t: 'No' },
-      { v: 'yes', t: 'Yes', s: "We'll include the parental-control setup path with your picks" } ] },
+      { v: 'yes', t: 'Yes' } ] },
   { key: 'eco_wants', q: "Do you want your devices to work together?",
     opts: () => [
       { v: 'yes', t: 'Yes', s: 'Phone, TV, smartwatch, and laptop playing nice together' },
@@ -147,7 +147,7 @@ function setScene(html) {
 function lvisible() { return LAPTOP_QUESTIONS.filter(q => !q.when || q.when()); }
 function startLaptopBuy() {
   setPageTheme('laptop');
-  ['home', 'results', 'guide', 'isp-pick', 'flow-pick', 'pc-guide'].forEach(id => document.getElementById(id).style.display = 'none');
+  ['home', 'results', 'flow-pick'].forEach(id => document.getElementById(id).style.display = 'none');
   document.getElementById('quiz').style.display = 'block';
   Object.keys(lanswers).forEach(k => delete lanswers[k]);
   lstep = 0;
@@ -214,16 +214,6 @@ function laptopWhyHTML(p) {
   if (!bullets.length) return '';
   return `<details class="setupbox"><summary>💡 Why we picked this laptop</summary>
     <ul class="whylist">${bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul></details>`;
-}
-async function goLaptopSetup() {
-  // Results screen is for deciding; the setup page is for doing. Land in
-  // the PC guides browser with the top pick's OS preselected.
-  const top = laptopRes && laptopRes.recommendations && laptopRes.recommendations[0];
-  guideBrand = (top && top.setup && top.setup.brand_key) || null;
-  await startPcGuide();
-  if (top && top.setup && top.setup.os_key &&
-      pcGuides.setup_guides.os_flows[top.setup.os_key])
-    renderPcFormFactor(top.setup.os_key);
 }
 function fullSpecsHTML(p) {
   // The verbatim maker spec text, kept one tap away now that the
@@ -318,7 +308,6 @@ function renderLaptopResults() {
     }
   }
   laptopRes.notes.forEach(n => { h += `<div class="note">${esc(n)}</div>`; });
-  h += `<button class="opt setupcta" onclick="goLaptopSetup()">🔧 Set up your new laptop<small>First boot, brand setup tools${laptopRes.kid ? ', and parental controls' : ''} — step by step, on the setup page</small></button>`;
   h += `<button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>`;
   h += `<button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
   r.innerHTML = h;
@@ -394,7 +383,7 @@ const DESKTOP_QUESTIONS = [
   { key: 'kid', q: "Is this desktop for a kid?",
     opts: () => [
       { v: 'no', t: 'No' },
-      { v: 'yes', t: 'Yes', s: "We'll include the parental-control setup path with your picks" } ] },
+      { v: 'yes', t: 'Yes' } ] },
   { key: 'eco_wants', q: "Do you want your devices to work together?",
     opts: () => [
       { v: 'yes', t: 'Yes', s: 'Phone, TV, smartwatch, and computer playing nice together' },
@@ -512,19 +501,6 @@ function desktopWhyHTML(p) {
   return `<details class="setupbox"><summary>💡 Why we picked this desktop</summary>
     <ul class="whylist">${bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul></details>`;
 }
-async function goDesktopSetup() {
-  // Land in the PC guides browser on the Tower path, with the top
-  // pick's OS preselected. (A pick with no OS flow of its own — the
-  // DGX specialist — lands on the general setup menu instead.)
-  const top = sortedDesktopPicks()[0];
-  guideBrand = (top && top.setup && top.setup.brand_key) || null;
-  await startPcGuide();
-  if (top && top.setup && top.setup.os_key &&
-      pcGuides.setup_guides.os_flows[top.setup.os_key])
-    renderPcTower(top.setup.os_key);
-  else
-    renderPcMenu();
-}
 function desktopCardHTML(p, i, isTop, rankLabel) {
   const [badge, badgeCls] = desktopBadge(p);
   const chips = [];
@@ -580,7 +556,6 @@ function renderDesktopResults() {
     }
   }
   desktopRes.notes.forEach(n => { h += `<div class="note">${esc(n)}</div>`; });
-  h += `<button class="opt setupcta" onclick="goDesktopSetup()">🔧 Set up your new desktop<small>First boot, brand setup tools${desktopRes.kid ? ', and parental controls' : ''} — step by step, on the setup page</small></button>`;
   h += `<button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>`;
   h += `<button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
   r.innerHTML = h;
@@ -620,7 +595,6 @@ function renderDesktopModelCard(m) {
   r.innerHTML = `<button class="back" onclick="startModelLookup()">← Search again</button>
     <h1>Your <span class="accent">model</span></h1>
     ${desktopCardHTML(m, 0, true, '🔎 YOUR MODEL')}
-    <button class="opt setupcta" onclick="goDesktopSetup()">🔧 Set up your new desktop<small>First boot, brand setup tools — step by step, on the setup page</small></button>
     <button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>
     <button class="opt" onclick="startLaptopBuy()">💻 Not the one? Take the buying quiz<small>Answer a few questions and we'll match you</small></button>
     <button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
