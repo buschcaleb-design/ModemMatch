@@ -6,7 +6,7 @@ let isps = [];
 // ------------------------------------------------------------- front door
 // First screen: Buy New Gear. Second: Internet / PC / Home Theater.
 // Then route into the matching existing flow.
-const SECTION_IDS = ['home', 'flow-pick', 'quiz', 'results', 'gear-page', 'theater', 'model-lookup', 'pairing', 'setup', 'disclaimers'];
+const SECTION_IDS = ['home', 'flow-pick', 'quiz', 'results', 'browse', 'gear-page', 'theater', 'model-lookup', 'pairing', 'setup', 'disclaimers'];
 function hideAllSections() {
   SECTION_IDS.forEach(id => document.getElementById(id).style.display = 'none');
 }
@@ -458,7 +458,8 @@ async function openGearPage(id, backTo) {
 function closeGearPage() {
   hideAllSections();
   const target = gearBackTo === 'lookup' ? 'model-lookup'
-    : gearBackTo === 'setup' ? 'setup' : gearBackTo === 'home' ? 'home' : 'results';
+    : gearBackTo === 'setup' ? 'setup' : gearBackTo === 'home' ? 'home'
+    : gearBackTo === 'browse' ? 'browse' : 'results';
   document.getElementById(target).style.display = 'block';
   window.scrollTo(0, 0);
 }
@@ -726,3 +727,235 @@ async function loadShowcase() {
   showGo(0);
 }
 loadShowcase();
+
+// ---------------------------------------------------------- Build Your Own
+// The free-browse aisle (Caleb, 2026-10-29): straight to a results-style
+// page with the WHOLE catalog on it — no quiz, no guided path. Shoppers
+// narrow it themselves: category tabs, brand, price cap, free-text
+// search, the factual specs each category actually carries, and their
+// own sort. Anything they like goes to the same Saved lists the rest of
+// the site uses (gear saves + computer setups), and Saved is where the
+// buy links live. Categories are data-driven: a new catalog category
+// (home theater, when it exists) joins by adding a BROWSE_CATS entry.
+const BROWSE_CATS = [
+  { id: 'all', label: 'Everything' },
+  { id: 'gear', label: 'Networking' },
+  { id: 'laptop', label: 'Laptops' },
+  { id: 'desktop', label: 'Desktops' },
+];
+const BROWSE_PAGE = 24;
+let browseItems = null, browseLoading = false;
+let browseF = { cat: 'all', q: '', brand: '', maxPrice: '', sort: 'featured',
+                gearType: '', wifi: '', docsis: '', screen: '', ram: '', storage: '' };
+let browseShown = BROWSE_PAGE;
+
+function browseKindOf(it) {
+  return it.kind === 'gear'
+    ? (it.type.includes('mesh') ? 'mesh' : it.type.includes('router') ? 'router' : 'modem')
+    : it.type;
+}
+function browseWifiGen(w) {
+  if (!w) return '';
+  const t = String(w).toLowerCase();
+  if (t.includes('wifi 7') || t.includes('802.11be') || /\bbe\b/.test(t)) return 'Wi-Fi 7';
+  if (t.includes('wifi 6e') || t.includes('6e')) return 'Wi-Fi 6E';
+  if (t.includes('wifi 6') || t.includes('802.11ax') || t.includes(' ax')) return 'Wi-Fi 6';
+  if (t.includes('wifi 5') || t.includes('802.11ac') || /^ac\d/.test(t)) return 'Wi-Fi 5';
+  return 'Earlier Wi-Fi';
+}
+function browseNormalize(raw) {
+  return raw.map(it => {
+    const n = { ...it };
+    n.cat = it.kind === 'gear' ? 'gear' : it.type;   // gear | laptop | desktop
+    n.wifiGen = it.kind === 'gear' ? browseWifiGen(it.wifi) : '';
+    n.rating = it.kind === 'gear'
+      ? ((it.performance || 0) + (it.stability || 0)) / 2 : null;
+    n.searchText = (it.name + ' ' + (it.brand || '') + ' ' +
+      (it.type_label || it.laptop_category || it.desktop_category || '')).toLowerCase();
+    return n;
+  });
+}
+// Browse gallery: the shared cardGallery, hardened for this view only —
+// empty strings and duplicate URLs are dropped first so a card can never
+// render an empty photo slot (the drawn stand-in takes the slot instead).
+function browseGallery(it) {
+  const imgs = [...new Set((it.images || []).filter(u => typeof u === 'string' && u.trim()))];
+  return cardGallery(browseKindOf(it), imgs, it.name);
+}
+async function openBrowse() {
+  if (typeof setScene === 'function') setScene('');
+  hideAllSections();
+  const el = document.getElementById('browse');
+  el.style.display = 'block';
+  window.scrollTo(0, 0);
+  if (browseItems) { renderBrowse(); return; }
+  el.innerHTML = `<button class="back" onclick="backHome()">← Back</button>
+    <div class="loading"><span class="dots">Stocking the shelves</span></div>`;
+  if (browseLoading) return;
+  browseLoading = true;
+  try {
+    const d = await fetch('/api/catalog').then(x => x.json());
+    browseItems = browseNormalize(d.items || []);
+  } catch (e) { browseItems = null; }
+  browseLoading = false;
+  if (!browseItems) {
+    el.innerHTML = `<button class="back" onclick="backHome()">← Back</button>
+      <div class="note">The shelves didn't load — check your connection and try again.</div>
+      <button class="opt" onclick="openBrowse()">↻ Try again</button>`;
+    return;
+  }
+  renderBrowse();
+}
+function browsePool() {
+  return browseF.cat === 'all' ? browseItems
+    : browseItems.filter(it => it.cat === browseF.cat);
+}
+function browseFiltered() {
+  const f = browseF;
+  let list = browsePool().filter(it => {
+    if (f.q && !it.searchText.includes(f.q)) return false;
+    if (f.brand && it.brand !== f.brand) return false;
+    if (f.maxPrice !== '' && (it.price == null || it.price > Number(f.maxPrice))) return false;
+    if (it.cat === 'gear') {
+      if (f.gearType && it.type !== f.gearType) return false;
+      if (f.wifi && it.wifiGen !== f.wifi) return false;
+      if (f.docsis && it.docsis !== f.docsis) return false;
+    }
+    if (it.cat === 'laptop' && f.screen) {
+      const d = it.display_inches;
+      if (d == null) return false;
+      if (f.screen === '13-14' && d > 14.5) return false;
+      if (f.screen === '15-16' && (d <= 14.5 || d > 16.5)) return false;
+      if (f.screen === '17plus' && d <= 16.5) return false;
+    }
+    if (it.cat !== 'gear') {
+      if (f.ram && !(it.ram_max_gb >= Number(f.ram))) return false;
+      if (f.storage && !(it.storage_max_gb >= Number(f.storage))) return false;
+    }
+    return true;
+  });
+  const priced = it => it.price == null ? Infinity : it.price;
+  if (f.sort === 'price-asc') list.sort((a, b) => priced(a) - priced(b));
+  else if (f.sort === 'price-desc') list.sort((a, b) => (b.price || -1) - (a.price || -1));
+  else if (f.sort === 'rating') list.sort((a, b) => (b.rating || -1) - (a.rating || -1) || priced(a) - priced(b));
+  else if (f.sort === 'name') list.sort((a, b) => a.name.localeCompare(b.name));
+  else list.sort((a, b) => priced(a) - priced(b));   // featured: priced first, low to high
+  return list;
+}
+function browseSet(patch) {
+  Object.assign(browseF, patch);
+  browseShown = BROWSE_PAGE;
+  renderBrowse();
+}
+function browseCat(id) {
+  browseSet({ cat: id, brand: '', gearType: '', wifi: '', docsis: '',
+              screen: '', ram: '', storage: '' });
+}
+function browseReset() {
+  browseF = { cat: 'all', q: '', brand: '', maxPrice: '', sort: 'featured',
+              gearType: '', wifi: '', docsis: '', screen: '', ram: '', storage: '' };
+  browseShown = BROWSE_PAGE;
+  renderBrowse();
+}
+function browseSel(id, label, val, opts) {
+  const o = opts.map(([v, t]) =>
+    `<option value="${esc(v)}"${String(v) === String(val) ? ' selected' : ''}>${esc(t)}</option>`).join('');
+  return `<label class="bf-field"><span>${label}</span><select class="bsel" id="${id}" onchange="browseSet({${id.replace('bf-', '')}: this.value})">${o}</select></label>`;
+}
+function browseCardHTML(it) {
+  const chips = [];
+  let priceHTML, actions;
+  if (it.cat === 'gear') {
+    if (it.docsis) chips.push('DOCSIS · ' + it.docsis);
+    if (it.wifi) chips.push('Wi-Fi · ' + esc(it.wifi));
+    if (it.max_speed_mbps) chips.push('Top speed · ' + Number(it.max_speed_mbps).toLocaleString() + ' Mbps');
+    chips.push('Performance · ' + it.performance + ' / 10');
+    chips.push('Stability · ' + it.stability + ' / 10');
+    priceHTML = it.price != null
+      ? `<div class="price">$${Number(it.price).toLocaleString()}${it.price_source ? ` <span class="permo">— via ${esc(it.price_source)}, checked Oct 2026</span>` : ''}</div>`
+      : `<div class="price" style="color:var(--muted);font-size:.95rem">No verified price yet</div>`;
+    actions = `<button class="pairbtn" onclick="openGearPage('${it.id}','browse')">📄 View its page</button>
+      <button class="pairbtn savebtn" data-savegear="${it.id}" onclick="toggleSaveGear(this,'${it.id}')">${saveBtnHTML(it.id)}</button>`;
+  } else {
+    if (it.cat === 'laptop' && it.display_inches) chips.push('Screen · ' + it.display_inches + '″');
+    if (it.cat === 'desktop' && it.form_factor_label) chips.push('Case · ' + esc(it.form_factor_label));
+    if (it.cpu_short) chips.push('Processor · ' + esc(it.cpu_short));
+    if (it.ram_short) chips.push('Memory · ' + esc(it.ram_short));
+    if (it.storage_short) chips.push('Storage · ' + esc(it.storage_short));
+    if (it.gpu_short) chips.push('Graphics · ' + esc(it.gpu_short));
+    priceHTML = `<div class="price">from $${Number(it.price).toLocaleString()}${it.price_max ? ` <span class="permo">— up to $${Number(it.price_max).toLocaleString()} configured</span>` : ''}</div>`;
+    const openFn = it.cat === 'desktop' ? 'renderDesktopModelCard' : 'renderModelCard';
+    actions = `<button class="pairbtn" onclick="browseOpenComputer('${it.cat}','${it.id}')">📄 View its page</button>
+      <button class="savebtn" onclick="saveSetupFromCard(this,'${it.cat}','${it.id}')">💾 Save this setup</button>`;
+  }
+  const rankLabel = it.cat === 'gear' ? esc(it.type_label || 'GEAR')
+    : it.cat === 'laptop' ? 'LAPTOP' : 'DESKTOP';
+  return `<div class="card"><span class="rank">${rankLabel}</span>
+    ${browseGallery(it)}
+    <h3>${esc(it.name)}</h3>
+    ${priceHTML}
+    ${it.brand ? `<p class="why">${esc(it.brand)}${it.cat === 'gear' ? '' : ' · ' + esc(it.platform || '')}</p>` : ''}
+    ${factRowsHTML(chips)}
+    ${actions}</div>`;
+}
+async function browseOpenComputer(cat, id) {
+  const it = (browseItems || []).find(x => x.cat === cat && x.id === id);
+  if (!it) return;
+  if (cat === 'desktop') renderDesktopModelCard(it); else renderModelCard(it);
+}
+function renderBrowse() {
+  const el = document.getElementById('browse');
+  if (!browseItems) { openBrowse(); return; }
+  const f = browseF;
+  const pool = browsePool();
+  const brands = [...new Set(pool.map(it => it.brand).filter(Boolean))].sort();
+  const tabs = BROWSE_CATS.map(c =>
+    `<button class="sort bigbtn${f.cat === c.id ? ' on' : ''}" onclick="browseCat('${c.id}')">${c.label} (${c.id === 'all' ? browseItems.length : browseItems.filter(it => it.cat === c.id).length})</button>`).join('');
+  let filters = `<div class="browse-filters quiz-stage" data-tint="0">
+    <input class="minput" type="text" placeholder="Search the whole catalog — a name, a brand, a model…" value="${esc(f.q)}" oninput="browseF.q=this.value.toLowerCase();browseShown=${BROWSE_PAGE};renderBrowseGrid()">
+    <div class="bf-row">
+    ${browseSel('bf-brand', 'Brand', f.brand, [['', 'Any brand'], ...brands.map(b => [b, b])])}
+    ${browseSel('bf-maxPrice', 'Max price', f.maxPrice, [['', 'Any price'], ['100', 'Up to $100'], ['250', 'Up to $250'], ['500', 'Up to $500'], ['1000', 'Up to $1,000'], ['1500', 'Up to $1,500']])}
+    ${browseSel('bf-sort', 'Sort by', f.sort, [['featured', 'Featured'], ['price-asc', 'Price: low to high'], ['price-desc', 'Price: high to low'], ['rating', 'Top rated (gear)'], ['name', 'Name A–Z']])}`;
+  if (f.cat === 'gear' || f.cat === 'all') {
+    const types = [...new Set(browseItems.filter(it => it.cat === 'gear').map(it => it.type))].sort();
+    const typeLabel = t => (browseItems.find(it => it.cat === 'gear' && it.type === t) || {}).type_label || t;
+    filters += browseSel('bf-gearType', 'Gear type', f.gearType, [['', 'Any type'], ...types.map(t => [t, typeLabel(t)])]);
+    const gens = [...new Set(browseItems.filter(it => it.cat === 'gear').map(it => it.wifiGen).filter(Boolean))];
+    filters += browseSel('bf-wifi', 'Wi-Fi', f.wifi, [['', 'Any Wi-Fi'], ...gens.map(g => [g, g])]);
+    const docs = [...new Set(browseItems.filter(it => it.cat === 'gear').map(it => it.docsis).filter(Boolean))].sort();
+    filters += browseSel('bf-docsis', 'DOCSIS', f.docsis, [['', 'Any DOCSIS'], ...docs.map(d => [d, 'DOCSIS ' + d])]);
+  }
+  if (f.cat === 'laptop' || f.cat === 'all')
+    filters += browseSel('bf-screen', 'Screen size', f.screen, [['', 'Any size'], ['13-14', '13–14″'], ['15-16', '15–16″'], ['17plus', '17″ and up']]);
+  if (f.cat !== 'gear') {
+    filters += browseSel('bf-ram', 'Memory at least', f.ram, [['', 'Any memory'], ['8', '8 GB'], ['16', '16 GB'], ['32', '32 GB'], ['64', '64 GB']]);
+    filters += browseSel('bf-storage', 'Storage at least', f.storage, [['', 'Any storage'], ['256', '256 GB'], ['512', '512 GB'], ['1024', '1 TB'], ['2048', '2 TB']]);
+  }
+  filters += `<button class="sort bf-reset" onclick="browseReset()">↺ Clear all filters</button></div></div>`;
+  el.innerHTML = `<button class="back" onclick="backHome()">← Back</button>
+    <h1>Build Your <span class="accent">Own</span></h1>
+    <p class="sub">The whole catalog, no quiz. Filter it your way, save what you like, and check out from your Saved stuff.</p>
+    <div class="sortrow bigs">${tabs}</div>
+    ${filters}
+    <div id="browse-grid"></div>`;
+  renderBrowseGrid();
+  window.scrollTo(0, 0);
+}
+function renderBrowseGrid() {
+  const box = document.getElementById('browse-grid');
+  if (!box) return;
+  const list = browseFiltered();
+  if (!list.length) {
+    box.innerHTML = `<div class="note">Nothing in the catalog matches those filters — loosen one and the shelves fill back up.</div>`;
+    return;
+  }
+  const shown = list.slice(0, browseShown);
+  let h = `<p class="browse-count">Showing ${shown.length} of ${list.length} item${list.length === 1 ? '' : 's'}</p>
+    <div class="picks-grid breakout">`;
+  shown.forEach(it => { h += browseCardHTML(it); });
+  h += '</div>';
+  if (list.length > browseShown)
+    h += `<button class="more" onclick="browseShown+=${BROWSE_PAGE};renderBrowseGrid()">Show ${Math.min(BROWSE_PAGE, list.length - browseShown)} more ▼</button>`;
+  box.innerHTML = h;
+}

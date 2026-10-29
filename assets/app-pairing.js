@@ -592,7 +592,7 @@ function setupLinesHTML(s, comp, cat) {
   if (!comp)
     lines.push(`<p class="setupline">🖥️ <strong>Computer:</strong> this model is no longer in the catalog.</p>`);
   else
-    lines.push(`<p class="setupline">🖥️ <strong>${esc(comp.name)}</strong> — from $${comp.price.toLocaleString()}</p>`);
+    lines.push(`<p class="setupline">🖥️ <strong>${esc(comp.name)}</strong> — from $${comp.price.toLocaleString()}${comp.source_url ? ` · <a href="${esc(comp.source_url)}" target="_blank" rel="noopener">See it at ${esc(comp.brand || 'the maker')} ↗</a>` : ''}</p>`);
   if (s.dock_id) {
     const d = cat.docks[s.dock_id];
     if (!d)
@@ -670,6 +670,7 @@ async function renderSetupList() {
       const price = g.price != null ? `$${Number(g.price).toLocaleString()}` : 'no verified price yet';
       h += `<div class="card"><h3>${esc(g.name)}</h3>
         <p class="why">${esc(g.brand)} · ${esc(g.type_label)} · ${price}</p>
+        ${g.price_url ? `<div class="buylinks"><a class="buybtn" href="${esc(g.price_url)}" target="_blank" rel="noopener">🛒 See it at ${esc(g.price_source || 'the store')}</a></div>` : ''}
         <button class="pairbtn" onclick="openGearPage('${g.id}','setup')">📄 View its page</button>
         <button class="pairbtn savebtn" onclick="removeSavedGear('${g.id}')">✕ Remove</button></div>`;
     }

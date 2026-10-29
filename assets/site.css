@@ -595,3 +595,20 @@
   .cmp .nophoto { display: none; }
   .cmp .pairbtn, .cmp .savebtn { margin-top: 8px; }
   .cmp .pairbtn:first-child, .cmp .savebtn:first-child { margin-top: 0; }
+
+  /* Build Your Own browse (Caleb, 2026-10-29): the whole catalog on
+     one results-style page — the shopper's own filters on a pale
+     palette-tint panel, the site's standard cards underneath. */
+  .browse-filters { padding-bottom: 16px; }
+  .browse-filters .minput { margin-bottom: 12px; background: #ffffff; }
+  .bf-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+  .bf-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 128px; }
+  .bf-field span { font-size: .72rem; font-weight: 700; letter-spacing: .05em;
+    text-transform: uppercase; color: #3d4a66; }
+  .bsel { font-family: inherit; font-size: .92rem; font-weight: 600; color: #14213d;
+    background: #ffffff; border: 2px solid rgba(20,33,61,.22); border-radius: 10px;
+    padding: 9px 8px; width: 100%; cursor: pointer; }
+  .bsel:focus { border-color: #1a73e8; outline: none; }
+  .bf-reset { flex: 0 1 auto; padding: 10px 14px; }
+  .browse-count { color: var(--muted); font-size: .88rem; font-weight: 600;
+    margin: 4px 0 12px; }

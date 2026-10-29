@@ -177,6 +177,10 @@ def api_about():
              "description": "Laptop setup-guide library: OS first-boot "
                             "flows, per-brand setup layers, first-week "
                             "checklist, and parental controls per platform."},
+            {"method": "GET", "path": "/api/catalog",
+             "description": "The full browsable catalog (Build Your Own): "
+                            "every networking item, laptop, and desktop "
+                            "in the public card shape."},
             {"method": "GET", "path": "/api/laptop-search?q=<text>",
              "description": "'Know your model?' lookup: matches a typed "
                             "name, an old line name (formerly), or a "
@@ -1473,6 +1477,34 @@ def api_laptop_search():
                      else 10 ** 9, pub))
     hits.sort(key=lambda t: (t[0], t[1]))
     return jsonify({"matches": [pub for _, _, pub in hits[:8]]})
+
+
+@app.route("/api/catalog")
+def api_catalog():
+    """The full browsable catalog (Build Your Own): every networking
+    item, laptop, and desktop in the same public shapes the result
+    cards and pages use, plus the numeric spec fields the browse
+    filters narrow on (RAM/storage ceilings). Read-only — the quiz
+    endpoints stay the ranked path; this is the flip-through-everything
+    path, so no scores or recommendations are attached."""
+    items = []
+    for e in EQUIP:
+        pub = _gear_public(e)
+        pub["kind"] = "gear"
+        items.append(pub)
+    for l in LAPTOPS:
+        pub = _laptop_public(l)
+        pub["kind"] = "computer"
+        pub["ram_max_gb"] = l.get("ram_max_gb")
+        pub["storage_max_gb"] = l.get("storage_max_gb")
+        items.append(pub)
+    for d in DESKTOPS:
+        pub = _desktop_public(d)
+        pub["kind"] = "computer"
+        pub["ram_max_gb"] = d.get("ram_max_gb")
+        pub["storage_max_gb"] = d.get("storage_max_gb")
+        items.append(pub)
+    return jsonify({"items": items})
 
 
 @app.route("/api/pairing/<kind>/<mid>")
