@@ -7,6 +7,14 @@ let isps = [];
 // First screen: Buy New Gear. Second: Internet / PC / Home Theater.
 // Then route into the matching existing flow.
 const SECTION_IDS = ['home', 'flow-pick', 'quiz', 'results', 'browse', 'gear-page', 'theater', 'model-lookup', 'pairing', 'setup', 'disclaimers'];
+// Model-card origin (Caleb, 2026-10-29): HOW the shopper arrived at the
+// computer card on screen — 'lookup' (Know your model?), 'showcase',
+// 'browse', 'setup' (opened from My Setup), or null (no model card /
+// guided quiz results). The own-it prompt ("Do you already own this?")
+// is a MANUAL-path feature: it keys off origin === 'lookup' only, and
+// the guided results renderers clear this back to null so a stale
+// lookup can never leak the prompt into the walkthrough.
+let modelOrigin = null;
 function hideAllSections() {
   SECTION_IDS.forEach(id => document.getElementById(id).style.display = 'none');
 }
@@ -614,10 +622,11 @@ async function pickModel(i) {
   const m = modelMatches[i];
   if (!m) return;
   if (m.kind === 'gear') { openGearPage(m.id, 'lookup'); return; }
-  if (m.type === 'desktop') { renderDesktopModelCard(m); return; }
-  renderModelCard(m);
+  if (m.type === 'desktop') { renderDesktopModelCard(m, 'lookup'); return; }
+  renderModelCard(m, 'lookup');
 }
-function renderModelCard(m) {
+function renderModelCard(m, origin) {
+  modelOrigin = { kind: 'laptop', id: m.id, origin: origin || null };
   setPageTheme('laptop');
   hideAllSections();
   const r = document.getElementById('results');
@@ -629,9 +638,11 @@ function renderModelCard(m) {
   r.innerHTML = `<button class="back" onclick="startModelLookup()">← Search again</button>
     <h1>Your <span class="accent">model</span></h1>
     ${laptopCardHTML(m, 0, true, '🔎 YOUR MODEL')}
+    <div id="ownslot"></div>
     <button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>
     <button class="opt" onclick="startLaptopBuy()">💻 Not the one? Take the laptop quiz<small>Answer a few questions and we'll match you</small></button>
     <button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
+  renderModelOwnSlot();
   window.scrollTo(0, 0);
 }
 
@@ -689,8 +700,8 @@ function showOpen(i) {
   if (!s) return;
   const m = s.m;
   if (m.kind === 'gear') { openGearPage(m.id, 'home'); return; }
-  if (m.type === 'desktop') { renderDesktopModelCard(m); return; }
-  renderModelCard(m);
+  if (m.type === 'desktop') { renderDesktopModelCard(m, 'showcase'); return; }
+  renderModelCard(m, 'showcase');
 }
 async function loadShowcase() {
   const box = document.getElementById('showcase');
@@ -901,7 +912,7 @@ function browseCardHTML(it) {
 async function browseOpenComputer(cat, id) {
   const it = (browseItems || []).find(x => x.cat === cat && x.id === id);
   if (!it) return;
-  if (cat === 'desktop') renderDesktopModelCard(it); else renderModelCard(it);
+  if (cat === 'desktop') renderDesktopModelCard(it, 'browse'); else renderModelCard(it, 'browse');
 }
 function renderBrowse() {
   const el = document.getElementById('browse');

@@ -284,6 +284,7 @@ function laptopCmpRows(cols) {
   ];
 }
 function renderLaptopResults() {
+  modelOrigin = null; // guided walkthrough — never the manual (lookup) path
   const r = document.getElementById('results');
   // A filter with no matches steps aside kindly instead of dead-ending:
   // drop it, show the picks, explain in one small note, and let the
@@ -563,6 +564,7 @@ function desktopCmpRows(cols) {
   ];
 }
 function renderDesktopResults() {
+  modelOrigin = null; // guided walkthrough — never the manual (lookup) path
   const r = document.getElementById('results');
   const picks = sortedDesktopPicks();
   const q = desktopRes.query;
@@ -621,7 +623,8 @@ async function finishDesktops() {
   dshowAll = false; dsortMode = 'match';
   renderDesktopResults();
 }
-function renderDesktopModelCard(m) {
+function renderDesktopModelCard(m, origin) {
+  modelOrigin = { kind: 'desktop', id: m.id, origin: origin || null };
   setPageTheme('desktop');
   hideAllSections();
   const r = document.getElementById('results');
@@ -634,8 +637,10 @@ function renderDesktopModelCard(m) {
   r.innerHTML = `<button class="back" onclick="startModelLookup()">← Search again</button>
     <h1>Your <span class="accent">model</span></h1>
     ${desktopCardHTML(m, 0, true, '🔎 YOUR MODEL')}
+    <div id="ownslot"></div>
     <button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>
     <button class="opt" onclick="startLaptopBuy()">💻 Not the one? Take the buying quiz<small>Answer a few questions and we'll match you</small></button>
     <button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
+  renderModelOwnSlot();
   window.scrollTo(0, 0);
 }

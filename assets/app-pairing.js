@@ -5,6 +5,7 @@
 // /api/pairing — maker-stated data only, never a guessed count.
 let pairData = null, pairType = 'laptop', pairStage = 'screens';
 let pairMode = null; // 'screens' | 'dock' | 'both' — asked once, up front (Caleb, 2026-10-16)
+let pairManual = false; // true only when pairing was entered from the manual model-lookup card (own-it prompts live there, never in the guided walkthrough)
 let pairReturn = { section: 'results', y: 0 };
 let pairScreens = { count: null, resolution: 'unsure', have: null };
 let pairAsked = { count: false, res: false };
@@ -38,7 +39,9 @@ function pairMonQtyDelta(monId, d) {
 }
 function pairToggleDock(dockId) {
   const s = ensureSetupForComputer(pairType, pairData.id);
-  s.dock_id = (s.dock_id === dockId) ? null : dockId;
+  const nd = (s.dock_id === dockId) ? null : dockId;
+  // A different dock is a new item — its own-it answer starts unasked.
+  if (nd !== s.dock_id) { s.dock_id = nd; delete s.dock_owned; }
   touchSetup(s);
   refreshPairStage();
 }
@@ -60,6 +63,14 @@ const PAIR_RES_OPTS = [
 async function openPairing(type, id) {
   setPageTheme('screens');
   pairType = type;
+  // Own-it scope (Caleb, 2026-10-29): MANUAL path only — pairing counts
+  // as manual only when it was launched from the "Your model" card that
+  // the model lookup produced for THIS computer. modelOrigin is set by
+  // the model-card renderers with their entry point and cleared by the
+  // guided results renderers, so quiz → results → pairing never matches.
+  pairManual = !!(typeof modelOrigin !== 'undefined' && modelOrigin &&
+    modelOrigin.origin === 'lookup' && modelOrigin.kind === type &&
+    String(modelOrigin.id) === String(id));
   const cur = SECTION_IDS.find(s => s !== 'pairing' &&
     document.getElementById(s).style.display !== 'none');
   pairReturn = { section: cur || 'results', y: window.scrollY || 0 };
@@ -112,6 +123,7 @@ function closePairing() {
   hideAllSections();
   const el = document.getElementById(pairReturn.section);
   if (el) el.style.display = 'block';
+  renderModelOwnSlot(); // pairing may have created the setup behind the model card
   window.scrollTo(0, pairReturn.y);
 }
 function pairGo(s) { pairStage = s; renderPairing(); }
@@ -176,6 +188,87 @@ function refreshPairBar() {
     const lbl = document.getElementById('pairbar-label');
     if (lbl) lbl.textContent = n === 1 ? '1 item in your setup' : `${n} items in your setup`;
   }
+}
+
+// ------------------------------------------------------------- own-it
+// "Do you already own this?" (Caleb, 2026-10-29) — MANUAL PATH ONLY:
+// the model lookup ("Your model" card) and the pairing flow entered
+// from it. The guided walkthrough never sees these prompts (pairManual
+// / modelOrigin gate every render below). Ownership is a tri-state per
+// component on the setup record: unanswered (flag absent) → prompt;
+// computer_owned / dock_owned === true|false; monitors carry `owned`
+// on each {id, qty} entry. Owned items stay listed in My Setup with an
+// "Already owned" marker, show no buy link, and contribute $0 to the
+// setup total — the total is what the shopper still needs to buy.
+// A missing flag reads as not-owned, so older saved setups (which have
+// no flags at all) render and total exactly as before.
+function ownPromptHTML(ownFn, buyFn, question) {
+  return `<div class="ownit"><p class="ownit-q">${question || 'Do you already own this?'}</p>
+    <div class="sortrow">
+      <button class="sort" onclick="${ownFn}">I already own it</button>
+      <button class="sort" onclick="${buyFn}">I'm buying it</button>
+    </div></div>`;
+}
+function ownStateHTML(owned, changeFn) {
+  return owned
+    ? `<p class="owntagline">✓ <strong>Already owned</strong> — not counted in your setup total <button class="sort" onclick="${changeFn}">Change</button></p>`
+    : `<p class="owntagline">Buying this — counted in your setup total <button class="sort" onclick="${changeFn}">Change</button></p>`;
+}
+// The looked-up computer: the prompt lives in #ownslot under the
+// "Your model" card, and appears once that computer has a saved setup.
+function renderModelOwnSlot() {
+  const slot = document.getElementById('ownslot');
+  if (!slot) return;
+  if (typeof modelOrigin === 'undefined' || !modelOrigin ||
+      modelOrigin.origin !== 'lookup') { slot.innerHTML = ''; return; }
+  const s = findSetupForComputer(modelOrigin.kind, modelOrigin.id);
+  if (!s) { slot.innerHTML = ''; return; }
+  const what = modelOrigin.kind === 'laptop' ? 'laptop' : 'desktop';
+  slot.innerHTML = s.computer_owned === undefined
+    ? ownPromptHTML('setComputerOwned(true)', 'setComputerOwned(false)',
+        `Do you already own this ${what}?`)
+    : ownStateHTML(s.computer_owned === true, 'setComputerOwned(null)');
+}
+function setComputerOwned(v) {
+  if (typeof modelOrigin === 'undefined' || !modelOrigin) return;
+  const s = findSetupForComputer(modelOrigin.kind, modelOrigin.id);
+  if (!s) return;
+  if (v === null) delete s.computer_owned; else s.computer_owned = v;
+  touchSetup(s);
+  renderModelOwnSlot();
+}
+// Pairing (manual entry only): dock + per-monitor prompts in the cards.
+function pairSetDockOwned(v) {
+  const s = pairSetup();
+  if (!s || !s.dock_id) return;
+  if (v === null) delete s.dock_owned; else s.dock_owned = v;
+  touchSetup(s);
+  refreshPairStage();
+}
+function pairSetMonitorOwned(monId, v) {
+  const s = pairSetup();
+  if (!s) return;
+  const e = s.monitors.find(x => x.id === monId);
+  if (!e) return;
+  if (v === null) delete e.owned; else e.owned = v;
+  touchSetup(s);
+  refreshPairStage();
+}
+function dockOwnHTML(o) {
+  const s = pairSetup();
+  if (!s || s.dock_id !== o.id) return '';
+  return s.dock_owned === undefined
+    ? ownPromptHTML('pairSetDockOwned(true)', 'pairSetDockOwned(false)')
+    : ownStateHTML(s.dock_owned === true, 'pairSetDockOwned(null)');
+}
+function monitorOwnHTML(m) {
+  const s = pairSetup();
+  if (!s) return '';
+  const e = s.monitors.find(x => x.id === m.id);
+  if (!e) return '';
+  return e.owned === undefined
+    ? ownPromptHTML(`pairSetMonitorOwned('${m.id}',true)`, `pairSetMonitorOwned('${m.id}',false)`)
+    : ownStateHTML(e.owned === true, `pairSetMonitorOwned('${m.id}',null)`);
 }
 
 // Fun hand-drawn icons for the pairing pages (Caleb, 2026-10-16: same
@@ -417,6 +510,7 @@ function monitorCardHTML(m) {
       <button class="sort" onclick="pairMonQtyDelta('${m.id}',1)">+</button>
       <button class="sort" onclick="pairToggleMonitor('${m.id}')">${inSetup ? `✓ In your setup ×${inSetup} — tap to remove` : '＋ Add to my setup'}</button>
     </div>
+    ${pairManual ? monitorOwnHTML(m) : ''}
     <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
 }
 function dockCardHTML(o, beyond) {
@@ -448,6 +542,7 @@ function dockCardHTML(o, beyond) {
     ${factRowsHTML(chips)}
     ${tech}${flag}
     <button class="pairbtn" onclick="pairToggleDock('${o.id}')">${inSetup ? '✓ Dock in your setup — tap to remove' : '＋ Add this dock to my setup'}</button>
+    ${pairManual ? dockOwnHTML(o) : ''}
     <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
 }
 function pairDockHTML() {
@@ -570,6 +665,7 @@ function saveSetupFromCard(btn, kind, id) {
   const s = ensureSetupForComputer(kind, id);
   touchSetup(s);
   if (btn) btn.textContent = '✓ Saved — find it in My Setup';
+  renderModelOwnSlot(); // no-op unless the manual "Your model" card is on screen
 }
 // Catalog resolution: ids -> current records (null = no longer listed)
 let setupCatalog = null;
@@ -600,35 +696,47 @@ async function resolveComputer(kind, id) {
 }
 function setupTotals(s, comp, cat) {
   if (!comp) return { total: null, computerMissing: true, missingPrice: [] };
-  if (comp.price == null) return { total: null, computerMissing: false, missingPrice: [] };
-  let total = comp.price;
+  // Owned components (own-it, manual path) contribute $0 — the total
+  // is only what the shopper still needs to buy. Missing flags read as
+  // not-owned, so legacy setups total exactly as they always have.
+  const compOwned = s.computer_owned === true;
+  if (comp.price == null && !compOwned) return { total: null, computerMissing: false, missingPrice: [] };
+  let total = compOwned ? 0 : comp.price;
   const missingPrice = [];
   if (s.dock_id) {
     const d = cat.docks[s.dock_id];
-    if (d) {
+    if (d && s.dock_owned !== true) {
       if (d.price_usd != null) total += d.price_usd;
       else missingPrice.push(d.name);
     }
   }
   s.monitors.forEach(m => {
     const mon = cat.monitors[m.id];
-    if (mon) {
+    if (mon && m.owned !== true) {
       if (mon.price_usd != null) total += mon.price_usd * m.qty;
       else missingPrice.push(mon.name);
     }
   });
   return { total, computerMissing: false, missingPrice };
 }
+function setupHasOwned(s) {
+  return s.computer_owned === true || s.dock_owned === true ||
+    (s.monitors || []).some(m => m.owned === true);
+}
 function setupLinesHTML(s, comp, cat) {
   const lines = [];
   if (!comp)
     lines.push(`<p class="setupline">🖥️ <strong>Computer:</strong> this model is no longer in the catalog.</p>`);
+  else if (s.computer_owned === true)
+    lines.push(`<p class="setupline">🖥️ <strong>${esc(comp.name)}</strong> — <span class="ownedtag">✓ Already owned</span> · not counted in your total</p>`);
   else
     lines.push(`<p class="setupline">🖥️ <strong>${esc(comp.name)}</strong> — from $${comp.price.toLocaleString()}${comp.source_url ? ` · <a href="${esc(comp.source_url)}" target="_blank" rel="noopener">See it at ${esc(comp.brand || 'the maker')} ↗</a>` : ''}</p>`);
   if (s.dock_id) {
     const d = cat.docks[s.dock_id];
     if (!d)
       lines.push(`<p class="setupline">🔌 <strong>Dock:</strong> no longer in the catalog. <button class="sort" onclick="setupRemoveDock('${s.id}')">✕ Remove</button></p>`);
+    else if (s.dock_owned === true)
+      lines.push(`<p class="setupline">🔌 ${esc(d.name)} — <span class="ownedtag">✓ Already owned</span> · not counted in your total <button class="sort" onclick="setupRemoveDock('${s.id}')">✕ Remove</button></p>`);
     else
       lines.push(`<p class="setupline">🔌 ${esc(d.name)} — ${d.price_usd != null ? '$' + d.price_usd.toLocaleString() : 'price not shown (not counted in the total)'} <button class="sort" onclick="setupRemoveDock('${s.id}')">✕ Remove</button></p>`);
   } else {
@@ -640,6 +748,8 @@ function setupLinesHTML(s, comp, cat) {
     const mon = cat.monitors[m.id];
     if (!mon)
       lines.push(`<p class="setupline">🖥️ A saved screen is no longer in the catalog. <button class="sort" onclick="setupRemoveMonitor('${s.id}','${m.id}')">✕ Remove</button></p>`);
+    else if (m.owned === true)
+      lines.push(`<p class="setupline">🖥️ ${esc(mon.name)}${monSizeHTML(mon)} ×${m.qty} — <span class="ownedtag">✓ Already owned</span> · not counted in your total <button class="sort" onclick="setupRemoveMonitor('${s.id}','${m.id}')">✕ Remove</button></p>`);
     else
       lines.push(`<p class="setupline">🖥️ ${esc(mon.name)}${monSizeHTML(mon)} ×${m.qty} — ${mon.price_usd != null ? '$' + mon.price_usd.toLocaleString() + ' each' : 'price not shown (not counted in the total)'} <button class="sort" onclick="setupRemoveMonitor('${s.id}','${m.id}')">✕ Remove</button></p>`);
   });
@@ -654,7 +764,7 @@ function setupCardHTML(s, comp, cat, withActions) {
   else if (t.total == null)
     totalHTML = `<div class="note">No total: the computer's price isn't shown, and we never guess one.</div>`;
   else
-    totalHTML = `<div class="have" style="text-align:left">Estimated starting total: <strong>$${t.total.toLocaleString()}</strong><br><span style="font-weight:400">From the prices above, checked Oct 2026. The computer's figure is its starting price${t.missingPrice.length ? '; anything marked "price not shown" is not counted' : ''} — configurations and final prices vary.</span></div>`;
+    totalHTML = `<div class="have" style="text-align:left">Estimated starting total: <strong>$${t.total.toLocaleString()}</strong><br><span style="font-weight:400">From the prices above, checked Oct 2026. ${s.computer_owned === true ? 'Your computer is marked Already owned, so it adds nothing to this total' : "The computer's figure is its starting price"}${t.missingPrice.length ? '; anything marked "price not shown" is not counted' : ''}${setupHasOwned(s) && s.computer_owned !== true ? '; anything marked Already owned is not counted' : ''} — configurations and final prices vary.</span></div>`;
   return `<div class="card"><h3>🧩 ${esc(name)}</h3>
     ${setupLinesHTML(s, comp, cat)}
     ${totalHTML}
@@ -727,8 +837,8 @@ async function setupOpen(id) {
   if (!s) return;
   const comp = await resolveComputer(s.computer.kind, s.computer.id);
   if (!comp) { alert('That computer is no longer in the catalog.'); return; }
-  if (s.computer.kind === 'laptop') renderModelCard(comp);
-  else renderDesktopModelCard(comp);
+  if (s.computer.kind === 'laptop') renderModelCard(comp, 'setup');
+  else renderDesktopModelCard(comp, 'setup');
 }
 function setupRename(id) {
   const s = getSetup(id);
@@ -786,16 +896,22 @@ async function setupPrint(id) {
   const name = s.name || (comp ? comp.name : 'Saved setup');
   const t = setupTotals(s, comp, cat);
   const rows = [];
-  rows.push(comp ? `☐ Computer: ${esc(comp.name)} — from $${comp.price.toLocaleString()}`
+  rows.push(comp ? (s.computer_owned === true
+                    ? `☑ Computer: ${esc(comp.name)} — already owned (not in the total)`
+                    : `☐ Computer: ${esc(comp.name)} — from $${comp.price.toLocaleString()}`)
                  : '☐ Computer: no longer in the catalog');
   if (s.dock_id) {
     const d = cat.docks[s.dock_id];
-    rows.push(d ? `☐ Dock: ${esc(d.name)}${d.price_usd != null ? ' — $' + d.price_usd.toLocaleString() : ' — price not shown'}`
+    rows.push(d ? (s.dock_owned === true
+                    ? `☑ Dock: ${esc(d.name)} — already owned (not in the total)`
+                    : `☐ Dock: ${esc(d.name)}${d.price_usd != null ? ' — $' + d.price_usd.toLocaleString() : ' — price not shown'}`)
                 : '☐ Dock: no longer in the catalog');
   }
   s.monitors.forEach(m => {
     const mon = cat.monitors[m.id];
-    rows.push(mon ? `☐ Screen ×${m.qty}: ${esc(mon.name)}${monSizeText(mon) ? ' (' + monSizeText(mon) + ')' : ''}${mon.price_usd != null ? ' — $' + mon.price_usd.toLocaleString() + ' each' : ' — price not shown'}`
+    rows.push(mon ? (m.owned === true
+                    ? `☑ Screen ×${m.qty}: ${esc(mon.name)} — already owned (not in the total)`
+                    : `☐ Screen ×${m.qty}: ${esc(mon.name)}${monSizeText(mon) ? ' (' + monSizeText(mon) + ')' : ''}${mon.price_usd != null ? ' — $' + mon.price_usd.toLocaleString() + ' each' : ' — price not shown'}`)
                   : '☐ Screen: no longer in the catalog');
   });
   if (!s.dock_id && !s.monitors.length)
