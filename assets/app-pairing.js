@@ -121,7 +121,11 @@ function renderPairing() {
   el.innerHTML = `<button class="back" onclick="closePairing()">← Back to your picks</button>
     <h1>Screens &amp; docks for your <span class="accent">${d.type === 'laptop' ? 'laptop' : 'desktop'}</span></h1>
     <p class="sub">${esc(d.name)} — pair it with screens it can actually drive, and a dock that actually fits its ports.</p>
-    <div id="pairstage"></div>`;
+    <div id="pairstage"></div>
+    <div id="pairbar" style="display:none"><div class="pairbar-in">
+      <span class="pairbar-label" id="pairbar-label"></span>
+      <button class="pairbar-btn" onclick="openMySetup()">Continue to my setup →</button>
+    </div></div>`;
   refreshPairStage();
   window.scrollTo(0, 0);
 }
@@ -142,8 +146,36 @@ function pairChoiceHTML() {
 function refreshPairStage() {
   const s = document.getElementById('pairstage');
   if (!s) return;
-  if (!pairMode) { s.innerHTML = pairChoiceHTML(); return; }
+  if (!pairMode) { s.innerHTML = pairChoiceHTML(); refreshPairBar(); return; }
   s.innerHTML = pairStage === 'screens' ? pairScreensHTML() : pairDockHTML();
+  refreshPairBar();
+}
+
+// Continue bar (Caleb, 2026-10-29): the pairing flow dead-ended once a
+// screen or dock was added — the only way onward was the small Saved
+// pill up top, which most shoppers never connect to their setup. A
+// sticky bottom bar now appears whenever this computer's setup holds
+// at least one paired item, keyed off the exact state the add/remove
+// toggles write (setup.dock_id + setup.monitors), and its button goes
+// straight to My Setup via the existing openMySetup().
+function pairSetupItemCount() {
+  const s = pairSetup();
+  if (!s) return 0;
+  let n = s.dock_id ? 1 : 0;
+  (s.monitors || []).forEach(m => { n += m.qty || 1; });
+  return n;
+}
+function refreshPairBar() {
+  const bar = document.getElementById('pairbar');
+  if (!bar) return;
+  const n = pairSetupItemCount();
+  bar.style.display = n > 0 ? 'block' : 'none';
+  const sec = document.getElementById('pairing');
+  if (sec) sec.classList.toggle('pairbar-pad', n > 0);
+  if (n > 0) {
+    const lbl = document.getElementById('pairbar-label');
+    if (lbl) lbl.textContent = n === 1 ? '1 item in your setup' : `${n} items in your setup`;
+  }
 }
 
 // Fun hand-drawn icons for the pairing pages (Caleb, 2026-10-16: same
