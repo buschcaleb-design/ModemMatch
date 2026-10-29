@@ -17,17 +17,51 @@ function renderFlowPick() {
   const el = document.getElementById('flow-pick');
   el.style.display = 'block';
   el.innerHTML = `<button class="back" onclick="backHome()">← Back</button>
+    <div class="quiz-stage" data-tint="0">
     <p class="q">What are you buying?</p>
-    <div class="opt-grid">
-    <button class="opt flowrow" onclick="routeFlow('internet')"><span class="big-ico">${rico('globe')}</span><span class="opt-txt">Internet<small>Modems, routers & mesh — ditch the ISP rental fee</small></span></button>
-    <button class="opt flowrow" onclick="routeFlow('pc')"><span class="big-ico">${rico('laptop')}</span><span class="opt-txt">PC<small>Laptops & desktops matched to how you'll actually use them</small></span></button>
-    <button class="opt wide flowrow" onclick="routeFlow('theater')"><span class="big-ico">${rico('tv')}</span><span class="opt-txt">Home Theater<small>TVs & sound — matched to your room and your couch</small></span></button>
+    <div class="tile-grid">
+    ${tileHTML({ i: 0, lg: true, icon: rico('globe'), title: 'Internet', desc: 'Modems, routers & mesh — ditch the ISP rental fee', onclick: "routeFlow('internet')" })}
+    ${tileHTML({ i: 1, lg: true, icon: rico('laptop'), title: 'PC', desc: "Laptops & desktops matched to how you'll actually use them", onclick: "routeFlow('pc')" })}
+    ${tileHTML({ i: 2, lg: true, icon: rico('tv'), title: 'Home Theater', desc: 'TVs & sound — matched to your room and your couch', onclick: "routeFlow('theater')" })}
     </div>
     <p class="orline">— or —</p>
-    <button class="opt flowrow" onclick="startModelLookup()"><span class="big-ico">${rico('search')}</span><span class="opt-txt">Know your model?<small>Type the name — or the model number off the box — and jump straight to it</small></span></button>`;
+    <div class="tile-grid">
+    ${tileHTML({ i: 3, lg: true, icon: rico('search'), title: 'Know your model?', desc: 'Type the name — or the model number off the box — and jump straight to it', onclick: 'startModelLookup()' })}
+    </div>
+    </div>`;
   window.scrollTo(0, 0);
 }
 function backToFlowPick() { renderFlowPick(); }
+
+// ------------------------------------------------------- redesign tiles
+// Colored answer tiles (redesign, 2026-10-29): a strong palette color per
+// option, the glyph in a white chip, the title in the Poppins display
+// font, and the description centered under the tile in plain text.
+// Presentation only — the onclick wiring passed in is the site's own.
+const TILE_COLORS = [
+  { bg: '#1a73e8', ink: '#ffffff' }, { bg: '#f472b6', ink: '#ffffff' },
+  { bg: '#ffd166', ink: '#14213d' }, { bg: '#16a34a', ink: '#ffffff' },
+  { bg: '#7c3aed', ink: '#ffffff' }, { bg: '#0284c7', ink: '#ffffff' } ];
+function tileColor(i) { return TILE_COLORS[i % TILE_COLORS.length]; }
+// Simple geometric marks for options that carry no icon of their own.
+function tileMark(i) {
+  const shapes = [
+    '<circle cx="24" cy="24" r="13"/>',
+    '<rect x="12" y="12" width="24" height="24" rx="5"/>',
+    '<path d="M24 10 L38 36 H10 Z"/>',
+    '<path d="M24 9 L39 24 L24 39 L9 24 Z"/>',
+    '<path d="M24 8 l4.7 10.3 L40 20 l-8.4 7.6 L34 39 L24 33.2 L14 39 l2.4-11.4 L8 20 l11.3-1.7 Z"/>',
+    '<path d="M24 9 l11 6 v12 l-11 12 l-11-12 V15 Z"/>' ];
+  return `<svg viewBox="0 0 48 48" fill="none" stroke="#10304f" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">${shapes[i % shapes.length]}</svg>`;
+}
+function tileHTML(o) {
+  // o: { i, onclick, title, desc, icon (svg html), logo (img src), wide, on, lg }
+  const c = tileColor(o.i || 0);
+  const main = o.logo
+    ? `<span class="tile-main logo"><img class="tile-logo" src="${o.logo}" alt="" onerror="this.style.display='none'"><span class="tile-title">${o.title}</span></span>`
+    : `<span class="tile-main" style="--tile:${c.bg};--tile-ink:${c.ink}"><span class="tile-ic${o.lg ? ' lg' : ''}">${o.icon || tileMark(o.i || 0)}</span><span class="tile-title">${o.title}</span></span>`;
+  return `<button class="tile${o.wide ? ' wide' : ''}${o.on ? ' on' : ''}" onclick="${o.onclick}">${main}${o.desc ? `<span class="tile-desc">${o.desc}</span>` : ''}</button>`;
+}
 function routeFlow(kind) {
   if (kind === 'theater') { showTheater(); return; }
   if (kind === 'internet') startBuy(); else startLaptopBuy();
@@ -116,17 +150,18 @@ function render() {
   const Q = V[step];
   bar.style.width = ((step + 1) / (V.length + 1) * 100) + '%';
   let h = `<button class="back" onclick="${step === 0 ? 'backToFlowPick()' : 'back()'}">← Back</button>`;
+  h += `<div class="quiz-stage" data-tint="${step % 5}">`;
   h += `<p class="q">${Q.q}</p>`;
-  h += '<div class="opt-grid">';
+  h += '<div class="tile-grid">';
   const opts = Q.opts();
   const anyWide = opts.some(o => o.wide);
   opts.forEach((o, i) => {
-    const wide = o.wide || (!anyWide && i === opts.length - 1 && opts.length % 2 === 1) ? ' wide' : '';
-    h += o.logo
-      ? `<button class="opt has-logo${wide}" onclick="pick('${Q.key}','${o.v}')"><img class="opt-logo" src="/assets/logos/${o.logo}.${logoExt(o.logo)}" alt="" onerror="this.style.display='none'"><span class="opt-txt"><span class="opt-name">${o.t}</span>${o.s ? `<small>${o.s}</small>` : ''}</span></button>`
-      : `<button class="opt${wide}" onclick="pick('${Q.key}','${o.v}')">${o.t}${o.s ? `<small>${o.s}</small>` : ''}</button>`;
+    const wide = o.wide || (!anyWide && i === opts.length - 1 && opts.length % 2 === 1);
+    h += tileHTML({ i, wide, title: o.t, desc: o.s,
+      logo: o.logo ? `/assets/logos/${o.logo}.${logoExt(o.logo)}` : null,
+      onclick: `pick('${Q.key}','${o.v}')` });
   });
-  h += '</div>';
+  h += '</div></div>';
   stepsEl.innerHTML = h;
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
 }
@@ -218,6 +253,74 @@ function listHTML(picks) {
   h += '</div>';
   if (!showAll && picks.length > 6)
     h += `<button class="more" onclick="showAll=true;renderResults()">Show ${picks.length - 6} more ▼</button>`;
+  return h;
+}
+
+// -------------------------------------- comparison table (redesign)
+// Results as side-by-side product columns (redesign, 2026-10-29):
+// column 1 is OUR PICK — the engine's top recommendation in the
+// current sort order — then ALSO GREAT, then the cheapest of the
+// remaining picks as BUDGET PICK. Picks that don't fit the table
+// keep the card grid below it, so nothing the site showed before
+// disappears. A list of one keeps the single-card rendering.
+function cmpColumns(list) {
+  if (!list.length) return [];
+  const cols = [{ p: list[0], label: '⭐ OUR PICK', cls: 'ourpick' }];
+  if (list[1]) cols.push({ p: list[1], label: 'ALSO GREAT', cls: 'alsogreat' });
+  if (list.length > 2) {
+    let budget = null;
+    list.slice(2).forEach(p => { if (!budget || p.price < budget.price) budget = p; });
+    if (budget) cols.push({ p: budget, label: 'BUDGET PICK', cls: 'budget' });
+  }
+  return cols;
+}
+function cmpTableHTML(cols, rows, head) {
+  // rows: [{label, vals:[html per column]}] — a row renders only when
+  // at least one column carries a value for it.
+  const headCells = cols.map(c =>
+    `<th class="${c.cls}"><span class="cmp-badge ${c.cls}">${c.label}</span><h3>${head.name(c.p)}</h3>${head.sub ? `<div class="cmp-sub">${head.sub(c.p)}</div>` : ''}</th>`).join('');
+  let body = '';
+  rows.forEach(r => {
+    if (!r.vals.some(v => v)) return;
+    body += `<tr><th>${r.label}</th>${r.vals.map(v => `<td>${v || '—'}</td>`).join('')}</tr>`;
+  });
+  return `<div class="cmp-wrap breakout"><table class="cmp"><thead><tr><th class="cmp-lab"></th>${headCells}</tr></thead><tbody>${body}</tbody></table></div>`;
+}
+function gearCmpRows(cols) {
+  const kindOf = p => p.type.includes('mesh') ? 'mesh' : p.type.includes('router') ? 'router' : 'modem';
+  const saveLine = p => p.saves_over_life > 0
+    ? `saves you $${p.saves_over_life} over ${p.life_years} years`
+    : 'WiFi upgrade — no rental fee on your plan';
+  return [
+    { label: 'Photo', vals: cols.map(c => cardGallery(kindOf(c.p), c.p.images, c.p.name)) },
+    { label: 'Price', vals: cols.map(c => `<span class="price">$${c.p.price}</span> <span class="permo">— ${saveLine(c.p)}</span>${c.p.price_source ? `<div class="permo">Price via ${esc(c.p.price_source)}, checked Oct 2026</div>` : ''}`) },
+    { label: 'Brand', vals: cols.map(c => c.p.brand ? esc(c.p.brand) : '') },
+    { label: 'Rating', vals: cols.map(c => `Performance ${c.p.performance} / 10`) },
+    { label: 'Reliability', vals: cols.map(c => `Stability ${c.p.stability} / 10`) },
+    { label: 'Wi-Fi', vals: cols.map(c => c.p.wifi ? esc(c.p.wifi) : '') },
+    { label: 'DOCSIS', vals: cols.map(c => c.p.docsis || '') },
+    { label: 'Top speed', vals: cols.map(c => c.p.max_speed_mbps ? Number(c.p.max_speed_mbps).toLocaleString() + ' Mbps' : '') },
+    { label: 'Why it fits', vals: cols.map(c => c.p.why ? `<span class="why">${c.p.why}</span>` : '') },
+    { label: '', vals: cols.map(c => `<button class="pairbtn" onclick="openGearPage('${c.p.id}','results')">📄 View its page</button><button class="pairbtn savebtn" data-savegear="${c.p.id}" onclick="toggleSaveGear(this,'${c.p.id}')">${saveBtnHTML(c.p.id)}</button>`) },
+  ];
+}
+function gearResultsHTML(list) {
+  if (list.length < 2) return listHTML(list);
+  const cols = cmpColumns(list);
+  const colIds = new Set(cols.map(c => c.p.id));
+  const rest = list.filter(p => !colIds.has(p.id));
+  let h = cmpTableHTML(cols, gearCmpRows(cols), {
+    name: p => p.name,
+    sub: p => '#' + (list.indexOf(p) + 1) + ' ' + p.type.replace('_', ' ').toUpperCase() });
+  if (rest.length) {
+    h += `<p class="picks-head">More matches</p>`;
+    const shown = showAll ? rest : rest.slice(0, 3);
+    h += '<div class="picks-grid breakout">';
+    shown.forEach(p => { h += cardHTML(p, list.indexOf(p), false); });
+    h += '</div>';
+    if (!showAll && rest.length > 3)
+      h += `<button class="more" onclick="showAll=true;renderResults()">Show ${rest.length - 3} more ▼</button>`;
+  }
   return h;
 }
 
@@ -355,7 +458,7 @@ async function openGearPage(id, backTo) {
 function closeGearPage() {
   hideAllSections();
   const target = gearBackTo === 'lookup' ? 'model-lookup'
-    : gearBackTo === 'setup' ? 'setup' : 'results';
+    : gearBackTo === 'setup' ? 'setup' : gearBackTo === 'home' ? 'home' : 'results';
   document.getElementById(target).style.display = 'block';
   window.scrollTo(0, 0);
 }
@@ -407,10 +510,10 @@ function renderResults() {
     const routers = sortedPicks().filter(p => p.type === 'router' || p.type === 'mesh');
     h += sortButtonsHTML(tabButtonsHTML(modems, routers));
     h += comboCardHTML();
-    h += listHTML(activeTab === 'modems' ? modems : routers);
+    h += gearResultsHTML(activeTab === 'modems' ? modems : routers);
   } else {
     h += sortButtonsHTML();
-    h += listHTML(sortedPicks());
+    h += gearResultsHTML(sortedPicks());
   }
   meta.notes.forEach(n => { h += `<div class="note">${n}</div>`; });
   h += `<button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
@@ -530,3 +633,96 @@ function renderModelCard(m) {
     <button class="restart" style="background:#1e293b;color:#cbd5e1;border:2px solid #334155" onclick="location.reload()">↺ Start over</button>`;
   window.scrollTo(0, 0);
 }
+
+// ------------------------------------------------------ home showcase
+// Featured-picks carousel (redesign, 2026-10-29): real catalog items,
+// gathered through the same model search the site already exposes.
+// The first item found on each shelf — gaming laptop, gaming desktop,
+// everyday laptop, router, mesh, modem — becomes a slide; any shelf
+// the search can't fill simply doesn't appear.
+document.querySelectorAll('[data-navicon]').forEach(el => { el.innerHTML = rico(el.dataset.navicon); });
+const SHOWCASE_QUERIES = ['asus', 'lenovo', 'hp', 'apple', 'netgear', 'tp-link', 'motorola', 'rog', 'legion'];
+let showSlides = [], showIdx = 0, showTimer = null;
+function showLabelFor(m) {
+  if (m.kind === 'gear') return 'FEATURED ' + (m.type_label || 'GEAR').toUpperCase();
+  if (m.type === 'laptop') return 'FEATURED LAPTOP — ' + (m.laptop_category || 'EVERYDAY').toUpperCase();
+  return 'FEATURED DESKTOP — ' + (m.desktop_category || 'EVERYDAY').toUpperCase();
+}
+function showArtNode(kind) {
+  const t = document.createElement('template');
+  t.innerHTML = cardArt(kind).trim();
+  return t.content.firstChild;
+}
+function showSlideHTML(s, i) {
+  const m = s.m;
+  const kind = m.kind === 'gear'
+    ? (m.type.includes('mesh') ? 'mesh' : m.type.includes('router') ? 'router' : 'modem')
+    : m.type;
+  const img = (m.images && m.images.length)
+    ? `<img src="${m.images[0]}" alt="" loading="lazy" onerror="this.replaceWith(showArtNode('${kind}'))">`
+    : cardArt(kind);
+  const desc = m.kind === 'gear' ? (m.blurb || '') : (m.summary || '');
+  const price = m.price != null
+    ? (m.kind === 'gear' ? `$${Number(m.price).toLocaleString()}` : `from $${Number(m.price).toLocaleString()}`)
+    : 'See its page for the specs';
+  return `<button class="show-slide" onclick="showOpen(${i})"><span class="show-img">${img}</span><span class="show-txt"><span class="show-cat">${s.label}</span><span class="show-name">${esc(m.name)}</span><span class="show-desc">${esc(desc)}</span><span class="show-price">${price}</span></span></button>`;
+}
+function showGo(i) {
+  if (!showSlides.length) return;
+  showIdx = (i + showSlides.length) % showSlides.length;
+  const track = document.querySelector('.show-track');
+  if (track) track.style.transform = `translateX(-${showIdx * 100}%)`;
+  document.querySelectorAll('.show-dot').forEach((d, j) => d.classList.toggle('on', j === showIdx));
+  showAuto();
+}
+function showAuto() {
+  if (showTimer) clearInterval(showTimer);
+  if (showSlides.length < 2) return;
+  showTimer = setInterval(() => {
+    const home = document.getElementById('home');
+    if (!document.hidden && home && home.style.display !== 'none') showGo(showIdx + 1);
+  }, 6000);
+}
+function showOpen(i) {
+  const s = showSlides[i];
+  if (!s) return;
+  const m = s.m;
+  if (m.kind === 'gear') { openGearPage(m.id, 'home'); return; }
+  if (m.type === 'desktop') { renderDesktopModelCard(m); return; }
+  renderModelCard(m);
+}
+async function loadShowcase() {
+  const box = document.getElementById('showcase');
+  if (!box) return;
+  const pool = [], seen = new Set();
+  try {
+    const results = await Promise.all(SHOWCASE_QUERIES.map(q =>
+      fetch('/api/laptop-search?q=' + encodeURIComponent(q)).then(x => x.json()).catch(() => ({ matches: [] }))));
+    results.forEach(d => (d.matches || []).forEach(m => {
+      const key = (m.kind === 'gear' ? 'g:' : m.type + ':') + m.id;
+      if (!seen.has(key)) { seen.add(key); pool.push(m); }
+    }));
+  } catch (e) { return; }
+  const take = (fn, label) => {
+    const m = pool.find(x => !showSlides.some(s => s.m === x) && fn(x));
+    if (m) showSlides.push({ m, label });
+  };
+  take(m => m.type === 'laptop' && m.laptop_category === 'gaming', 'BEST LAPTOP — GAMING');
+  take(m => m.type === 'desktop' && m.desktop_category === 'gaming', 'BEST DESKTOP — GAMING');
+  take(m => m.type === 'laptop' && (m.laptop_category === 'everyday' || m.laptop_category === 'ultraportable'), 'BEST LAPTOP — EVERYDAY');
+  take(m => m.kind === 'gear' && m.type === 'router', 'BEST ROUTER');
+  take(m => m.kind === 'gear' && m.type === 'mesh', 'BEST MESH WI-FI');
+  take(m => m.kind === 'gear' && (m.type === 'modem' || m.type === 'combo'), 'BEST MODEM');
+  pool.forEach(m => {
+    if (showSlides.length < 6 && !showSlides.some(s => s.m === m))
+      showSlides.push({ m, label: showLabelFor(m) });
+  });
+  if (!showSlides.length) return;
+  box.innerHTML = `<p class="showcase-head">Featured picks from the catalog</p>
+    <div class="show-viewport"><div class="show-track">${showSlides.map((s, i) => showSlideHTML(s, i)).join('')}</div></div>
+    ${showSlides.length > 1 ? `<button class="show-arrow prev" onclick="showGo(showIdx-1)" aria-label="Previous featured pick">‹</button><button class="show-arrow next" onclick="showGo(showIdx+1)" aria-label="Next featured pick">›</button>
+    <div class="show-dots">${showSlides.map((s, i) => `<button class="show-dot${i === 0 ? ' on' : ''}" onclick="showGo(${i})" aria-label="Featured pick ${i + 1}"></button>`).join('')}</div>` : ''}`;
+  box.style.display = 'block';
+  showGo(0);
+}
+loadShowcase();

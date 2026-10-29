@@ -421,3 +421,177 @@
   #setupbtn-wrap { position: fixed; top: 10px; right: 12px; z-index: 80; max-width: none; margin: 0; padding: 0; }
   #setupbtn { display: inline-flex; align-items: center; background: var(--panel); border: 2px solid var(--line); color: var(--ink); font-size: .92rem; font-weight: 800; border-radius: 999px; padding: 8px 15px 8px 11px; box-shadow: 0 4px 14px rgba(16,48,79,.20); cursor: pointer; }
   #setupbtn .ric { width: 1.4em; height: 1.4em; margin-right: .3em; vertical-align: 0; }
+
+  /* ================================================================
+     REDESIGN (Caleb, approved 2026-10-29, from the Figma frames):
+     PCPartPicker-style home (navy top bar, dark icon-nav strip, big
+     centered hero, dark showcase carousel, Build Your Own band);
+     quiz answers as big colored tiles with the description centered
+     under each tile, on a pale-tint stage; results as a side-by-side
+     comparison table with OUR PICK in the first column.
+     Palette stays the site's own: navy #10304f/#14213d, blue
+     #1a73e8/#1d6fd1, pink #f8a5c2/#f472b6, yellow #ffd166, green
+     #16a34a. Presentation only — no flow logic lives here. */
+  .topbar { width: 100vw; margin: -20px 0 0 calc(50% - 50vw);
+    background: linear-gradient(180deg, #14213d, #10304f); color: #ffffff;
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px max(16px, calc(50vw - 534px)); }
+  .topbar-logo { font-family: 'Poppins', -apple-system, system-ui, sans-serif;
+    font-weight: 800; font-size: 1.45rem; letter-spacing: .01em; white-space: nowrap; }
+  .topbar-logo .accent { color: #7cc7ff; }
+  .topbar-tag { color: #a9c6e2; font-size: .82rem; margin-left: auto;
+    padding-right: 168px; text-align: right; }
+  @media (max-width: 700px) { .topbar-tag { display: none; } .topbar { padding-right: 168px; } }
+  .aisle-nav { width: 100vw; margin: 0 0 26px calc(50% - 50vw);
+    background: #0d2a45; display: flex; gap: 2px; overflow-x: auto;
+    padding: 8px max(10px, calc(50vw - 540px)); scrollbar-width: none; }
+  .aisle-nav::-webkit-scrollbar { display: none; }
+  .aisle-item { flex: 1 0 auto; min-width: 104px; background: none; border: none;
+    border-radius: 12px; color: #eaf3fc; cursor: pointer; font-family: inherit;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 8px 10px 7px; }
+  .aisle-item:hover, .aisle-item:active { background: rgba(255,255,255,.09); }
+  .aisle-item .nav-ic { width: 38px; height: 38px; border-radius: 50%;
+    background: #ffffff; display: flex; align-items: center; justify-content: center; }
+  .aisle-item .nav-ic .ric { width: 24px; height: 24px; margin: 0; vertical-align: 0; }
+  .aisle-item .aisle-name { font-family: 'Poppins', -apple-system, system-ui, sans-serif;
+    font-weight: 700; font-size: .86rem; }
+  .aisle-item small { color: #8fb0d0; font-size: .68rem; white-space: nowrap; }
+  .hero { text-align: center; padding: 10px 0 6px; }
+  .hero-head { font-family: 'Poppins', -apple-system, system-ui, sans-serif;
+    font-weight: 800; font-size: clamp(1.85rem, 5.2vw, 3.05rem); line-height: 1.14;
+    margin: 6px auto 12px; max-width: 21em; color: #10304f; }
+  .hero-sub { max-width: 34em; margin: 0 auto 22px; }
+  .cta-big { font-family: 'Poppins', -apple-system, system-ui, sans-serif;
+    background: #1a73e8; color: #ffffff; font-weight: 700; font-size: 1.12rem;
+    border: none; border-radius: 999px; padding: 16px 46px; cursor: pointer;
+    box-shadow: 0 6px 18px rgba(26,115,232,.38); }
+  .cta-big:hover { background: #1d6fd1; }
+  .cta-big:active { transform: translateY(1px); }
+
+  /* Showcase carousel: dark panel, one featured pick at a time. */
+  .showcase { margin: 30px 0 0; background: linear-gradient(165deg, #14213d, #10304f 70%);
+    border-radius: 20px; padding: 20px 18px 16px; color: #ffffff;
+    position: relative; overflow: hidden; }
+  .showcase-head { font-family: 'Poppins', -apple-system, system-ui, sans-serif;
+    font-weight: 700; font-size: .8rem; letter-spacing: .14em; color: #8fb0d0;
+    text-transform: uppercase; margin: 0 0 12px; text-align: center; }
+  .show-viewport { overflow: hidden; }
+  .show-track { display: flex; transition: transform .5s ease; }
+  .show-slide { flex: 0 0 100%; display: flex; gap: 18px; align-items: center;
+    background: none; border: none; color: inherit; font-family: inherit;
+    text-align: left; cursor: pointer; padding: 2px 6px; }
+  .show-img { flex: 0 0 40%; max-width: 300px; aspect-ratio: 4 / 3; border-radius: 14px;
+    overflow: hidden; background: #ffffff; display: flex; align-items: center; justify-content: center; }
+  .show-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .show-img svg { width: 78%; height: 78%; }
+  .show-txt { flex: 1 1 auto; min-width: 0; }
+  .show-cat { display: block; font-family: 'Poppins', -apple-system, system-ui, sans-serif;
+    font-weight: 700; font-size: .74rem; letter-spacing: .13em; color: #ffd166;
+    text-transform: uppercase; margin: 0 0 5px; }
+  .show-name { display: block; font-family: 'Poppins', -apple-system, system-ui, sans-serif;
+    font-weight: 700; font-size: 1.28rem; line-height: 1.22; margin: 0 0 6px; }
+  .show-desc { color: #c3d5e8; font-size: .9rem; line-height: 1.45; margin: 0 0 8px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .show-price { display: block; color: #4ade80; font-weight: 800; font-size: 1.05rem; }
+  .show-price .permo { color: #8fb0d0; font-weight: 400; font-size: .8rem; }
+  @media (max-width: 620px) {
+    .show-slide { flex-direction: column; text-align: center; }
+    .show-img { flex-basis: auto; width: 78%; }
+    .show-txt { text-align: center; }
+  }
+  .show-arrow { position: absolute; top: 50%; transform: translateY(-50%);
+    width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.35);
+    background: rgba(255,255,255,.12); color: #ffffff; font-size: 1.25rem; line-height: 1;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2; }
+  .show-arrow.prev { left: 10px; } .show-arrow.next { right: 10px; }
+  .show-arrow:hover { background: rgba(255,255,255,.24); }
+  .show-dots { display: flex; gap: 7px; justify-content: center; margin-top: 14px; }
+  .show-dot { width: 9px; height: 9px; border-radius: 50%; border: none; padding: 0;
+    background: rgba(255,255,255,.32); cursor: pointer; }
+  .show-dot.on { background: #ffd166; }
+  .build-band { margin: 26px 0 4px; background: #14213d; border-radius: 20px;
+    text-align: center; padding: 30px 18px 32px; color: #ffffff; }
+  .build-band h2 { font-family: 'Poppins', -apple-system, system-ui, sans-serif;
+    font-weight: 800; font-size: 1.65rem; margin: 0 0 8px; }
+  .build-band p { color: #c3d5e8; margin: 0 auto 20px; max-width: 30em; }
+
+  /* Quiz stage: the question floats on a pale tint of the palette,
+     rotating per step so the screens stay colorful, never gray. */
+  .quiz-stage { border-radius: 22px; padding: 18px 16px 10px; margin-bottom: 14px;
+    border: 2px solid rgba(20,33,61,.09); color: #14213d; }
+  .quiz-stage[data-tint="0"] { background: linear-gradient(180deg, #e9f4ff, #d9ecff); }
+  .quiz-stage[data-tint="1"] { background: linear-gradient(180deg, #fff0f6, #ffe0ee); }
+  .quiz-stage[data-tint="2"] { background: linear-gradient(180deg, #fff9e3, #ffefba); }
+  .quiz-stage[data-tint="3"] { background: linear-gradient(180deg, #ebfaef, #d2f1dc); }
+  .quiz-stage[data-tint="4"] { background: linear-gradient(180deg, #f2edfe, #e2d8fd); }
+  .quiz-stage .q { color: #14213d; }
+  .quiz-stage .back, .quiz-stage .sortline { color: #3d4a66; }
+  .quiz-stage .tile-desc { color: #3d4a66; }
+
+  /* Colored answer tiles: strong-color main block (glyph + display-font
+     title), description centered underneath in plain text. */
+  .tile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+    gap: 14px; margin-bottom: 8px; }
+  .tile { background: none; border: none; padding: 0; margin: 0; cursor: pointer;
+    font-family: inherit; display: flex; flex-direction: column; width: 100%;
+    text-align: center; -webkit-tap-highlight-color: transparent; }
+  .tile-main { flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 9px; background: var(--tile, #1a73e8);
+    color: var(--tile-ink, #ffffff); border-radius: 16px; padding: 18px 10px 15px;
+    box-shadow: 0 3px 0 rgba(20,33,61,.20); transition: transform .08s ease; width: 100%; }
+  .tile:active .tile-main { transform: translateY(2px); box-shadow: 0 1px 0 rgba(20,33,61,.20); }
+  .tile-ic { width: 54px; height: 54px; border-radius: 50%; background: rgba(255,255,255,.94);
+    display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .tile-ic svg { width: 36px; height: 36px; display: block; }
+  .tile-ic .ric { width: 36px; height: 36px; margin: 0; vertical-align: 0; }
+  .tile-ic.lg { width: 76px; height: 76px; }
+  .tile-ic.lg svg, .tile-ic.lg .ric { width: 52px; height: 52px; }
+  .tile-title { font-family: 'Poppins', -apple-system, system-ui, sans-serif;
+    font-weight: 700; font-size: 1rem; line-height: 1.28; }
+  .tile-desc { display: block; margin-top: 8px; padding: 0 5px; font-size: .82rem;
+    line-height: 1.42; text-align: center; color: var(--ink-soft); }
+  .tile.wide { grid-column: 1 / -1; }
+  .tile.on .tile-main { outline: 3.5px solid #14213d; outline-offset: 2px; }
+  .tile-main.logo { background: #ffffff; border: 2px solid var(--line); color: #14213d; }
+  .tile-main.logo .tile-logo { height: 44px; max-width: 82%; object-fit: contain; display: block; }
+  .tile-main.logo .tile-title { font-size: 1.02rem; }
+
+  /* Results comparison table: product columns, OUR PICK first. */
+  .cmp-wrap { overflow-x: auto; margin-bottom: 16px; border-radius: 16px; }
+  .cmp { border-collapse: separate; border-spacing: 0; table-layout: fixed;
+    width: 100%; min-width: 640px; background: var(--panel);
+    border: 2px solid var(--line); border-radius: 16px; overflow: hidden; }
+  .cmp th, .cmp td { padding: 12px; vertical-align: top; text-align: left; }
+  .cmp thead th { background: var(--panel-2); border-bottom: 2px solid var(--line); }
+  .cmp thead th.cmp-lab { width: 96px; background: transparent; border-bottom: 2px solid var(--line); }
+  .cmp thead th.ourpick { background: linear-gradient(160deg, #fff7d6, #ffe3a3);
+    box-shadow: inset 0 4px 0 #d97706; }
+  .cmp thead th.ourpick h3 { color: #14213d; }
+  .cmp thead th.ourpick .cmp-sub { color: #7a6420; }
+  .cmp h3 { font-family: 'Poppins', -apple-system, system-ui, sans-serif;
+    margin: 6px 0 2px; font-size: 1.02rem; line-height: 1.3; color: var(--ink); }
+  .cmp-sub { color: var(--muted); font-size: .78rem; font-weight: 400; }
+  .cmp-badge { display: inline-block; font-family: 'Poppins', -apple-system, system-ui, sans-serif;
+    font-weight: 700; font-size: .7rem; letter-spacing: .09em; border-radius: 999px;
+    padding: 3px 10px; background: #1a73e8; color: #ffffff; }
+  .cmp-badge.ourpick { background: #14213d; color: #ffd166; }
+  .cmp-badge.budget { background: #16a34a; color: #ffffff; }
+  .cmp tbody th { color: var(--muted); font-size: .7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em; padding-top: 15px; }
+  .cmp tbody td { font-weight: 600; color: var(--ink); font-size: .94rem;
+    border-top: 1.5px solid var(--line); }
+  .cmp tbody th { border-top: 1.5px solid var(--line); }
+  .cmp tbody tr:first-child td, .cmp tbody tr:first-child th { border-top: none; }
+  .cmp .price { color: var(--price); font-weight: 800; font-size: 1.12rem; }
+  .cmp .permo { color: var(--muted); font-weight: 400; font-size: .8rem; }
+  .cmp .why { color: var(--ink-soft); font-size: .88rem; font-weight: 400; line-height: 1.45; }
+  .cmp .pimg { position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 12px;
+    background: #ffffff; border: 1px solid var(--line); overflow: hidden;
+    display: flex; align-items: center; justify-content: center; }
+  .cmp .pimg svg { width: 78%; height: 78%; }
+  .cmp .pimg.gal { display: block; }
+  .cmp .pimg.gal img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cmp .nophoto { display: none; }
+  .cmp .pairbtn, .cmp .savebtn { margin-top: 8px; }
+  .cmp .pairbtn:first-child, .cmp .savebtn:first-child { margin-top: 0; }

@@ -166,20 +166,17 @@ function lrender() {
   setScene((Q.key === 'form' || !lanswers.form) ? TWIN_DESK_SCENE : DESK_SCENE);
   bar.style.width = ((lstep + 1) / (V.length + 1) * 100) + '%';
   let h = `<button class="back" onclick="${lstep === 0 ? 'backToFlowPick()' : 'lback()'}">← Back</button>`;
+  h += `<div class="quiz-stage" data-tint="${lstep % 5}">`;
   h += `<p class="q">${Q.q}</p>`;
-  h += '<div class="opt-grid">';
+  h += '<div class="tile-grid">';
   const lopts = Q.opts();
   lopts.forEach((o, i) => {
-    const wide = i === lopts.length - 1 && lopts.length % 2 === 1 ? ' wide' : '';
+    const wide = i === lopts.length - 1 && lopts.length % 2 === 1;
     const icon = pcIconFor(Q.key, o.v);
-    if (icon) {
-      const t = o.t.replace(/^[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]\s*/u, '');
-      h += `<button class="opt has-icon${wide}" onclick="lpick('${Q.key}','${o.v}')"><span class="opt-ic">${icon}</span><span class="opt-txt">${t}${o.s ? `<small>${o.s}</small>` : ''}</span></button>`;
-    } else {
-      h += `<button class="opt${wide}" onclick="lpick('${Q.key}','${o.v}')">${o.t}${o.s ? `<small>${o.s}</small>` : ''}</button>`;
-    }
+    const t = icon ? o.t.replace(/^[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]\s*/u, '') : o.t;
+    h += tileHTML({ i, wide, icon, title: t, desc: o.s, onclick: `lpick('${Q.key}','${o.v}')` });
   });
-  h += '</div>';
+  h += '</div></div>';
   stepsEl.innerHTML = h;
 }
 function lpick(k, v) {
@@ -269,6 +266,23 @@ function twoInOneUnavailableNote() {
   }
   return "Touchscreen 2-in-1 isn't available among these picks. Showing them without it.";
 }
+function laptopCmpRows(cols) {
+  const spec = (full, short) => { const v = short || full; return v ? esc(v) : ''; };
+  return [
+    { label: 'Photo', vals: cols.map(c => cardGallery('laptop', c.p.images, c.p.name)) },
+    { label: 'Price', vals: cols.map(c => `<span class="price">from $${c.p.price.toLocaleString()}</span>${c.p.price_max ? ` <span class="permo">— up to $${c.p.price_max.toLocaleString()} fully loaded</span>` : ''}<div class="permo">Prices via ${esc(c.p.price_source || 'manufacturer')}, checked Oct 2026</div>`) },
+    { label: 'Brand', vals: cols.map(c => c.p.brand ? esc(c.p.brand) : '') },
+    { label: 'Screen', vals: cols.map(c => c.p.display_inches ? c.p.display_inches + '″' : '') },
+    { label: 'CPU', vals: cols.map(c => spec(c.p.cpu, c.p.cpu_short)) },
+    { label: 'Memory', vals: cols.map(c => spec(c.p.ram_text, c.p.ram_short)) },
+    { label: 'Storage', vals: cols.map(c => spec(c.p.storage_text, c.p.storage_short)) },
+    { label: 'Graphics', vals: cols.map(c => spec(c.p.gpu, c.p.gpu_short)) },
+    { label: 'Weight', vals: cols.map(c => c.p.weight_text ? esc(c.p.weight_text) : '') },
+    { label: 'System', vals: cols.map(c => c.p.platform ? esc(c.p.platform) : '') },
+    { label: 'Why it fits', vals: cols.map(c => c.p.summary ? `<span class="why">${esc(c.p.summary)}</span>` : '') },
+    { label: '', vals: cols.map(c => `<button class="pairbtn" onclick="openPairing('laptop','${c.p.id}')">🔌 Find my screen or dock to pair with it</button><button class="savebtn" onclick="saveSetupFromCard(this,'laptop','${c.p.id}')">💾 Save this setup</button>`) },
+  ];
+}
 function renderLaptopResults() {
   const r = document.getElementById('results');
   // A filter with no matches steps aside kindly instead of dead-ending:
@@ -294,14 +308,20 @@ function renderLaptopResults() {
   if (unavailableNote) h += `<div class="note">${esc(unavailableNote)}</div>`;
   if (!picks.length) {
     h += `<div class="note">No laptops matched those answers — a fresh start with a few different answers may turn some up.</div>`;
-  } else {
+  } else if (picks.length === 1) {
     h += laptopCardHTML(picks[0], 0, true);
-    const rest = picks.slice(1);
+  } else {
+    const cols = cmpColumns(picks);
+    const colIds = new Set(cols.map(c => c.p.id));
+    h += cmpTableHTML(cols, laptopCmpRows(cols), {
+      name: p => esc(p.name),
+      sub: p => esc(p.brand || '') + (p.laptop_category ? ' · ' + esc(p.laptop_category) : '') });
+    const rest = picks.filter(p => !colIds.has(p.id));
     if (rest.length) {
       h += `<p class="picks-head">Your other matches</p>`;
       const shown = lshowAll ? rest : rest.slice(0, 5);
       h += '<div class="picks-grid breakout">';
-      shown.forEach((p, i) => { h += laptopCardHTML(p, i + 1, false); });
+      shown.forEach(p => { h += laptopCardHTML(p, picks.indexOf(p), false); });
       h += '</div>';
       if (!lshowAll && rest.length > 5)
         h += `<button class="more" onclick="lshowAll=true;renderLaptopResults()">Show ${rest.length - 5} more ▼</button>`;
@@ -417,19 +437,15 @@ function drender() {
   const Q = V[dstep];
   bar.style.width = ((dstep + 3) / (V.length + 3) * 100) + '%';
   let h = `<button class="back" onclick="${dstep === 0 ? 'backToFormQuestion()' : 'dback()'}">← Back</button>`;
+  h += `<div class="quiz-stage" data-tint="${dstep % 5}">`;
   h += `<p class="q">${Q.q}</p>`;
-  h += '<div class="opt-grid">';
-  Q.opts().forEach(o => {
+  h += '<div class="tile-grid">';
+  Q.opts().forEach((o, i) => {
     const icon = pcIconFor(Q.key, o.v);
-    const wide = ''; /* Caleb's rule: quiz buttons all the same size — nothing spans wide */
-    if (icon) {
-      const t = o.t.replace(/^[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]\s*/u, '');
-      h += `<button class="opt has-icon${wide}" onclick="dpick('${Q.key}','${o.v}')"><span class="opt-ic">${icon}</span><span class="opt-txt">${t}${o.s ? `<small>${o.s}</small>` : ''}</span></button>`;
-    } else {
-      h += `<button class="opt${wide}" onclick="dpick('${Q.key}','${o.v}')">${o.t}${o.s ? `<small>${o.s}</small>` : ''}</button>`;
-    }
+    const t = icon ? o.t.replace(/^[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]\s*/u, '') : o.t;
+    h += tileHTML({ i, icon, title: t, desc: o.s, onclick: `dpick('${Q.key}','${o.v}')` });
   });
-  h += '</div>';
+  h += '</div></div>';
   stepsEl.innerHTML = h;
 }
 function dpick(k, v) {
@@ -529,6 +545,23 @@ function desktopCardHTML(p, i, isTop, rankLabel) {
     <button class="savebtn" onclick="saveSetupFromCard(this,'desktop','${p.id}')">💾 Save this setup</button>
     <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
 }
+function desktopCmpRows(cols) {
+  const spec = (full, short) => { const v = short || full; return v ? esc(v) : ''; };
+  return [
+    { label: 'Photo', vals: cols.map(c => cardGallery('desktop', c.p.images, c.p.name)) },
+    { label: 'Price', vals: cols.map(c => `<span class="price">from $${c.p.price.toLocaleString()}</span>${c.p.price_max ? ` <span class="permo">— up to $${c.p.price_max.toLocaleString()} fully loaded</span>` : ''}<div class="permo">Prices via ${esc(c.p.price_source || 'manufacturer')}, checked Oct 2026</div>`) },
+    { label: 'Brand', vals: cols.map(c => c.p.brand ? esc(c.p.brand) : '') },
+    { label: 'Case', vals: cols.map(c => c.p.form_factor_label ? esc(c.p.form_factor_label) : '') },
+    { label: 'Screen', vals: cols.map(c => c.p.display_inches ? c.p.display_inches + '″ built in' : '') },
+    { label: 'CPU', vals: cols.map(c => spec(c.p.cpu, c.p.cpu_short)) },
+    { label: 'Memory', vals: cols.map(c => spec(c.p.ram_text, c.p.ram_short)) },
+    { label: 'Storage', vals: cols.map(c => spec(c.p.storage_text, c.p.storage_short)) },
+    { label: 'Graphics', vals: cols.map(c => spec(c.p.gpu, c.p.gpu_short)) },
+    { label: 'System', vals: cols.map(c => c.p.platform ? esc(c.p.platform) : '') },
+    { label: 'Why it fits', vals: cols.map(c => c.p.summary ? `<span class="why">${esc(c.p.summary)}</span>` : '') },
+    { label: '', vals: cols.map(c => `<button class="pairbtn" onclick="openPairing('desktop','${c.p.id}')">🔌 Find my screen or dock to pair with it</button><button class="savebtn" onclick="saveSetupFromCard(this,'desktop','${c.p.id}')">💾 Save this setup</button>`) },
+  ];
+}
 function renderDesktopResults() {
   const r = document.getElementById('results');
   const picks = sortedDesktopPicks();
@@ -542,14 +575,20 @@ function renderDesktopResults() {
   h += desktopSortHTML();
   if (!picks.length) {
     h += `<div class="note">No desktops matched those answers — a fresh start with a few different answers may turn some up.</div>`;
-  } else {
+  } else if (picks.length === 1) {
     h += desktopCardHTML(picks[0], 0, true);
-    const rest = picks.slice(1);
+  } else {
+    const cols = cmpColumns(picks);
+    const colIds = new Set(cols.map(c => c.p.id));
+    h += cmpTableHTML(cols, desktopCmpRows(cols), {
+      name: p => esc(p.name),
+      sub: p => esc(p.brand || '') + (p.desktop_category ? ' · ' + esc(p.desktop_category) : '') });
+    const rest = picks.filter(p => !colIds.has(p.id));
     if (rest.length) {
       h += `<p class="picks-head">Your other matches</p>`;
       const shown = dshowAll ? rest : rest.slice(0, 5);
       h += '<div class="picks-grid breakout">';
-      shown.forEach((p, i) => { h += desktopCardHTML(p, i + 1, false); });
+      shown.forEach(p => { h += desktopCardHTML(p, picks.indexOf(p), false); });
       h += '</div>';
       if (!dshowAll && rest.length > 5)
         h += `<button class="more" onclick="dshowAll=true;renderDesktopResults()">Show ${rest.length - 5} more ▼</button>`;

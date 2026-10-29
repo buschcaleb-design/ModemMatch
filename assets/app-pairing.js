@@ -132,12 +132,12 @@ function pairChooseMode(m) {
 }
 function pairChoiceHTML() {
   const both = pairSvg(piMon(3, 8, 17, 13, '#0284c7') + `<path d="M24 30 h17 v6 H24 Z M28 30 v-4 M37 30 v-4" stroke="#7c3aed"/>`);
-  return `<p class="q">What are we pairing today?</p>
-    <div class="opt-grid">
+  return `<div class="quiz-stage" data-tint="1"><p class="q">What are we pairing today?</p>
+    <div class="tile-grid">
     ${pairOptHTML(PAIR_TAB_ICONS.screens, 'Screens', 'Find screens this machine can actually drive', `pairChooseMode('screens')`)}
     ${pairOptHTML(PAIR_TAB_ICONS.dock, 'Dock', 'One cable for power, ports and peripherals', `pairChooseMode('dock')`)}
     ${pairOptHTML(both, 'Both', 'Screens first — they decide which dock you need', `pairChooseMode('both')`, 'wide')}
-    </div>`;
+    </div></div>`;
 }
 function refreshPairStage() {
   const s = document.getElementById('pairstage');
@@ -204,10 +204,18 @@ function pairIconFor(kind, v) {
   const f = PAIR_ICONS[kind + ':' + v];
   return f ? f() : '';
 }
+function pairTileIndex(t) {
+  // Stable per-title color slot so a pairing option keeps its tile
+  // color across re-renders (the pairing renderer has no index).
+  let n = 0;
+  for (let i = 0; i < t.length; i++) n += t.charCodeAt(i);
+  return n;
+}
 function pairOptHTML(icon, t, s, onclick, cls) {
-  return icon
-    ? `<button class="opt has-icon${cls ? ' ' + cls : ''}" onclick="${onclick}"><span class="opt-ic">${icon}</span><span class="opt-txt">${t}<small>${s}</small></span></button>`
-    : `<button class="opt${cls ? ' ' + cls : ''}" onclick="${onclick}">${t}<small>${s}</small></button>`;
+  // Redesign (2026-10-29): pairing answers wear the same colored
+  // tiles as the quizzes — same helper, same palette.
+  return tileHTML({ i: pairTileIndex(t), icon, title: t, desc: s, onclick,
+    wide: !!(cls && cls.includes('wide')), on: !!(cls && cls.includes('on')) });
 }
 const PAIR_TAB_ICONS = {
   screens: pairSvg(piMon(10, 9, 24, 18, '#0284c7') + piSpark(37, 9, '#e84393', 4)),
@@ -256,15 +264,15 @@ function pairScreensHTML() {
     let h = '';
     if (!pairAsked.count) {
       h += `<p class="q">${d.type === 'laptop' ? 'Will you plug in extra screens?' : 'How many screens will you plug in?'}</p>`;
-      h += '<div class="opt-grid">' + pairCountOpts().map(o =>
+      h += '<div class="tile-grid">' + pairCountOpts().map(o =>
         pairOptHTML(pairIconFor('count', pairData.type + ':' + o.v), o.t, o.s, `pairSetCount(${o.v})`)).join('') + '</div>';
     }
     if (!pairAsked.res && pairScreens.count !== 0) {
       h += `<p class="q">What resolution are the ${d.type === 'laptop' ? 'extra ' : ''}screens?</p>`;
-      h += '<div class="opt-grid">' + PAIR_RES_OPTS.map(o =>
+      h += '<div class="tile-grid">' + PAIR_RES_OPTS.map(o =>
         pairOptHTML(pairIconFor('res', o.v), o.t, o.s, `pairSetRes('${o.v}')`)).join('') + '</div>';
     }
-    return h;
+    return `<div class="quiz-stage" data-tint="2">${h}</div>`;
   }
   const n = pairScreens.count;
   const resLabel = PAIR_TIER_LABEL[pairScreens.resolution] || 'resolution not specified';
@@ -302,9 +310,9 @@ function pairScreensHTML() {
   }
   // Do they already have the screens?
   h += `<p class="q" style="margin-top:18px">Do you already have these screens?</p>
-    <div class="sortrow">
-      <button class="opt has-icon${pairScreens.have === true ? ' on' : ''}" onclick="pairSetHave(true)"><span class="opt-ic">${pairIconFor('have', 'yes')}</span><span class="opt-txt">Yes, I have them</span></button>
-      <button class="opt has-icon${pairScreens.have === false ? ' on' : ''}" onclick="pairSetHave(false)"><span class="opt-ic">${pairIconFor('have', 'no')}</span><span class="opt-txt">No — show me screens</span></button>
+    <div class="tile-grid">
+      ${tileHTML({ i: 3, icon: pairIconFor('have', 'yes'), title: 'Yes, I have them', on: pairScreens.have === true, onclick: 'pairSetHave(true)' })}
+      ${tileHTML({ i: 0, icon: pairIconFor('have', 'no'), title: 'No — show me screens', on: pairScreens.have === false, onclick: 'pairSetHave(false)' })}
     </div>`;
   if (pairScreens.have === true)
     h += `<div class="note">You're set for screens. ${pairMode === 'both' ? 'Now for the dock — one cable for everything.' : 'Nothing more to match here.'}</div>`;
@@ -319,9 +327,9 @@ function pairShelfHTML() {
   if (!Object.keys(mons).length)
     return `<div class="note">🖥️ The screen shelf is still being stocked — check back soon.</div>`;
   if (!pairTier) {
-    return `<p class="q" style="margin-top:14px">Which resolution should we match?</p>` +
-      '<div class="opt-grid">' + Object.keys(PAIR_TIER_LABEL).map(t =>
-        pairOptHTML(pairIconFor('res', t), PAIR_TIER_LABEL[t], `${(mons[t] || []).length} on the shelf`, `pairSetTier('${t}')`)).join('') + '</div>';
+    return `<div class="quiz-stage" data-tint="3"><p class="q">Which resolution should we match?</p>` +
+      '<div class="tile-grid">' + Object.keys(PAIR_TIER_LABEL).map(t =>
+        pairOptHTML(pairIconFor('res', t), PAIR_TIER_LABEL[t], `${(mons[t] || []).length} on the shelf`, `pairSetTier('${t}')`)).join('') + '</div></div>';
   }
   const shelf = mons[pairTier] || [];
   let h = `<p class="picks-head">Screens at ${PAIR_TIER_LABEL[pairTier]}</p>`;
@@ -417,16 +425,16 @@ function pairDockHTML() {
       ${pairMode === 'both' ? '' : `<button class="pairbtn" onclick="pairGo('screens')">${PAIR_TAB_ICONS.screens} Go to Screens</button>`}`;
   }
   if (pairScreens.count === null) {
-    return `<p class="q">First — how many extra screens should the dock handle?</p>
+    return `<div class="quiz-stage" data-tint="4"><p class="q">First — how many extra screens should the dock handle?</p>
       <p class="sortline">A pairing only means something against a target setup.</p>` +
-      '<div class="opt-grid">' + pairCountOpts().map(o =>
-        pairOptHTML(pairIconFor('count', pairData.type + ':' + o.v), o.t, o.s, `pairSetCount(${o.v})`)).join('') + '</div>';
+      '<div class="tile-grid">' + pairCountOpts().map(o =>
+        pairOptHTML(pairIconFor('count', pairData.type + ':' + o.v), o.t, o.s, `pairSetCount(${o.v})`)).join('') + '</div></div>';
   }
   const split = d.chassis_split;
   if (split && !pairChassis) {
     return `<p class="q">One question about this exact model</p>
       <div class="note">Dell sells this model in two chassis, and they differ where it matters: the plastic-chassis version's USB-C port is data-only, while the aluminum-chassis version's USB-C carries DisplayPort video. Which is yours?</div>
-      <div class="opt-grid">
+      <div class="tile-grid">
       ${pairOptHTML(pairIconFor('chassis', 'plastic'), 'Plastic chassis', 'USB-C is data-only on this version', `pairSetChassis('plastic')`)}
       ${pairOptHTML(pairIconFor('chassis', 'aluminum'), 'Aluminum chassis', 'USB-C carries DisplayPort video on this version', `pairSetChassis('aluminum')`)}
       </div>`;

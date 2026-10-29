@@ -5,28 +5,36 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ByteMatch — Buy the right gear</title>
-<link rel="stylesheet" href="/assets/site.css?v=2026-10-16.41">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css?v=2026-10-29.1">
 </head>
 <body>
 <div class="wrap">
   <div id="home">
-    <h1>Byte<span class="accent">Match</span></h1>
-    <p class="sub">Networking gear that kills the rental fee, plus laptops and desktops matched to how you'll actually use them.</p>
-    <div class="hero-grid" style="grid-template-columns:1fr">
-      <button class="hero-card" onclick="chooseFlow('buy')"><svg class="hero-art" viewBox="0 0 120 120" aria-hidden="true">
-<circle cx="63" cy="13" r="11" fill="#fbbf24" stroke="#10304f" stroke-width="4"/>
-<text x="63" y="19" text-anchor="middle" font-size="14" font-weight="800" fill="#10304f">$</text>
-<rect x="51" y="33" width="24" height="6" rx="3" fill="#10304f"/>
-<path d="M31 51 l5 -11 l9 6 z" fill="#f472b6" stroke="#10304f" stroke-width="4" stroke-linejoin="round"/>
-<ellipse cx="60" cy="73" rx="39" ry="29" fill="#f8a5c2" stroke="#10304f" stroke-width="4"/>
-<circle cx="27" cy="67" r="17" fill="#f8a5c2" stroke="#10304f" stroke-width="4"/>
-<ellipse cx="17" cy="69" rx="7" ry="5.5" fill="#f472b6" stroke="#10304f" stroke-width="3"/>
-<circle cx="30" cy="62" r="2.6" fill="#10304f"/>
-<path d="M97 64 q14 -2 10 -12 q-3 -6 -8 -3" fill="none" stroke="#10304f" stroke-width="4" stroke-linecap="round"/>
-<rect x="36" y="97" width="9" height="11" rx="3" fill="#f8a5c2" stroke="#10304f" stroke-width="3.5"/>
-<rect x="72" y="97" width="9" height="11" rx="3" fill="#f8a5c2" stroke="#10304f" stroke-width="3.5"/>
-</svg><span class="hero-title">Buy New Gear</span><small>Quick quiz → top picks matched to your home or how you'll actually use them</small></button>
-    </div>
+    <header class="topbar">
+      <div class="topbar-logo">Byte<span class="accent">Match</span></div>
+      <div class="topbar-tag">Buy the right gear — and set it up right.</div>
+    </header>
+    <nav class="aisle-nav" aria-label="Store aisles">
+      <button class="aisle-item" onclick="routeFlow('internet')"><span class="nav-ic" data-navicon="globe"></span><span class="aisle-name">Internet</span><small>Modems · Routers · Mesh</small></button>
+      <button class="aisle-item" onclick="routeFlow('pc')"><span class="nav-ic" data-navicon="laptop"></span><span class="aisle-name">PCs</span><small>Laptops · Desktops</small></button>
+      <button class="aisle-item" onclick="routeFlow('theater')"><span class="nav-ic" data-navicon="tv"></span><span class="aisle-name">Home Theater</span><small>TVs · Sound</small></button>
+      <button class="aisle-item" onclick="startModelLookup()"><span class="nav-ic" data-navicon="search"></span><span class="aisle-name">Know your model?</span><small>Jump straight to it</small></button>
+      <button class="aisle-item" onclick="openMySetup()"><span class="nav-ic" data-navicon="bookmark"></span><span class="aisle-name">Saved stuff</span><small>Your saved gear &amp; setups</small></button>
+    </nav>
+    <section class="hero">
+      <h1 class="hero-head">Pick Your Gear. Match Your Home. Love Your Wi-Fi.</h1>
+      <p class="sub hero-sub">Networking gear that kills the rental fee, plus laptops and desktops matched to how you'll actually use them.</p>
+      <button class="cta-big" onclick="chooseFlow()">Start Matching</button>
+    </section>
+    <section class="showcase" id="showcase" aria-label="Featured picks" style="display:none"></section>
+    <section class="build-band">
+      <h2>Build Your Own</h2>
+      <p>Pick your own parts and flip through options as you build.</p>
+      <button class="cta-big" onclick="routeFlow('pc')">Start Building</button>
+    </section>
   </div>
   <div id="flow-pick" style="display:none"></div>
   <div id="quiz" style="display:none">
@@ -43,10 +51,10 @@
   <div id="disclaimers" style="display:none"></div>
   <div id="setupbtn-wrap"><button id="setupbtn" onclick="openMySetup()">Saved stuff</button></div>
   <button class="discbtn" onclick="openDisclaimers()">Disclaimers</button>
-  <p class="buildstamp">ByteMatch &middot; Build 2026-10-27.1 &middot; If a page looks outdated, read this stamp back to us</p>
+  <p class="buildstamp">ByteMatch &middot; Build 2026-10-29.1 &middot; If a page looks outdated, read this stamp back to us</p>
 </div>
-<script src="/assets/app-core.js?v=2026-10-27.1"></script>
-<script src="/assets/app-computers.js?v=2026-10-27.1"></script>
-<script src="/assets/app-pairing.js?v=2026-10-27.1"></script>
+<script src="/assets/app-core.js?v=2026-10-29.1"></script>
+<script src="/assets/app-computers.js?v=2026-10-29.1"></script>
+<script src="/assets/app-pairing.js?v=2026-10-29.1"></script>
 </body>
 </html>
