@@ -2059,30 +2059,31 @@ _IMG_MIME = {".png": "image/png", ".jpg": "image/jpeg",
 
 def _decoded_image_response(name):
     """Response carrying the real image bytes for a base64-stored
-    icons-v2/photos file, or None when the stored file is already a
-    real image (or is not decodable as one) — the caller then falls
-    back to send_from_directory."""
+    icons-v2/photos/logos/renders file, or None when the stored file
+    is already a real image (or is not decodable as one) — the caller
+    then falls back to send_from_directory. Build 2026-11-06.10: the
+    format check no longer trusts the file extension — the theater
+    renders are JPEG bytes wearing .png names (that is what the
+    generator returned), so the decoded bytes are served under
+    whichever known image format they actually carry."""
     import base64 as _b64
-    ext = "." + name.rsplit(".", 1)[-1].lower()
-    magic = _IMG_MAGIC.get(ext)
-    if magic is None:
-        return None
     try:
         with open(os.path.join(BASE, "assets", name), "rb") as fh:
             raw = fh.read()
     except OSError:
         return None
-    if raw.startswith(magic):
+    if any(raw.startswith(m) for m in _IMG_MAGIC.values()):
         return None
     try:
         dec = _b64.b64decode(b"".join(raw.split()), validate=True)
     except Exception:
         return None
-    if not dec.startswith(magic):
-        return None
-    resp = Response(dec, mimetype=_IMG_MIME[ext])
-    resp.headers["Cache-Control"] = "public, max-age=86400"
-    return resp
+    for ext, magic in _IMG_MAGIC.items():
+        if dec.startswith(magic):
+            resp = Response(dec, mimetype=_IMG_MIME[ext])
+            resp.headers["Cache-Control"] = "public, max-age=86400"
+            return resp
+    return None
 
 
 @app.route("/assets/<path:name>")
