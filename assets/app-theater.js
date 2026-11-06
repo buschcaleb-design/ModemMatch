@@ -6,9 +6,10 @@
 // GOOD / BETTER / BEST results with same-level swaps and a room visual.
 // Prices live in theater.json (served at /api/theater-data) and were
 // verified Nov 5, 2026 at Best Buy, Walmart, and the makers' own stores.
-// The three step-up swaps Caleb has not ruled on (Sonos Beam Gen 2 in
-// GOOD, Sony Bar 9 in BETTER, LG G5 in BEST) are deliberately NOT in the
-// data — they ship only if he rules them in.
+// The three step-up swaps (Sonos Beam Gen 2 in GOOD, Sony Bravia Theatre
+// Bar 9 in BETTER, LG G5 77″ in BEST) were held at launch for Caleb's
+// ruling; he approved all three on Nov 5, 2026 and they shipped in Build
+// 2026-11-05.6 with prices verified that day at Best Buy.
 let TH_DATA = null;
 const tanswers = {};
 let tstep = -1;               // -1 cover, -2 "I know what I want", >= 0 quiz
