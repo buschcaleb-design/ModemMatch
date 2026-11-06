@@ -571,15 +571,24 @@
   .tile-title { font-family: 'Poppins', -apple-system, system-ui, sans-serif;
     font-weight: 700; font-size: 1rem; line-height: 1.28;
     /* Uniform tiles (Caleb, 2026-11-05): the title zone always reserves
-       two lines, so a one-line title can never shrink its bubble. */
-    display: flex; align-items: center; justify-content: center;
+       two lines, so a one-line title can never shrink its bubble.
+       Round 2 (same day): the text is anchored to the TOP of the zone
+       (flex-start), not centered — centering started a one-line title
+       half a line lower than a two-line title's first line. */
+    display: flex; align-items: flex-start; justify-content: center;
     width: 100%; min-height: 2.56em; text-align: center; }
   .tile-desc { display: block; margin-top: 8px; padding: 0 5px; font-size: .82rem;
     line-height: 1.42; text-align: center; color: var(--ink-soft);
-    /* Uniform tiles (Caleb, 2026-11-05): the caption zone always reserves
-       two lines; tileHTML now emits the span even when a tile has no
-       caption, so every tile in a row keeps the same silhouette. */
-    min-height: 2.84em; }
+    /* Uniform tiles (Caleb, 2026-11-05): the caption zone is exactly
+       two lines; tileHTML emits the span even when a tile has no
+       caption, so every tile in a row keeps the same silhouette.
+       Round 2 (same day): the zone is now a FIXED height, not just a
+       minimum — a caption that wrapped to three lines used to grow
+       its zone and steal the extra line from the tile's bubble
+       (flex: 1), leaving that bubble visibly shorter. Captions are
+       kept to two lines by copy; overflow: hidden is the guarantee
+       that no caption can ever change a tile's shape again. */
+    height: 2.84em; overflow: hidden; }
   .tile.wide { grid-column: 1 / -1; }
   .tile.on .tile-main { outline: 3.5px solid #14213d; outline-offset: 2px; }
   .tile-main.logo { background: #ffffff; border: 2px solid var(--line); color: #14213d; }

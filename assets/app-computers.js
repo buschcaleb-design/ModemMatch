@@ -41,7 +41,7 @@ const LAPTOP_QUESTIONS = [
     opts: () => [
       { v: '1080p', t: '1080p — Full HD', s: 'Sharp for work and most games' },
       { v: '1440p', t: '1440p — QHD', s: 'Crisper; the gaming sweet spot' },
-      { v: '4k', t: '4K — Ultra HD', s: 'Sharpest; needs a stronger graphics card' },
+      { v: '4k', t: '4K — Ultra HD', s: 'Sharpest; needs stronger graphics' },
       { v: 'unsure', t: 'Not sure', s: "We'll assume standard screens" } ] },
   { key: 'budget', q: "What's the budget?",
     opts: () => [
@@ -369,9 +369,9 @@ const DESKTOP_QUESTIONS = [
     opts: () => [
       { v: 'mini', t: '📦 Mini PC', s: 'Tiny box — sits on the desk' },
       { v: 'sff', t: 'Small form factor', s: 'Compact tower — still a real desktop' },
-      { v: 'tower', t: 'Tower', s: 'The classic desk tower (mini & mid towers)' },
+      { v: 'tower', t: 'Tower', s: 'Classic tower — mini & mid sizes' },
       { v: 'full', t: 'Full tower', s: 'Big case — most room for parts' },
-      { v: 'aio', t: 'All-in-one', s: 'Screen built in — no separate monitor' },
+      { v: 'aio', t: 'All-in-one', s: 'Computer built into the screen' },
       { v: 'any', t: 'No preference' } ] },
   { key: 'screens', q: "How many screens will you plug in?",
     opts: () => [
@@ -382,7 +382,7 @@ const DESKTOP_QUESTIONS = [
     opts: () => [
       { v: '1080p', t: '1080p — Full HD', s: 'Sharp for work and most games' },
       { v: '1440p', t: '1440p — QHD', s: 'Crisper; the gaming sweet spot' },
-      { v: '4k', t: '4K — Ultra HD', s: 'Sharpest; needs a stronger graphics card' },
+      { v: '4k', t: '4K — Ultra HD', s: 'Sharpest; needs stronger graphics' },
       { v: 'unsure', t: 'Not sure', s: "We'll assume standard screens" } ] },
   { key: 'budget', q: "What's the budget?",
     opts: () => [
@@ -395,8 +395,8 @@ const DESKTOP_QUESTIONS = [
     q: "Do you need to run specific Windows programs, older printers or accessories, or competitive online games?",
     opts: () => [
       { v: 'no', t: 'No', s: 'Browser, Office, Zoom — mainstream stuff' },
-      { v: 'yes', t: 'Yes, I have must-run stuff', s: "All our desktops are Intel/AMD — you're covered" },
-      { v: 'unsure', t: 'Not sure', s: "Same — all our desktops are Intel/AMD" } ] },
+      { v: 'yes', t: 'Yes, I have must-run stuff', s: "Every desktop here is Intel/AMD" },
+      { v: 'unsure', t: 'Not sure', s: "Same answer — all Intel/AMD" } ] },
   { key: 'usage', q: "How will it mostly be used, day to day?",
     opts: () => [
       { v: 'light', t: 'Mostly browser and documents', s: 'Web apps, email, a few tabs' },

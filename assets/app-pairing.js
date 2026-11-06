@@ -57,7 +57,7 @@ const PAIR_TIER_LABEL = { '1080p': '1080p Full HD', '1440p': '1440p QHD', '4k': 
 const PAIR_RES_OPTS = [
   { v: '1080p', t: '1080p — Full HD', s: 'Sharp for work and most games' },
   { v: '1440p', t: '1440p — QHD', s: 'Crisper; the gaming sweet spot' },
-  { v: '4k', t: '4K — Ultra HD', s: 'Sharpest; needs a stronger graphics card' },
+  { v: '4k', t: '4K — Ultra HD', s: 'Sharpest; needs stronger graphics' },
   { v: 'unsure', t: 'Not sure', s: "We'll assume standard screens" } ];
 
 async function openPairing(type, id) {

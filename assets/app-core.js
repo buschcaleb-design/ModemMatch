@@ -97,7 +97,7 @@ const QUESTIONS = [
     opts: () => [
       { v: 'under100', t: 'Under 100 Mbps — Basic', s: 'Browsing, email, one person streaming' },
       { v: '100-300', t: '100–300 Mbps — Standard', s: 'HD streaming on a couple of TVs' },
-      { v: '300-600', t: '300–600 Mbps — Fast', s: '4K streaming, gaming, working from home' },
+      { v: '300-600', t: '300–600 Mbps — Fast', s: '4K streaming, gaming, home office' },
       { v: '600-1000', t: '600 Mbps–1 Gbps — Gigabit', s: 'Big household, tons of devices at once' },
       { v: 'unsure', t: 'Not sure / still shopping', s: "We'll go with the most common plan" } ] },
   { key: 'rooms', q: "How many rooms?",
@@ -141,7 +141,7 @@ const QUESTIONS = [
       { v: 'none', t: 'None', s: 'Just phones, laptops, TVs' } ] },
   { key: 'setup', q: "How do you want your setup?",
     opts: () => [
-      { v: 'combo', t: 'All-in-one box', wide: true, s: 'One box, one app — the easiest setup. Tradeoff: upgrading means replacing the whole thing.' },
+      { v: 'combo', t: 'All-in-one box', wide: true, s: 'One box, one app — easiest setup; upgrading replaces the whole thing' },
       { v: 'separate', t: 'Separate modem + router', s: 'Most reliable — upgrade each piece on its own' },
       { v: 'one_piece', t: 'Just one piece', s: 'I only need to replace part of my setup' } ] },
   { key: 'which_piece', when: () => answers.setup === 'one_piece',
