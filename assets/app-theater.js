@@ -1,5 +1,5 @@
 // ------------------------------------------------------------ home theater
-// The Home Theater picker (Build 2026-11-06.10): the fourth flow, built on
+// The Home Theater picker (Build 2026-11-06.11): the fourth flow, built on
 // the same tile component and quiz shell as the gear and computer pickers.
 // FLOW (design of record: ht-picker-design/FLOW-DESIGN-OF-RECORD.md,
 // dictated by Caleb Nov 6, 2026): (1) pick your budget; (2) DESIGN YOUR
@@ -20,6 +20,17 @@
 // real priced swap (SVS component prices, verified at svsound.com
 // Nov 6, 2026); "Already have it" on the override page is real — the
 // part leaves the totals and its card says so.
+// Build .11 changes (the D1–D6 fix round, Caleb's go Nov 6, 2026):
+// D1 results cards are ONE card per column, equal by construction
+// (grid stretch), the two-product sound setup inside a single card;
+// D2 the SVS Prime 3.1 swap carries the Prime Satellite system photo
+// (the same satellites + SB-1000 Pro sub it is built from); D3 the
+// open-plan corner renders re-shot so the open plan actually reads;
+// D4 the step counter counts the room check as a step and reads off
+// the real projected sequence; D5 Edit opens a separate room-edit
+// page of prefilled dropdowns (design addendum, Nov 6 ~2:42 AM);
+// D6 single-part paths (TV-only / sound-only) show ONLY that part —
+// picks, swaps, and totals (design addendum, same date).
 let TH_DATA = null;
 const tanswers = {};
 let tstep = -1;               // -1 cover, -2 "I know what I want", >= 0 quiz
@@ -330,16 +341,23 @@ function trender() {
   const Q = V[tstep];
   bar.style.width = ((tstep + 1) / (V.length + 1) * 100) + '%';
   setScene('');
-  const realQs = V.filter(q => !q.roomcheck);
-  const pos = Q.roomcheck ? realQs.length : V.slice(0, tstep + 1).filter(q => !q.roomcheck).length;
+  // Build .11 (D4): the counter reads off the projected sequence
+  // itself — every step counts, the room check included, so the check
+  // can never label itself the final step while questions remain.
+  // The projection is tvisible() for the chosen path with the answers
+  // given so far; a branching answer that adds a question (sectional
+  // → corner boxes, "Not sure" → room size, gaming → console) grows
+  // the total at the moment the shopper makes that choice, and never
+  // at any other time.
+  const pos = tstep + 1;
   let h = `<button class="back" onclick="${tstep === 0 ? 'thRenderCover()' : 'tback()'}">← Back</button>`;
   h += `<div class="quiz-stage" data-tint="${tstep % 5}">`;
-  h += `<p class="th-qcount">${TH_GROUP_LABEL[thQGroups(Q)[0]] || ''} · ${pos} of ${realQs.length}${Q.cond ? ` <span class="th-cond">${Q.cond}</span>` : ''}</p>`;
+  h += `<p class="th-qcount">${TH_GROUP_LABEL[thQGroups(Q)[0]] || ''} · ${pos} of ${V.length}${Q.cond ? ` <span class="th-cond">${Q.cond}</span>` : ''}</p>`;
   h += `<p class="q">${Q.q}</p>`;
   if (Q.why) h += `<p class="th-why">${Q.why}</p>`;
   if (Q.roomcheck) {
     h += `<div class="th-viz th-checkviz"><img class="th-render" src="${thRenderURL(thAboveFile())}" alt="Your room from above, drawn from your answers"></div>`;
-    h += `<div class="th-coverbtns"><button class="cta-big th-alt" onclick="thEditRoom()">✎ Edit my answers</button><button class="cta-big" onclick="tcontinue()">Looks right — Next →</button></div>`;
+    h += `<div class="th-coverbtns"><button class="cta-big th-alt" onclick="thEditRoom()">✎ Edit this room</button><button class="cta-big" onclick="tcontinue()">Looks right — Next →</button></div>`;
   } else if (Q.parts) {
     Q.partsList.forEach(part => {
       h += `<p class="th-partlab">${part.label}</p><div class="tile-grid th-grid">`;
@@ -376,11 +394,75 @@ function trender() {
   window.scrollTo(0, 0);
 }
 
+// ---- the room-edit page (Build .11, D5; design addendum Nov 6,
+// ~2:42 AM): a SEPARATE page listing every room choice as a dropdown,
+// prefilled with the shopper's current answers, so they can cycle
+// through options fast and land back on the room view. The old
+// walk-the-questions Edit is gone. Edits collect in a draft; only
+// Apply touches the real answers, and it touches ONLY room answers —
+// budget and everything after the room step stay exactly as they were.
+let thEditDraft = null;
+const TH_EDIT_FIELDS = [
+  { key: 'dist', label: 'How far is the couch from the TV wall?' },
+  { key: 'roomsize', label: 'Room size (stand-in for the distance)', when: d => d.dist === 'dontknow' },
+  { key: 'couch', label: 'What seating do you have — or want?' },
+  { key: 'couchpos', label: 'Where does the sectional sit?', when: d => d.couch === 'sectional' },
+  { key: 'corner', label: 'Which corner?', when: d => d.couch === 'sectional' && d.couchpos === 'corner' },
+  { key: 'around', label: 'What is around the couch?' },
+  { key: 'light', label: 'How bright is the room when you watch?' },
+  { key: 'placement', label: 'What will the TV sit on — or hang on?' }
+];
 function thEditRoom() {
-  // Back to the first room question with every answer intact.
-  const V = tvisible();
-  const i = V.findIndex(q => q.group === 'room');
-  tstep = i >= 0 ? i : 0;
+  thEditDraft = {};
+  ['dist', 'roomsize', 'couch', 'couchpos', 'corner', 'around', 'light', 'placement']
+    .forEach(k => { if (tanswers[k] !== undefined) thEditDraft[k] = tanswers[k]; });
+  tstep = -3;
+  thRenderEdit();
+}
+function thEditSelect(field) {
+  const q = THEATER_QUESTIONS.find(x => x.key === field.key);
+  const opts = q.opts();
+  const cur = thEditDraft[field.key];
+  return `<label class="th-editlab"><span>${field.label}</span><select class="th-editsel" onchange="thEditSet('${field.key}', this.value)">${opts.map(o => `<option value="${o.v}"${o.v === cur ? ' selected' : ''}>${esc(o.t)}</option>`).join('')}</select></label>`;
+}
+function thRenderEdit() {
+  bar.style.width = '30%';
+  setScene('');
+  let h = `<button class="back" onclick="thEditCancel()">← Back</button>`;
+  h += `<div class="quiz-stage" data-tint="2">`;
+  h += `<p class="th-qcount">Step 3 · Check your room · Edit</p>`;
+  h += `<p class="q">Edit your room</p>`;
+  h += `<p class="th-why">Every room answer in one place — flip what is off, then go back to your room and the picture updates to match. Nothing else you have picked changes.</p>`;
+  h += `<div class="th-editform">${TH_EDIT_FIELDS.filter(f => !f.when || f.when(thEditDraft)).map(thEditSelect).join('')}</div>`;
+  h += `<div class="th-coverbtns"><button class="cta-big" onclick="thEditApply()">Back to my room →</button><button class="cta-big th-alt" onclick="thEditCancel()">Cancel</button></div>`;
+  h += '</div>';
+  stepsEl.innerHTML = h;
+  window.scrollTo(0, 0);
+}
+function thEditSet(k, v) {
+  thEditDraft[k] = v;
+  // Same branch hygiene as tpick: a seating that is not a sectional
+  // strands its placement answers; a middle sectional strands its
+  // corner; a real distance strands the room-size stand-in.
+  if (k === 'couch' && v !== 'sectional') { delete thEditDraft.couchpos; delete thEditDraft.corner; }
+  if (k === 'couchpos' && v !== 'corner') delete thEditDraft.corner;
+  if (k === 'dist' && v !== 'dontknow') delete thEditDraft.roomsize;
+  thRenderEdit();
+}
+function thEditApply() {
+  ['dist', 'roomsize', 'couch', 'couchpos', 'corner', 'around', 'light', 'placement']
+    .forEach(k => { if (thEditDraft[k] === undefined) delete tanswers[k]; else tanswers[k] = thEditDraft[k]; });
+  // A branch the shopper opened but left unanswered lands on the
+  // flow's own defaults rather than stranding the render lookup.
+  if (tanswers.couch === 'sectional' && !tanswers.couchpos) tanswers.couchpos = 'middle';
+  if (tanswers.couchpos === 'corner' && !tanswers.corner) tanswers.corner = 'corner-left';
+  thEditDraft = null;
+  tstep = tvisible().findIndex(q => q.roomcheck);
+  trender();
+}
+function thEditCancel() {
+  thEditDraft = null;
+  tstep = tvisible().findIndex(q => q.roomcheck);
   trender();
 }
 function thContinueHTML() {
@@ -445,15 +527,29 @@ function thEffSound(tierKey, slot) {
   const sw = thSwapState[thSwapKey(tierKey, slot)];
   return { p: sw || base, swapped: !!sw, base };
 }
-function thTierTotal(tierKey) {
+function thPartPrices(tierKey) {
   const T = TH_DATA.tiers[tierKey];
   const { tv } = thEffTV(tierKey);
   const s1 = thEffSound(tierKey, 'sound').p;
   const s2 = T.sound2 ? thEffSound(tierKey, 'sound2').p : null;
-  let t = (thOwned.tv ? 0 : tv.price)
-    + (thOwned.sound ? 0 : s1.price + (s2 ? s2.price : 0));
+  return {
+    tv: thOwned.tv ? 0 : tv.price,
+    sound: thOwned.sound ? 0 : s1.price + (s2 ? s2.price : 0)
+  };
+}
+// Build .11 (D6): on a single-part path the tier total is that part
+// alone — the unchosen part never enters the total, and no cable is
+// added to a part-only total (a TV-only total is the TV's price).
+function thTierTotal(tierKey) {
+  const P = thPartPrices(tierKey);
+  if (thMode === 'tv') return P.tv;
+  if (thMode === 'sound') return P.sound;
+  let t = P.tv + P.sound;
   if (tierKey !== 'best' && !thOwned.rest) t += TH_DATA.cable.price;
   return t;
+}
+function thSinglePart() {
+  return thMode === 'tv' ? 'tv' : thMode === 'sound' ? 'sound' : null;
 }
 function thSwapName(p) {
   // A swapped-in product wears its plain product name — the data's
@@ -521,13 +617,16 @@ function thSizeNote() {
 
 function thChips() {
   const c = [];
+  const single = thSinglePart();
   if (tanswers.placement === 'stand') c.push('✓ Feet span fits a standard stand');
   if (tanswers.placement === 'mount') c.push('✓ Wall mount planned in');
   if (tanswers.placement === 'renter') c.push('✓ No-drilling picks only');
-  if (!thOwned.rest) c.push('✓ Certified HDMI cable included');
-  if ((tanswers.watch || []).includes('gaming')) c.push(`✓ Fast HDMI ports counted for your ${TH_GAME_LABEL[tanswers.gaming] || 'gaming gear'} + the sound`);
-  if (tanswers.subs === 'often') c.push('✓ Real center channel in every system — dialogue stays clear');
-  if (tanswers.own === 'streamer') c.push("✓ No streamer sold to you twice");
+  // Build .11 (D6): a single-part total carries no cable line, so no
+  // cable chip may claim one is included on those paths.
+  if (!single && !thOwned.rest) c.push('✓ Certified HDMI cable included');
+  if ((tanswers.watch || []).includes('gaming')) c.push(`✓ Fast HDMI ports counted for your ${TH_GAME_LABEL[tanswers.gaming] || 'gaming gear'}${single === 'tv' ? '' : ' + the sound'}`);
+  if (single !== 'tv' && tanswers.subs === 'often') c.push('✓ Real center channel in every system — dialogue stays clear');
+  if (single !== 'tv' && tanswers.own === 'streamer') c.push("✓ No streamer sold to you twice");
   if (thOwned.tv) c.push('✓ Your TV — counted at $0, shown for fit');
   if (thOwned.sound) c.push('✓ Your sound — counted at $0, shown for fit');
   return c;
@@ -557,40 +656,54 @@ function thPanelHTML(tierKey) {
   const T = TH_DATA.tiers[tierKey];
   const { tv, note: tvNote, swapped: tvSwapped, baseTv } = thEffTV(tierKey);
   const total = thTierTotal(tierKey);
+  const single = thSinglePart();
   // Copy follows the gear actually shown: a stand-in Mini-LED never
   // wears the OLED tagline.
   const standIn = !tvSwapped && tv !== T.tv;
   const tagline = standIn ? T.tagline.replace('OLED picture', 'Mini-LED picture') : T.tagline;
   let flags = '';
-  if (tierKey === 'best' && tanswers.wires === 'none')
+  if (single !== 'tv' && tierKey === 'best' && tanswers.wires === 'none')
     flags += `<p class="th-flag">⚠ This tier breaks your “no wires at all” answer — a receiver system runs speaker wire. BETTER is your no-wire ceiling.</p>`;
-  if (tanswers.own === 'avr' && tierKey === 'best')
+  if (single !== 'tv' && tanswers.own === 'avr' && tierKey === 'best')
     flags += `<p class="th-flag">You already own a receiver: if its HDMI ports are 2.1, keep it and put the sound budget into the speakers — the SVS set is the upgrade, not the box.</p>`;
-  if (tanswers.own === 'sonos' && tierKey === 'better')
+  if (single !== 'tv' && tanswers.own === 'sonos' && tierKey === 'better')
     flags += `<p class="th-flag">You own Sonos: the Arc Ultra swap keeps your whole home in one family.</p>`;
   const snd1 = thEffSound(tierKey, 'sound');
   const snd2 = T.sound2 ? thEffSound(tierKey, 'sound2') : null;
-  // Two columns all the way down (patch note 2): TV left, sound right;
-  // a two-product sound setup stacks its cards in the right column.
-  const tvCol = `<div class="th-square">${thProductBlock('tv', tv, tierKey === 'best' ? 'The TV' : 'The TV we like', tierKey, 'tv', tvSwapped, thSwapName(baseTv), thOwned.tv)}${tvNote ? `<p class="th-flag">${esc(tvNote)}</p>` : ''}</div>`;
-  let soundCol;
+  // Build .11 (D1): ONE card per column. The two-product sound setup
+  // lives inside a single card (receiver, a divider, the speakers,
+  // the sound total) instead of two stacked cards, and the grid
+  // stretches both columns' cards to one shared height — equal by
+  // construction, not by a min-height floor.
+  const tvCard = `<div class="th-square">${thProductBlock('tv', tv, tierKey === 'best' ? 'The TV' : 'The TV we like', tierKey, 'tv', tvSwapped, thSwapName(baseTv), thOwned.tv)}${tvNote ? `<p class="th-flag">${esc(tvNote)}</p>` : ''}</div>`;
+  let soundCard;
   if (snd2) {
-    soundCol = `<div class="th-square">${thProductBlock('speaker', snd1.p, 'The sound we like — the receiver', tierKey, 'sound', snd1.swapped, thSwapName(snd1.base), thOwned.sound)}</div>
-    <div class="th-square">${thProductBlock('speaker', snd2.p, 'The speakers', tierKey, 'sound2', snd2.swapped, thSwapName(snd2.base), thOwned.sound)}</div>
-    ${thOwned.sound ? '' : `<p class="th-coltotal">Sound total: $${fmt$(snd1.p.price + snd2.p.price)}</p>`}`;
+    soundCard = `<div class="th-square">${thProductBlock('speaker', snd1.p, 'The sound we like — the receiver', tierKey, 'sound', snd1.swapped, thSwapName(snd1.base), thOwned.sound)}<div class="th-prod">${thProductBlock('speaker', snd2.p, 'The speakers', tierKey, 'sound2', snd2.swapped, thSwapName(snd2.base), thOwned.sound)}</div>${thOwned.sound ? '' : `<p class="th-coltotal">Sound total: $${fmt$(snd1.p.price + snd2.p.price)}</p>`}</div>`;
   } else {
-    soundCol = `<div class="th-square">${thProductBlock('speaker', snd1.p, 'The sound we like', tierKey, 'sound', snd1.swapped, thSwapName(snd1.base), thOwned.sound)}</div>`;
+    soundCard = `<div class="th-square">${thProductBlock('speaker', snd1.p, 'The sound we like', tierKey, 'sound', snd1.swapped, thSwapName(snd1.base), thOwned.sound)}</div>`;
   }
-  const cableLine = thOwned.rest
-    ? 'Cables and extras: yours — nothing added to this total.'
-    : tierKey === 'best'
-      ? 'Cables: speaker wire and certified HDMI run about $40 — inside this tier’s reserve.'
-      : `${esc(TH_DATA.cable.name)} — $${fmt$(TH_DATA.cable.price)}, already in the total.`;
+  // Build .11 (D6): a single-part path renders only its own column.
+  const cols = single === 'tv'
+    ? `<div class="th-cols th-cols-one"><div class="th-col">${tvCard}</div></div>`
+    : single === 'sound'
+      ? `<div class="th-cols th-cols-one"><div class="th-col">${soundCard}</div></div>`
+      : `<div class="th-cols"><div class="th-col">${tvCard}</div><div class="th-col">${soundCard}</div></div>`;
+  const cableLine = single === 'tv'
+    ? 'TV only in this total — no sound added, nothing upsold.'
+    : single === 'sound'
+      ? 'Sound only in this total — no TV added, nothing upsold.'
+      : thOwned.rest
+        ? 'Cables and extras: yours — nothing added to this total.'
+        : tierKey === 'best'
+          ? 'Cables: speaker wire and certified HDMI run about $40 — inside this tier’s reserve.'
+          : `${esc(TH_DATA.cable.name)} — $${fmt$(TH_DATA.cable.price)}, already in the total.`;
   const swappedNames = [];
-  if (tvSwapped && !thOwned.tv) swappedNames.push(thSwapName(tv));
-  if (snd1.swapped && !thOwned.sound) swappedNames.push(thSwapName(snd1.p));
-  if (snd2 && snd2.swapped && !thOwned.sound) swappedNames.push(thSwapName(snd2.p));
-  const totalLabel = `${esc(T.label)} total${swappedNames.length ? ' with ' + esc(swappedNames.join(' + ')) : ''}${tierKey === 'best' || thOwned.rest ? '' : ' (cables in)'}: $${fmt$(total)}`;
+  if (single !== 'sound' && tvSwapped && !thOwned.tv) swappedNames.push(thSwapName(tv));
+  if (single !== 'tv' && snd1.swapped && !thOwned.sound) swappedNames.push(thSwapName(snd1.p));
+  if (single !== 'tv' && snd2 && snd2.swapped && !thOwned.sound) swappedNames.push(thSwapName(snd2.p));
+  const totalLabel = single
+    ? `${esc(T.label)} total (${single === 'tv' ? 'TV' : 'sound'} only): $${fmt$(total)}`
+    : `${esc(T.label)} total${swappedNames.length ? ' with ' + esc(swappedNames.join(' + ')) : ''}${tierKey === 'best' || thOwned.rest ? '' : ' (cables in)'}: $${fmt$(total)}`;
   return `<p class="th-tagline">${esc(tagline)}</p>
   ${flags}
   <div class="th-roomviz">
@@ -598,10 +711,7 @@ function thPanelHTML(tierKey) {
     <div class="th-viz"><p class="th-vizcap">From your seat — the TV wall</p><img class="th-render" src="${thRenderURL(thFrontFile(T.viz))}" alt="The TV wall from your seat"></div>
   </div>
   <p class="factline">${esc(thRoomLine())} ${esc(TH_LIGHT_CLAUSE[tanswers.light] || '')}</p>
-  <div class="th-cols">
-    <div class="th-col">${tvCol}</div>
-    <div class="th-col">${soundCol}</div>
-  </div>
+  ${cols}
   <div class="th-foot"><div><div class="th-total">${totalLabel}</div><div class="th-cable">${cableLine}</div></div>
   <div class="th-note">${esc(T.note)}</div></div>`;
 }
@@ -625,13 +735,17 @@ function renderThResults() {
   const recap = `${TH_DIST_LABEL[tanswers.dist] === undefined ? '' : 'Couch ' + TH_DIST_LABEL[tanswers.dist].toLowerCase() + ' · '}${watchTxt} · ${TH_LIGHT_LABEL[tanswers.light] || ''} · ${TH_HOME_LABEL[tanswers.home] || ''}`;
   const bandMax = TH_BAND_MAX[tanswers.budget];
   const defTotal = thTierTotal(thTab);
+  const single = thSinglePart();
+  // Build .11 (D6): single-part results speak only about that part —
+  // the heading, the totals note, and the advice blocks follow suit.
   let h = `<button class="back" onclick="thBackToQuestions()">← Back</button>
-  <p class="q">Three complete systems for your room</p>
-  <p class="th-sub">${esc(recap)} — every total includes the cables. ${esc(TH_DATA.checked_label || '')}.</p>
-  <div class="note">📐 <b>Sizing, honestly:</b> ${esc(thSizeNote())}</div>`;
+  <p class="q">${single === 'tv' ? 'Three TVs for your room' : single === 'sound' ? 'Three sound setups for your room' : 'Three complete systems for your room'}</p>
+  <p class="th-sub">${esc(recap)} — ${single ? `totals are the ${single === 'tv' ? 'TV' : 'sound'} alone; the other half is not in here and is not being sold to you` : 'every total includes the cables'}. ${esc(TH_DATA.checked_label || '')}.</p>`;
+  if (single !== 'sound')
+    h += `<div class="note">📐 <b>Sizing, honestly:</b> ${esc(thSizeNote())}</div>`;
   if (tanswers.placement === 'fireplace')
     h += `<div class="th-warn"><b>Fireplace mounting:</b> the screen sits high — plan a tilting mount and expect some neck angle. It is the one placement compromise in this build.</div>`;
-  if (tanswers.home === 'apartment')
+  if (single !== 'tv' && tanswers.home === 'apartment')
     h += `<div class="note">🏢 <b>Apartment note:</b> every sub below is sealed or compact, and night mode is one button — your neighbours stay happy.</div>`;
   const chips = thChips();
   if (chips.length) h += `<div class="chips">${chips.map(c => `<span class="chip">${esc(c)}</span>`).join('')}</div>`;
@@ -641,15 +755,21 @@ function renderThResults() {
   h += thPanelHTML(thTab);
   h += `<div class="th-next"><p class="th-nextlab">After you buy — the next steps</p>
     <ol>
-      <li><b>One trip list:</b> the TV, the sound, the certified cable — and a spare HDMI, because the second one is always the one you needed.</li>
+      ${single === 'tv'
+        ? '<li><b>One trip list:</b> the TV — and a spare HDMI, because the second one is always the one you needed.</li>'
+        : single === 'sound'
+          ? '<li><b>One trip list:</b> the sound setup — and a spare HDMI, because the second one is always the one you needed.</li>'
+          : '<li><b>One trip list:</b> the TV, the sound, the certified cable — and a spare HDMI, because the second one is always the one you needed.</li>'}
       <li><b>Open it within 48 hours.</b> Check the panel corners in a dark room. A bad corner found this week is an exchange; found next month, it's a warranty claim.</li>
-      ${thTab === 'best'
-        ? '<li><b>Receiver first, TV second</b> if you\'re wall-mounting — the center speaker\'s placement decides where the TV\'s bottom edge lands.</li>'
-        : '<li><b>Soundbar first, TV second</b> if you\'re wall-mounting — the bar\'s mount height decides where the TV\'s bottom edge lands.</li>'}
+      ${single === 'tv'
+        ? '<li><b>Measure the stand before the TV lands</b> — the feet span in the fit checks is the number that decides whether it sits or tips.</li>'
+        : thTab === 'best'
+          ? '<li><b>Receiver first, TV second</b> if you\'re wall-mounting — the center speaker\'s placement decides where the TV\'s bottom edge lands.</li>'
+          : '<li><b>Soundbar first, TV second</b> if you\'re wall-mounting — the bar\'s mount height decides where the TV\'s bottom edge lands.</li>'}
       <li><b>Run eARC, then check the TV says “eARC”</b> — not just ARC. That's the setting that carries the good formats.</li>
-      <li><b>Sub crawl, short version:</b> put the sub in your seat, play something bassy, walk the front wall — where it's smoothest is where it lives.</li>
+      ${single === 'tv' ? '' : '<li><b>Sub crawl, short version:</b> put the sub in your seat, play something bassy, walk the front wall — where it\'s smoothest is where it lives.</li>'}
     </ol>
-    <p class="factline">Still price-shopping? Anyone selling you a $100 HDMI cable is selling you a story — the certified $9 cable in these totals is the right cable.</p></div>
+    <p class="factline">Still price-shopping? Anyone selling you a $100 HDMI cable is selling you a story — the certified $9 cable ${single ? 'is the right cable when you need one' : 'in these totals is the right cable'}.</p></div>
   <div class="th-cont"><button class="cta-big th-alt" onclick="startTheaterBuy()">Start over</button></div>`;
   rEl.innerHTML = h;
   window.scrollTo(0, 0);

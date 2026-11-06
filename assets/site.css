@@ -880,18 +880,44 @@
   .th-statebtn.on { background: #f0fdf4; }
   .th-statebtn.on b::after { content: ' ✓'; }
 
-  /* Results: two columns all the way down (patch note 2) + renders. */
-  .th-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 12px 0; }
-  .th-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
-  .th-col .th-square { flex: 1 1 auto; }
-  @media (max-width: 640px) { .th-cols { grid-template-columns: 1fr; } }
+  /* Results: two columns all the way down (patch note 2) + renders.
+     Build .11 (D1): each column holds ONE card, and the cards are
+     geometrically equal BY CONSTRUCTION — equal widths from the
+     1fr/1fr grid, equal heights because the grid row stretches both
+     columns and each card flex-fills its column. (The .10 layout put
+     two stacked cards in the sound column against the TV's one, so
+     nothing could ever line up.) When the columns stack on narrow
+     screens, grid-auto-rows: 1fr keeps the pair at one shared height
+     there too. A single-part column (.th-cols-one, D6) centers at a
+     readable width instead of stretching full-bleed. */
+  .th-cols { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr;
+    gap: 14px; margin: 12px 0; align-items: stretch; }
+  .th-col { display: flex; flex-direction: column; min-width: 0; }
+  .th-col .th-square { flex: 1 1 auto; display: flex; flex-direction: column; }
+  .th-cols-one { grid-template-columns: 1fr; max-width: 600px;
+    margin-left: auto; margin-right: auto; }
+  @media (max-width: 640px) { .th-cols { grid-template-columns: 1fr; }
+    .th-cols-one { max-width: none; } }
   .th-coltotal { font-family: 'Poppins', sans-serif; font-weight: 700; color: var(--ink);
-    margin: 0 2px; font-size: .95rem; }
+    margin: auto 2px 0; padding-top: 10px; font-size: .95rem; }
   .th-ownedtag { background: #f0fdf4; border-left: 3px solid #16a34a; color: #166534;
     padding: 6px 10px; border-radius: 0 8px 8px 0; font-size: .9rem; font-weight: 600;
     margin: 4px 0 6px; }
   .th-viz img.th-render { width: 100%; height: auto; display: block; border-radius: 8px; }
   .th-checkviz { max-width: 560px; margin: 4px auto 10px; }
+
+  /* Room-edit page (Build .11, D5): every room choice as a prefilled
+     dropdown, one per row, so a shopper can cycle through answers
+     fast and get back to the room view. */
+  .th-editform { display: grid; grid-template-columns: 1fr; gap: 12px;
+    margin: 6px 0 4px; max-width: 560px; }
+  .th-editlab { display: flex; flex-direction: column; gap: 5px;
+    font-family: 'Poppins', sans-serif; font-weight: 600; font-size: .92rem;
+    color: var(--ink); text-align: left; }
+  .th-editsel { font: inherit; font-size: 1rem; font-weight: 400;
+    padding: 10px 12px; border: 1.5px solid #dbe4f0; border-radius: 10px;
+    background: #ffffff; color: var(--ink); width: 100%; }
+  .th-editsel:focus { border-color: #16a34a; outline: none; }
 
   /* My Setup inline rename (audit A1): replaces the prompt() dialog,
      which silently no-ops in embedded browsers and read as a dead
