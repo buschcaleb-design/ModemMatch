@@ -356,7 +356,7 @@ function gearCmpRows(cols) {
     { label: 'DOCSIS', vals: cols.map(c => c.p.docsis || '') },
     { label: 'Top speed', vals: cols.map(c => c.p.max_speed_mbps ? Number(c.p.max_speed_mbps).toLocaleString() + ' Mbps' : '') },
     { label: 'Why it fits', vals: cols.map(c => `${(c.p.bends && c.p.bends.length) ? `<span class="bendline">⚠ Bends your answers: ${esc(c.p.bends.join('; '))}. </span>` : ''}${c.p.why ? `<span class="why">${c.p.why}</span>` : ''}`) },
-    { label: '', vals: cols.map(c => `<button class="pairbtn" onclick="openGearPage('${c.p.id}','results')">📄 View its page</button><button class="pairbtn savebtn" data-savegear="${c.p.id}" onclick="toggleSaveGear(this,'${c.p.id}')">${saveBtnHTML(c.p.id)}</button>`) },
+    { label: '', vals: cols.map(c => `<div class="actrow"><button class="pairbtn" onclick="openGearPage('${c.p.id}','results')">📄 View its page</button><button class="pairbtn savebtn" data-savegear="${c.p.id}" onclick="toggleSaveGear(this,'${c.p.id}')">${saveBtnHTML(c.p.id)}</button></div>`) },
   ];
 }
 function gearResultsHTML(list) {
@@ -492,8 +492,8 @@ function cardHTML(p, i, isHero) {
     <p class="why">${p.why}</p>
     ${p.blurb ? `<p class="blurb">${p.blurb}</p>` : ''}
     ${factRowsHTML(chips)}
-    <button class="pairbtn" onclick="openGearPage('${p.id}','results')">📄 View its page</button>
-    <button class="pairbtn savebtn" data-savegear="${p.id}" onclick="toggleSaveGear(this,'${p.id}')">${saveBtnHTML(p.id)}</button></div>`;
+    <div class="actrow"><button class="pairbtn" onclick="openGearPage('${p.id}','results')">📄 View its page</button>
+    <button class="pairbtn savebtn" data-savegear="${p.id}" onclick="toggleSaveGear(this,'${p.id}')">${saveBtnHTML(p.id)}</button></div></div>`;
 }
 
 // ------------------------------------------------------------ gear pages
@@ -978,8 +978,8 @@ function browseCardHTML(it) {
     priceHTML = it.price != null
       ? `<div class="price">$${fmt$(it.price)}${it.price_source ? ` <span class="permo">— via ${esc(it.price_source)}, checked Oct 2026</span>` : ''}</div>`
       : `<div class="price" style="color:var(--muted);font-size:.95rem">No verified price yet</div>`;
-    actions = `<button class="pairbtn" onclick="openGearPage('${it.id}','browse')">📄 View its page</button>
-      <button class="pairbtn savebtn" data-savegear="${it.id}" onclick="toggleSaveGear(this,'${it.id}')">${saveBtnHTML(it.id)}</button>`;
+    actions = `<div class="actrow"><button class="pairbtn" onclick="openGearPage('${it.id}','browse')">📄 View its page</button>
+      <button class="pairbtn savebtn" data-savegear="${it.id}" onclick="toggleSaveGear(this,'${it.id}')">${saveBtnHTML(it.id)}</button></div>`;
   } else {
     if (it.cat === 'laptop' && it.display_inches) chips.push('Screen · ' + it.display_inches + '″');
     if (it.cat === 'desktop' && it.form_factor_label) chips.push('Case · ' + esc(it.form_factor_label));
@@ -989,8 +989,8 @@ function browseCardHTML(it) {
     if (it.gpu_short) chips.push('Graphics · ' + esc(it.gpu_short));
     priceHTML = `<div class="price">from $${fmt$(it.price)}${it.price_max ? ` <span class="permo">— up to $${fmt$(it.price_max)} fully loaded</span>` : ''}</div>`;
     const openFn = it.cat === 'desktop' ? 'renderDesktopModelCard' : 'renderModelCard';
-    actions = `<button class="pairbtn" onclick="browseOpenComputer('${it.cat}','${it.id}')">📄 View its page</button>
-      <button class="pairbtn savebtn" onclick="saveSetupFromCard(this,'${it.cat}','${it.id}')">💾 Save this one</button>`;
+    actions = `<div class="actrow"><button class="pairbtn" onclick="browseOpenComputer('${it.cat}','${it.id}')">📄 View its page</button>
+      <button class="pairbtn savebtn" onclick="saveSetupFromCard(this,'${it.cat}','${it.id}')">💾 Save this one</button></div>`;
   }
   const rankLabel = it.cat === 'gear' ? esc(it.type_label || 'GEAR')
     : it.cat === 'laptop' ? 'LAPTOP' : 'DESKTOP';

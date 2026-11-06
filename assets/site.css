@@ -654,6 +654,22 @@
   .cmp .pairbtn, .cmp .savebtn { margin-top: 8px; }
   .cmp .pairbtn:first-child, .cmp .savebtn:first-child { margin-top: 0; }
 
+  /* Build 2026-11-05.9: result-card action pairs (View its page /
+     Save this one) live in ONE grid stack whose rows are equal
+     fractions, so the two buttons render at the same height BY
+     CONSTRUCTION — each button stretches to its row, and the rows
+     match whatever the taller content needs. The .8 fix only set a
+     shared min-height (a floor): the gear save button's bookmark
+     icon (.ric at 1.9em) and the computers pair button's two-line
+     label both stand taller than that floor, and stacked block
+     siblings never equalize each other. The icon is also capped to
+     the 20px box .pairbtn svg already uses, so the common case
+     lands on the intended 52px instead of ~65px. */
+  .actrow { display: grid; grid-auto-rows: 1fr; gap: 8px; margin-top: 12px; }
+  .actrow > .pairbtn, .actrow > .savebtn { margin-top: 0; }
+  .cmp .actrow { margin-top: 0; }
+  .savebtn .ric { width: 20px; height: 20px; }
+
   /* Build Your Own browse (Caleb, 2026-10-29): the whole catalog on
      one results-style page — the shopper's own filters on a pale
      palette-tint panel, the site's standard cards underneath. */

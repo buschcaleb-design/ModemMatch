@@ -834,8 +834,8 @@ async function renderSetupList() {
       h += `<div class="card"><h3>${esc(g.name)}</h3>
         <p class="why">${esc(g.brand)} · ${esc(g.type_label)} · ${price}</p>
         ${g.price_url ? `<div class="buylinks"><a class="buybtn" href="${esc(g.price_url)}" target="_blank" rel="noopener">🛒 See it at ${esc(g.price_source || 'the store')}</a></div>` : ''}
-        <button class="pairbtn" onclick="openGearPage('${g.id}','setup')">📄 View its page</button>
-        <button class="pairbtn savebtn" onclick="removeSavedGear('${g.id}')">✕ Remove</button></div>`;
+        <div class="actrow"><button class="pairbtn" onclick="openGearPage('${g.id}','setup')">📄 View its page</button>
+        <button class="pairbtn savebtn" onclick="removeSavedGear('${g.id}')">✕ Remove</button></div></div>`;
     }
   }
   if (!setupStore.setups.length && !savedGear.length)
