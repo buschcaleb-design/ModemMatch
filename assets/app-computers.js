@@ -559,7 +559,20 @@ function desktopCmpRows(cols) {
     { label: 'Storage', vals: cols.map(c => spec(c.p.storage_text, c.p.storage_short)) },
     { label: 'Graphics', vals: cols.map(c => spec(c.p.gpu, c.p.gpu_short)) },
     { label: 'System', vals: cols.map(c => c.p.platform ? esc(c.p.platform) : '') },
-    { label: 'Why it fits', vals: cols.map(c => c.p.summary ? `<span class="why">${esc(c.p.summary)}</span>` : '') },
+    { label: 'Why it fits', vals: cols.map(c => {
+        // Build 2026-11-05.2: the summary alone hid the case-size
+        // disclosure (e.g. a mini tower standing in for the tower size
+        // the shopper picked) — it lived only in the card's collapsed
+        // Why list. The case bullets from the pick's Why list ride
+        // along in the table cell so the disclosure is on the surface
+        // where the finalists are compared.
+        const bits = [];
+        if (c.p.summary) bits.push(esc(c.p.summary));
+        (Array.isArray(c.p.why) ? c.p.why : []).forEach(b => {
+          if (b.indexOf(' case — ') >= 0) bits.push(esc(b));
+        });
+        return bits.length ? `<span class="why">${bits.join(' ')}</span>` : '';
+      }) },
     { label: '', vals: cols.map(c => `<button class="pairbtn" onclick="openPairing('desktop','${c.p.id}')">🔌 Find my screen or dock to pair with it</button><button class="savebtn" onclick="saveSetupFromCard(this,'desktop','${c.p.id}')">💾 Save this setup</button>`) },
   ];
 }

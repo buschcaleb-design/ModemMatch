@@ -13,7 +13,7 @@ Then open http://localhost:5002
 import json
 import os
 import re
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, Response, jsonify, request, send_from_directory
 
 app = Flask(__name__)
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -1917,6 +1917,53 @@ ASSET_FILES = {"site.css", "app-core.js", "app-computers.js",
                "app-guides.js", "app-pairing.js"}
 
 
+# Build 2026-11-05.2 — why this decode step exists: the icons-v2 PNGs
+# (and the one photos/ JPG) reached GitHub through the connector's file
+# tool, which stores the exact string it is given; the upload passed
+# base64 text, so the deployed files are base64 DOCUMENTS wearing image
+# extensions. Flask served them as HTTP 200 + image/png (the type is
+# guessed from the extension), fetch-based checks passed, and browsers
+# — handed undecodable bytes — showed broken-image placeholders on
+# every icon. Until the binaries can be re-uploaded as real bytes,
+# decode on the way out: a stored icons-v2/photos file that does not
+# start with its format's magic bytes is tried as base64, and if the
+# decoded bytes carry the right magic they are what gets served. A
+# file that really is an image (magic intact) passes through below
+# untouched, so correct files behave exactly as before.
+_IMG_MAGIC = {".png": b"\x89PNG\r\n\x1a\n", ".jpg": b"\xff\xd8\xff",
+              ".jpeg": b"\xff\xd8\xff", ".webp": b"RIFF"}
+_IMG_MIME = {".png": "image/png", ".jpg": "image/jpeg",
+             ".jpeg": "image/jpeg", ".webp": "image/webp"}
+
+
+def _decoded_image_response(name):
+    """Response carrying the real image bytes for a base64-stored
+    icons-v2/photos file, or None when the stored file is already a
+    real image (or is not decodable as one) — the caller then falls
+    back to send_from_directory."""
+    import base64 as _b64
+    ext = "." + name.rsplit(".", 1)[-1].lower()
+    magic = _IMG_MAGIC.get(ext)
+    if magic is None:
+        return None
+    try:
+        with open(os.path.join(BASE, "assets", name), "rb") as fh:
+            raw = fh.read()
+    except OSError:
+        return None
+    if raw.startswith(magic):
+        return None
+    try:
+        dec = _b64.b64decode(b"".join(raw.split()), validate=True)
+    except Exception:
+        return None
+    if not dec.startswith(magic):
+        return None
+    resp = Response(dec, mimetype=_IMG_MIME[ext])
+    resp.headers["Cache-Control"] = "public, max-age=86400"
+    return resp
+
+
 @app.route("/assets/<path:name>")
 def asset(name):
     if name not in ASSET_FILES and not (
@@ -1926,6 +1973,10 @@ def asset(name):
             and name.rsplit(".", 1)[-1].lower()
             in ("png", "svg", "jpg", "jpeg", "webp")):
         return ("Not found", 404)
+    if name.startswith(("icons-v2/", "photos/")):
+        fixed = _decoded_image_response(name)
+        if fixed is not None:
+            return fixed
     resp = send_from_directory(os.path.join(BASE, "assets"), name)
     resp.headers["Cache-Control"] = "public, max-age=86400"
     return resp

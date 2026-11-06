@@ -180,11 +180,18 @@ function pairSetupItemCount() {
 function refreshPairBar() {
   const bar = document.getElementById('pairbar');
   if (!bar) return;
-  const n = pairSetupItemCount();
-  bar.style.display = n > 0 ? 'block' : 'none';
+  const paired = pairSetupItemCount();
+  bar.style.display = paired > 0 ? 'block' : 'none';
   const sec = document.getElementById('pairing');
-  if (sec) sec.classList.toggle('pairbar-pad', n > 0);
-  if (n > 0) {
+  if (sec) sec.classList.toggle('pairbar-pad', paired > 0);
+  if (paired > 0) {
+    // Build 2026-11-05.2: the label counts everything the setup
+    // holds — the computer it is built around plus the paired items —
+    // matching the line items and the total in My Setup. (It used to
+    // count only the paired items, so a computer + dock setup read
+    // "1 item" while My Setup listed and priced two.) The bar's
+    // visibility still keys off the paired count alone.
+    const n = paired + 1;
     const lbl = document.getElementById('pairbar-label');
     if (lbl) lbl.textContent = n === 1 ? '1 item in your setup' : `${n} items in your setup`;
   }
@@ -776,7 +783,7 @@ function setupCardHTML(s, comp, cat, withActions) {
       <button class="sort" onclick="setupDuplicate('${s.id}')">Duplicate</button>
       <button class="sort" onclick="setupShare(this,'${s.id}')">Share link</button>
       <button class="sort" onclick="setupPrint('${s.id}')">Print checklist</button>
-      <button class="sort" onclick="setupDelete('${s.id}')">Delete</button>
+      <button class="sort" onclick="setupDelete('${s.id}')">${setupDeleteArm === s.id ? '⚠️ Sure? Click again to delete' : 'Delete'}</button>
     </div>` : ''}</div>`;
 }
 let setupReturn = { section: 'home', y: 0 };
@@ -860,8 +867,19 @@ function setupDuplicate(id) {
   persistSetups();
   renderSetupList();
 }
+// Build 2026-11-05.2: Delete used to gate on the native confirm()
+// dialog — a step that can silently no-op (an auto-dismissed dialog
+// reads as "no"), leaving the button looking dead. It is a two-click
+// inline confirm now: the first click arms just that setup's button
+// ("Sure? Click again to delete"), the second click deletes.
+let setupDeleteArm = null;
 function setupDelete(id) {
-  if (!confirm('Delete this saved setup?')) return;
+  if (setupDeleteArm !== id) {
+    setupDeleteArm = id;
+    renderSetupList();
+    return;
+  }
+  setupDeleteArm = null;
   setupStore.setups = setupStore.setups.filter(s => s.id !== id);
   if (setupStore.active_id === id) setupStore.active_id = null;
   persistSetups();

@@ -378,16 +378,22 @@ function cardArt(kind) {
 // Photo gallery (Caleb, 2026-10-16): when an item has collected photos,
 // the slot rotates through them like a store gallery; until then the drawn
 // stand-in holds the slot.
+function noPhotoHTML() {
+  return `<p class="nophoto">📷 Sorry — we don't have a photo of this device yet. We only show photos we've verified are really this model, so until one checks out, our drawing stands in.</p>`;
+}
 function cardGallery(kind, images, name) {
   if (!images || !images.length)
-    return cardArt(kind) + `<p class="nophoto">📷 Sorry — we don't have a photo of this device yet. We only show photos we've verified are really this model, so until one checks out, our drawing stands in.</p>`;
+    return cardArt(kind) + noPhotoHTML();
   const enc = encodeURIComponent(JSON.stringify(images));
   const nav = images.length > 1 ? `<button class="galnav prev" onclick="galCycle(this,-1)" aria-label="Previous photo">‹</button><button class="galnav next" onclick="galCycle(this,1)" aria-label="Next photo">›</button><span class="galcount">1 / ${images.length}</span>` : '';
   return `<div class="pimg gal" data-imgs="${enc}" data-idx="0"><img src="${images[0]}" alt="${esc(name || 'Product photo')}" loading="lazy" onerror="galFallback(this,'${kind}')">${nav}</div>`;
 }
 function galFallback(img, kind) {
   const box = img.closest('.pimg');
-  if (box) box.outerHTML = cardArt(kind);
+  // A photo that fails to load lands on the same stand-in as a device
+  // with no photo at all — the honest no-photo note goes with it
+  // (Build 2026-11-05.2: it used to be swapped in silently).
+  if (box) box.outerHTML = cardArt(kind) + noPhotoHTML();
 }
 function galCycle(btn, d) {
   const box = btn.closest('.pimg');

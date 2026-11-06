@@ -612,7 +612,10 @@
   .cmp .pimg svg { width: 78%; height: 78%; }
   .cmp .pimg.gal { display: block; }
   .cmp .pimg.gal img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .cmp .nophoto { display: none; }
+  /* Build 2026-11-05.2: the no-photo note used to be display:none here,
+     which hid the honest "we don't have a photo of this device yet"
+     disclosure in the one place shoppers compare finalists. It renders
+     in the table now, same as on cards. */
   .cmp .pairbtn, .cmp .savebtn { margin-top: 8px; }
   .cmp .pairbtn:first-child, .cmp .savebtn:first-child { margin-top: 0; }
 
