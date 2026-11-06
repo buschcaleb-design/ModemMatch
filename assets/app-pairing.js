@@ -34,7 +34,11 @@ function pairQtyFor(monId) {
   return Math.max(1, Math.min(4, want));
 }
 function pairMonQtyDelta(monId, d) {
-  pairQty[monId] = Math.max(1, Math.min(9, pairQtyFor(monId) + d));
+  const next = Math.max(1, Math.min(9, pairQtyFor(monId) + d));
+  const s = pairSetup();
+  const e = s ? s.monitors.find(x => x.id === monId) : null;
+  if (e) { e.qty = next; delete pairQty[monId]; touchSetup(s); }
+  else pairQty[monId] = next;
   refreshPairStage();
 }
 function pairToggleDock(dockId) {
@@ -507,7 +511,7 @@ function monitorCardHTML(m) {
   const inSetup = pairSetupMonitorQty(m.id);
   return `<div class="card">${cardGallery('monitor', m.images, m.name)}
     <h3>${PAIR_TAB_ICONS.screens}${esc(m.name)}${monSizeHTML(m)}</h3>
-    <div class="price">$${m.price_usd.toLocaleString()}</div>
+    <div class="price">$${fmt$(m.price_usd)}</div>
     <p class="permo" style="color:#94a3b8;font-size:.78rem;margin:2px 0 0">Price via ${esc(m.price_source || 'retailer')}, checked Oct 2026 · ${esc(m.role)}</p>
     <p class="why">${esc(m.why)}</p>
     ${factRowsHTML(chips)}
@@ -538,7 +542,7 @@ function dockCardHTML(o, beyond) {
       : `<p class="warnline">⚠️ On its own this won't add screens past the laptop's limit — shown so you can compare.</p>`;
   }
   const price = o.price_usd != null
-    ? `<div class="price">$${o.price_usd.toLocaleString()}</div>
+    ? `<div class="price">$${fmt$(o.price_usd)}</div>
        <p class="permo" style="color:#94a3b8;font-size:.78rem;margin:2px 0 0">Price via ${esc(o.price_source || 'maker store')}, checked Oct 2026</p>`
     : `<p class="permo" style="color:#94a3b8;font-size:.8rem;margin:2px 0 0">No verified price yet — we list a price only when we've confirmed one</p>`;
   const inSetup = pairSetupDockId() === o.id;
@@ -647,7 +651,7 @@ function updateSetupBtn() {
   const b = document.getElementById('setupbtn');
   if (!b) return;
   const n = setupStore.setups.length + (typeof savedGear !== 'undefined' ? savedGear.length : 0);
-  b.innerHTML = `${bico('bookmark')}Saved stuff${n ? ` (${n})` : ''}`;
+  b.innerHTML = `${bico('bookmark')}My Setup${n ? ` (${n})` : ''}`;
 }
 function newSetupId() {
   return 's' + Date.now().toString(36) + Math.floor(Math.random() * 1e5).toString(36);
@@ -737,7 +741,7 @@ function setupLinesHTML(s, comp, cat) {
   else if (s.computer_owned === true)
     lines.push(`<p class="setupline">🖥️ <strong>${esc(comp.name)}</strong> — <span class="ownedtag">✓ Already owned</span> · not counted in your total</p>`);
   else
-    lines.push(`<p class="setupline">🖥️ <strong>${esc(comp.name)}</strong> — from $${comp.price.toLocaleString()}${comp.source_url ? ` · <a href="${esc(comp.source_url)}" target="_blank" rel="noopener">See it at ${esc(comp.brand || 'the maker')} ↗</a>` : ''}</p>`);
+    lines.push(`<p class="setupline">🖥️ <strong>${esc(comp.name)}</strong> — from $${fmt$(comp.price)}${comp.source_url ? ` · <a href="${esc(comp.source_url)}" target="_blank" rel="noopener">See it at ${esc(comp.brand || 'the maker')} ↗</a>` : ''}</p>`);
   if (s.dock_id) {
     const d = cat.docks[s.dock_id];
     if (!d)
@@ -745,7 +749,7 @@ function setupLinesHTML(s, comp, cat) {
     else if (s.dock_owned === true)
       lines.push(`<p class="setupline">🔌 ${esc(d.name)} — <span class="ownedtag">✓ Already owned</span> · not counted in your total <button class="sort" onclick="setupRemoveDock('${s.id}')">✕ Remove</button></p>`);
     else
-      lines.push(`<p class="setupline">🔌 ${esc(d.name)} — ${d.price_usd != null ? '$' + d.price_usd.toLocaleString() : 'price not shown (not counted in the total)'} <button class="sort" onclick="setupRemoveDock('${s.id}')">✕ Remove</button></p>`);
+      lines.push(`<p class="setupline">🔌 ${esc(d.name)} — ${d.price_usd != null ? '$' + fmt$(d.price_usd) : 'price not shown (not counted in the total)'} <button class="sort" onclick="setupRemoveDock('${s.id}')">✕ Remove</button></p>`);
   } else if (comp && comp.type === 'desktop') {
     lines.push(`<p class="setupline">🔌 No dock — desktops don't need one; the graphics card's own ports do the job.</p>`);
   } else {
@@ -760,7 +764,7 @@ function setupLinesHTML(s, comp, cat) {
     else if (m.owned === true)
       lines.push(`<p class="setupline">🖥️ ${esc(mon.name)}${monSizeHTML(mon)} ×${m.qty} — <span class="ownedtag">✓ Already owned</span> · not counted in your total <button class="sort" onclick="setupRemoveMonitor('${s.id}','${m.id}')">✕ Remove</button></p>`);
     else
-      lines.push(`<p class="setupline">🖥️ ${esc(mon.name)}${monSizeHTML(mon)} ×${m.qty} — ${mon.price_usd != null ? '$' + mon.price_usd.toLocaleString() + ' each' : 'price not shown (not counted in the total)'} <button class="sort" onclick="setupRemoveMonitor('${s.id}','${m.id}')">✕ Remove</button></p>`);
+      lines.push(`<p class="setupline">🖥️ ${esc(mon.name)}${monSizeHTML(mon)} ×${m.qty} — ${mon.price_usd != null ? '$' + fmt$(mon.price_usd) + ' each' : 'price not shown (not counted in the total)'} <button class="sort" onclick="setupRemoveMonitor('${s.id}','${m.id}')">✕ Remove</button></p>`);
   });
   return lines.join('');
 }
@@ -773,7 +777,7 @@ function setupCardHTML(s, comp, cat, withActions) {
   else if (t.total == null)
     totalHTML = `<div class="note">No total: the computer's price isn't shown, and we never guess one.</div>`;
   else
-    totalHTML = `<div class="have" style="text-align:left">Estimated starting total: <strong>$${t.total.toLocaleString()}</strong><br><span style="font-weight:400">From the prices above, checked Oct 2026. ${s.computer_owned === true ? 'Your computer is marked Already owned, so it adds nothing to this total' : "The computer's figure is its starting price"}${t.missingPrice.length ? '; anything marked "price not shown" is not counted' : ''}${setupHasOwned(s) && s.computer_owned !== true ? '; anything marked Already owned is not counted' : ''} — configurations and final prices vary.</span></div>`;
+    totalHTML = `<div class="have" style="text-align:left">Estimated starting total: <strong>$${fmt$(t.total)}</strong><br><span style="font-weight:400">From the prices above, checked Oct 2026. ${s.computer_owned === true ? 'Your computer is marked Already owned, so it adds nothing to this total' : "The computer's figure is its starting price"}${t.missingPrice.length ? '; anything marked "price not shown" is not counted' : ''}${setupHasOwned(s) && s.computer_owned !== true ? '; anything marked Already owned is not counted' : ''} — configurations and final prices vary.</span></div>`;
   return `<div class="card"><h3>🧩 ${esc(name)}</h3>
     ${setupLinesHTML(s, comp, cat)}
     ${totalHTML}
@@ -804,6 +808,11 @@ function closeMySetup() {
   hideAllSections();
   const el = document.getElementById(setupReturn.section);
   if (el) el.style.display = 'block';
+  document.querySelectorAll('[data-savegear]').forEach(b => {
+    b.innerHTML = saveBtnHTML(b.getAttribute('data-savegear'));
+  });
+  document.querySelectorAll('[data-savedbtn]').forEach(b => { b.innerHTML = savedBtnHTML(); });
+  if (setupReturn.section === 'pairing' && pairData) refreshPairStage();
   window.scrollTo(0, setupReturn.y);
 }
 async function renderSetupList() {
@@ -812,13 +821,16 @@ async function renderSetupList() {
   let h = `<button class="back" onclick="closeMySetup()">← Back</button>
     <h1>My <span class="accent">Setup</span></h1>
     <p class="sub">Gear, computers, docks, and screens you've saved on this device. This is not a cart — nothing is reserved or ordered, and prices are re-read from the catalog each time you look.</p>`;
+  let grandTotal = 0, grandKnown = false, grandPartial = false;
   if (savedGear.length) {
     h += `<h2 class="setuph">🔖 Saved gear</h2>`;
     for (const gid of savedGear) {
       let g = null;
       try { g = await (await fetch('/api/gear/' + gid)).json(); } catch (e) {}
       if (!g || g.error) continue;
-      const price = g.price != null ? `$${Number(g.price).toLocaleString()}` : 'no verified price yet';
+      if (g.price != null) { grandTotal += g.price; grandKnown = true; }
+      else grandPartial = true;
+      const price = g.price != null ? `$${fmt$(g.price)}` : 'no verified price yet';
       h += `<div class="card"><h3>${esc(g.name)}</h3>
         <p class="why">${esc(g.brand)} · ${esc(g.type_label)} · ${price}</p>
         ${g.price_url ? `<div class="buylinks"><a class="buybtn" href="${esc(g.price_url)}" target="_blank" rel="noopener">🛒 See it at ${esc(g.price_source || 'the store')}</a></div>` : ''}
@@ -827,18 +839,27 @@ async function renderSetupList() {
     }
   }
   if (!setupStore.setups.length && !savedGear.length)
-    h += `<div class="note">Nothing saved yet — save gear from any result with its 🔖 Save button, or a computer setup with the 💾 Save this setup button, and it'll wait for you here.</div>`;
+    h += `<div class="note">Nothing saved yet — save gear from any result with its “Save this one” button, or a computer the same way, and it'll wait for you here.</div>`;
   const sorted = [...setupStore.setups].sort((a, b) => (b.updated || 0) - (a.updated || 0));
   for (const s of sorted) {
     const comp = await resolveComputer(s.computer.kind, s.computer.id);
     setupResolved[s.id] = comp;
+    const t = setupTotals(s, comp, cat);
+    if (t.total != null) { grandTotal += t.total; grandKnown = true; }
+    if (t.total == null || t.missingPrice.length) grandPartial = true;
     h += setupCardHTML(s, comp, cat, true);
+  }
+  if (grandKnown) {
+    h += `<div class="have" style="text-align:left">Everything in My Setup: <strong>$${fmt$(grandTotal)}</strong><br><span style="font-weight:400">Every setup above plus the saved gear — the whole page, one number.${grandPartial ? ' Anything on the page without a verified price is not counted.' : ''} Already-owned items are not counted.</span></div>`;
   }
   el.innerHTML = h;
 }
 function removeSavedGear(id) {
   const i = savedGear.indexOf(id);
   if (i >= 0) { savedGear.splice(i, 1); persistSavedGear(); }
+  document.querySelectorAll(`[data-savegear="${id}"]`).forEach(b => { b.innerHTML = saveBtnHTML(id); });
+  document.querySelectorAll('[data-savedbtn]').forEach(b => { b.innerHTML = savedBtnHTML(); });
+  if (typeof updateSetupBtn === 'function') updateSetupBtn();
   renderSetupList();
 }
 async function setupOpen(id) {
@@ -918,20 +939,20 @@ async function setupPrint(id) {
   const rows = [];
   rows.push(comp ? (s.computer_owned === true
                     ? `☑ Computer: ${esc(comp.name)} — already owned (not in the total)`
-                    : `☐ Computer: ${esc(comp.name)} — from $${comp.price.toLocaleString()}`)
+                    : `☐ Computer: ${esc(comp.name)} — from $${fmt$(comp.price)}`)
                  : '☐ Computer: no longer in the catalog');
   if (s.dock_id) {
     const d = cat.docks[s.dock_id];
     rows.push(d ? (s.dock_owned === true
                     ? `☑ Dock: ${esc(d.name)} — already owned (not in the total)`
-                    : `☐ Dock: ${esc(d.name)}${d.price_usd != null ? ' — $' + d.price_usd.toLocaleString() : ' — price not shown'}`)
+                    : `☐ Dock: ${esc(d.name)}${d.price_usd != null ? ' — $' + fmt$(d.price_usd) : ' — price not shown'}`)
                 : '☐ Dock: no longer in the catalog');
   }
   s.monitors.forEach(m => {
     const mon = cat.monitors[m.id];
     rows.push(mon ? (m.owned === true
                     ? `☑ Screen ×${m.qty}: ${esc(mon.name)} — already owned (not in the total)`
-                    : `☐ Screen ×${m.qty}: ${esc(mon.name)}${monSizeText(mon) ? ' (' + monSizeText(mon) + ')' : ''}${mon.price_usd != null ? ' — $' + mon.price_usd.toLocaleString() + ' each' : ' — price not shown'}`)
+                    : `☐ Screen ×${m.qty}: ${esc(mon.name)}${monSizeText(mon) ? ' (' + monSizeText(mon) + ')' : ''}${mon.price_usd != null ? ' — $' + fmt$(mon.price_usd) + ' each' : ' — price not shown'}`)
                   : '☐ Screen: no longer in the catalog');
   });
   if (!s.dock_id && !s.monitors.length)
@@ -942,7 +963,7 @@ async function setupPrint(id) {
       <h2>🧩 ${esc(name)} — setup checklist</h2>
       ${rows.map(r => `<p>${r}</p>`).join('')}
       ${t.total != null
-        ? `<p><strong>Estimated starting total: $${t.total.toLocaleString()}</strong> — from prices checked Oct 2026; the computer's figure is a starting price and configurations vary.</p>`
+        ? `<p><strong>Estimated starting total: $${fmt$(t.total)}</strong> — from prices checked Oct 2026; the computer's figure is a starting price and configurations vary.</p>`
         : '<p>No total shown — a component has no current price.</p>'}
       <p>Saved with ByteMatch. A checklist, not an order: nothing is reserved or purchased.</p>
     </div>

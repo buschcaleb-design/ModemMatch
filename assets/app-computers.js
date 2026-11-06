@@ -1,12 +1,25 @@
 // ---------------------------------------------------------------- laptops
 const lanswers = {};
 let lstep = 0;
-const BRAND_OPTS = [
+// Build .8: brand lists are PER DEVICE — a TV question never offers
+// Garmin (a watch brand) or Apple (no Apple TVs exist), and a phone
+// question never offers the TV-only makers.
+const PHONE_BRAND_OPTS = [
   { v: 'Apple', t: 'Apple' }, { v: 'Samsung', t: 'Samsung' },
-  { v: 'Google', t: 'Google' }, { v: 'LG', t: 'LG' },
-  { v: 'Sony', t: 'Sony' }, { v: 'Motorola', t: 'Motorola' },
-  { v: 'Garmin', t: 'Garmin' }, { v: 'Other', t: 'Other brand' },
+  { v: 'Google', t: 'Google' }, { v: 'Motorola', t: 'Motorola' },
+  { v: 'LG', t: 'LG' }, { v: 'Sony', t: 'Sony' },
+  { v: 'Other', t: 'Other brand' }, { v: '', t: "Don't have one" } ];
+const TV_BRAND_OPTS = [
+  { v: 'Samsung', t: 'Samsung' }, { v: 'LG', t: 'LG' },
+  { v: 'Sony', t: 'Sony' }, { v: 'TCL', t: 'TCL' },
+  { v: 'Hisense', t: 'Hisense' }, { v: 'Vizio', t: 'Vizio' },
+  { v: 'Other', t: 'Other brand' }, { v: '', t: "Don't have one" } ];
+const WATCH_BRAND_OPTS = [
+  { v: 'Apple', t: 'Apple' }, { v: 'Samsung', t: 'Samsung' },
+  { v: 'Google', t: 'Google' }, { v: 'Garmin', t: 'Garmin' },
+  { v: 'Fitbit', t: 'Fitbit' }, { v: 'Other', t: 'Other brand' },
   { v: '', t: "Don't have one" } ];
+const BRAND_OPTS_BY_KEY = { eco_phone: PHONE_BRAND_OPTS, eco_tv: TV_BRAND_OPTS, eco_watch: WATCH_BRAND_OPTS };
 const LAPTOP_QUESTIONS = [
   { key: 'use', q: "What's the laptop mainly for?",
     opts: () => [
@@ -69,11 +82,11 @@ const LAPTOP_QUESTIONS = [
       { v: 'yes', t: 'Yes', s: 'Phone, TV, watch and laptop in sync' },
       { v: 'no', t: 'No / don\'t care', s: 'Just the best laptop for the job' } ] },
   { key: 'eco_phone', when: () => lanswers.eco_wants === 'yes',
-    q: "What brand is your phone?", opts: () => BRAND_OPTS },
+    q: "What brand is your phone?", opts: () => BRAND_OPTS_BY_KEY.eco_phone },
   { key: 'eco_tv', when: () => lanswers.eco_wants === 'yes',
-    q: "What brand is your TV?", opts: () => BRAND_OPTS },
+    q: "What brand is your TV?", opts: () => BRAND_OPTS_BY_KEY.eco_tv },
   { key: 'eco_watch', when: () => lanswers.eco_wants === 'yes',
-    q: "What brand is your smartwatch?", opts: () => BRAND_OPTS },
+    q: "What brand is your smartwatch?", opts: () => BRAND_OPTS_BY_KEY.eco_watch },
 ];
 const PC_ICONS = {
   'use:school': '<img class="v2ic" src="/assets/icons-v2/child-kid.png" alt="">',
@@ -173,7 +186,7 @@ function lrender() {
   lopts.forEach((o, i) => {
     const wide = i === lopts.length - 1 && lopts.length % 2 === 1;
     const icon = pcIconFor(Q.key, o.v);
-    const t = icon ? o.t.replace(/^[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]\s*/u, '') : o.t;
+    const t = icon ? o.t.replace(/^[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]\u{FE0F}?\s*/u, '') : o.t;
     h += tileHTML({ i, wide, icon, title: t, desc: o.s, onclick: `lpick('${Q.key}','${o.v}')` });
   });
   h += '</div></div>';
@@ -188,7 +201,7 @@ function lpick(k, v) {
 }
 function lback() { if (lstep > 0) { lstep--; lrender(); } }
 
-let laptopRes = null, lshowAll = false, ltwoInOne = false, lbattery = false;
+let laptopRes = null, lshowAll = false, ltwoInOne = false, lbattery = false, lvalue = false;
 function esc(s) {
   return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -196,6 +209,7 @@ function esc(s) {
 function currentLaptopPicks() {
   let p = [...laptopRes.recommendations];
   if (lbattery) p.sort((a, b) => (b.snapdragon - a.snapdragon) || (b.score - a.score));
+  if (lvalue) p.sort((a, b) => ((b.score || 0) / (b.price || 1)) - ((a.score || 0) / (a.price || 1)));
   if (ltwoInOne) p = p.filter(x => x.laptop_category === '2-in-1');
   return p;
 }
@@ -204,12 +218,22 @@ function archBadge(p) {
   if (p.snapdragon) return ['Snapdragon', ''];
   if (p.platform === 'macOS') return ['Apple silicon', ''];
   if (p.platform === 'ChromeOS') return ['Chromebook', 'x86'];
+  return cpuBadge(p.cpu);
+}
+function cpuBadge(cpu) {
+  // The badge names the CPU family of the configuration on the card —
+  // an Intel-only machine never wears an "Intel / AMD" chip.
+  const c = String(cpu || '').toLowerCase();
+  const hasIntel = /intel|core i|core ultra/.test(c);
+  const hasAmd = /\bamd\b|ryzen/.test(c);
+  if (hasIntel && !hasAmd) return ['Intel', 'x86'];
+  if (hasAmd && !hasIntel) return ['AMD', 'x86'];
   return ['Intel / AMD', 'x86'];
 }
 function laptopWhyHTML(p) {
   const bullets = Array.isArray(p.why) ? p.why : [];
   if (!bullets.length) return '';
-  return `<details class="setupbox"><summary>💡 Why we picked this laptop</summary>
+  return `<details class="setupbox"><summary>💡 Why it fits</summary>
     <ul class="whylist">${bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul></details>`;
 }
 function fullSpecsHTML(p) {
@@ -222,6 +246,16 @@ function fullSpecsHTML(p) {
       if (full && short && full !== short)
         rows.push(`<li>${label}: ${esc(full)}</li>`);
     });
+  if (!rows.length) {
+    // Build .8: when every short matches its full text the section
+    // used to vanish (one desktop in ten had no Full specs at all).
+    // Fall back to the full texts themselves — the disclosure exists
+    // on every card or none.
+    [['CPU', p.cpu], ['Memory', p.ram_text], ['Storage', p.storage_text],
+     ['Graphics', p.gpu]].forEach(([label, full]) => {
+      if (full) rows.push(`<li>${label}: ${esc(full)}</li>`);
+    });
+  }
   if (!rows.length) return '';
   return `<details class="setupbox"><summary>📋 Full specs, as the maker lists them</summary>
     <ul class="whylist">${rows.join('')}</ul></details>`;
@@ -236,11 +270,12 @@ function laptopCardHTML(p, i, isTop, rankLabel) {
   if (p.gpu) chips.push('GPU · ' + esc(p.gpu_short || p.gpu));
   if (p.weight_text) chips.push('⚖️ ' + esc(p.weight_text));
   const maxBit = p.price_max
-    ? ` <span class="permo">— up to $${p.price_max.toLocaleString()} fully loaded${p.max_config_note ? ' (' + esc(p.max_config_note) + ')' : ''}</span>` : '';
+    ? ` <span class="permo">— up to $${fmt$(p.price_max)} fully loaded${p.max_config_note ? ' (' + esc(p.max_config_note) + ')' : ''}</span>` : '';
   return `<div class="card${isTop ? ' combo breakout' : ''}"><span class="rank">${rankLabel || (isTop ? '⭐ OUR TOP LAPTOP PICK' : '#' + (i + 1) + ' LAPTOP')}</span>
     ${cardGallery('laptop', p.images, p.name)}
     <h3>${esc(p.name)}</h3>
-    <div class="price">from $${p.price.toLocaleString()}${maxBit}</div>
+    <div class="price">from $${fmt$(p.price)}${maxBit}</div>
+    ${(p.bends && p.bends.length) ? `<p class="bendline">⚠ Bends your answers: ${esc(p.bends.join('; '))}</p>` : ''}
     <p class="permo" style="color:#94a3b8;font-size:.78rem;margin:2px 0 0">Prices via ${esc(p.price_source || 'manufacturer')}, checked Oct 2026</p>
     ${p.cpu_check ? `<p class="warnline">⚠️ Sold in Intel <em>and</em> Snapdragon versions — check which CPU the listing you're buying actually has.</p>` : ''}
     ${p.formerly ? `<p class="why">ℹ️ Line renamed in 2025 — this is the new ${esc(p.formerly)}.</p>` : ''}
@@ -251,7 +286,7 @@ function laptopCardHTML(p, i, isTop, rankLabel) {
     ${laptopWhyHTML(p)}
     ${fullSpecsHTML(p)}
     <button class="pairbtn" onclick="openPairing('laptop','${p.id}')">🔌 Find my screen or dock to pair with it</button>
-    <button class="savebtn" onclick="saveSetupFromCard(this,'laptop','${p.id}')">💾 Save this setup</button>
+    <button class="savebtn" onclick="saveSetupFromCard(this,'laptop','${p.id}')">💾 Save this one</button>
     <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
 }
 function twoInOneUnavailableNote() {
@@ -270,7 +305,7 @@ function laptopCmpRows(cols) {
   const spec = (full, short) => { const v = short || full; return v ? esc(v) : ''; };
   return [
     { label: 'Photo', vals: cols.map(c => cardGallery('laptop', c.p.images, c.p.name)) },
-    { label: 'Price', vals: cols.map(c => `<span class="price">from $${c.p.price.toLocaleString()}</span>${c.p.price_max ? ` <span class="permo">— up to $${c.p.price_max.toLocaleString()} fully loaded</span>` : ''}<div class="permo">Prices via ${esc(c.p.price_source || 'manufacturer')}, checked Oct 2026</div>`) },
+    { label: 'Price', vals: cols.map(c => `<span class="price">from $${fmt$(c.p.price)}</span>${c.p.price_max ? ` <span class="permo">— up to $${fmt$(c.p.price_max)} fully loaded</span>` : ''}<div class="permo">Prices via ${esc(c.p.price_source || 'manufacturer')}, checked Oct 2026</div>`) },
     { label: 'Brand', vals: cols.map(c => c.p.brand ? esc(c.p.brand) : '') },
     { label: 'Screen', vals: cols.map(c => c.p.display_inches ? c.p.display_inches + '″' : '') },
     { label: 'CPU', vals: cols.map(c => spec(c.p.cpu, c.p.cpu_short)) },
@@ -279,8 +314,8 @@ function laptopCmpRows(cols) {
     { label: 'Graphics', vals: cols.map(c => spec(c.p.gpu, c.p.gpu_short)) },
     { label: 'Weight', vals: cols.map(c => c.p.weight_text ? esc(c.p.weight_text) : '') },
     { label: 'System', vals: cols.map(c => c.p.platform ? esc(c.p.platform) : '') },
-    { label: 'Why it fits', vals: cols.map(c => c.p.summary ? `<span class="why">${esc(c.p.summary)}</span>` : '') },
-    { label: '', vals: cols.map(c => `<button class="pairbtn" onclick="openPairing('laptop','${c.p.id}')">🔌 Find my screen or dock to pair with it</button><button class="savebtn" onclick="saveSetupFromCard(this,'laptop','${c.p.id}')">💾 Save this setup</button>`) },
+    { label: 'Why it fits', vals: cols.map(c => `${(c.p.bends && c.p.bends.length) ? `<span class="bendline">⚠ Bends your answers: ${esc(c.p.bends.join('; '))}. </span>` : ''}${c.p.summary ? `<span class="why">${esc(c.p.summary)}</span>` : ''}`) },
+    { label: '', vals: cols.map(c => `<button class="pairbtn" onclick="openPairing('laptop','${c.p.id}')">🔌 Find my screen or dock to pair with it</button><button class="savebtn" onclick="saveSetupFromCard(this,'laptop','${c.p.id}')">💾 Save this one</button>`) },
   ];
 }
 function renderLaptopResults() {
@@ -298,15 +333,19 @@ function renderLaptopResults() {
   const q = laptopRes.query;
   setPageTheme(themeForUse(q.use, laptopRes.kid));
   const useLabel = { school: 'School', everyday: 'Everyday use', work: 'Work', gaming: 'Gaming', creative: 'Creative work' }[q.use] || q.use;
-  let h = `<div class="scene">${(laptopRes.kid || q.use === 'school') ? FAMILY_SCENE : q.use === 'gaming' ? GAMING_SCENE : q.use === 'work' ? OFFICE_SCENE : q.use === 'creative' ? CREATOR_SCENE : DESK_SCENE}</div>
+  let h = `<button class="back" onclick="backToLaptopQuiz()">← Back</button>
+  <div class="scene">${(laptopRes.kid || q.use === 'school') ? FAMILY_SCENE : q.use === 'gaming' ? GAMING_SCENE : q.use === 'work' ? OFFICE_SCENE : q.use === 'creative' ? CREATOR_SCENE : DESK_SCENE}</div>
            <h1>Your top <span class="accent">laptop picks</span></h1>
            <p class="sub">${useLabel} · ${q.os === 'any' ? 'Any system' : q.os} · prices shown as a range (starting → fully loaded)</p>`;
   h += `<div class="sortrow bigs">
-    <button class="sort bigbtn${!ltwoInOne && !lbattery ? ' on' : ''}" onclick="ltwoInOne=false;lbattery=false;lshowAll=false;renderLaptopResults()"><svg viewBox="0 0 48 48" fill="none" stroke="#10304f" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M24 5l5.4 12.4L43 19l-10.2 9.2L35.6 42 24 35.4 12.4 42l2.8-13.8L5 19l13.6-1.6z" fill="#ffd166"/></svg>Best fit</button>
+    <button class="sort bigbtn${!ltwoInOne && !lbattery && !lvalue ? ' on' : ''}" onclick="ltwoInOne=false;lbattery=false;lvalue=false;lshowAll=false;renderLaptopResults()"><svg viewBox="0 0 48 48" fill="none" stroke="#10304f" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M24 5l5.4 12.4L43 19l-10.2 9.2L35.6 42 24 35.4 12.4 42l2.8-13.8L5 19l13.6-1.6z" fill="#ffd166"/></svg>Best fit</button>
+    <button class="sort bigbtn${lvalue ? ' on' : ''}" onclick="lvalue=!lvalue;lshowAll=false;renderLaptopResults()">${bico('pig')}Bang for your buck</button>
     <button class="sort bigbtn${ltwoInOne ? ' on' : ''}" onclick="ltwoInOne=!ltwoInOne;lshowAll=false;renderLaptopResults()"><svg viewBox="0 0 48 48" fill="none" stroke="#10304f" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="12" width="24" height="17" rx="2.6" fill="#bfe8f5"/><path d="M5 33h32l3 6H2z" fill="#fbcfe8"/><path d="M36 6a10 10 0 0 1 6 8" stroke="#e84393"/><path d="M42 8v6h-6" stroke="#e84393"/></svg> Touchscreen 2-in-1</button>
     <button class="sort bigbtn${lbattery ? ' on' : ''}" onclick="lbattery=!lbattery;lshowAll=false;renderLaptopResults()"><svg viewBox="0 0 48 48" fill="none" stroke="#10304f" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="14" width="34" height="20" rx="5" fill="#a7e8c9"/><path d="M43 20v8" stroke-width="4.4"/><path d="M25 18l-7 9h5l-2 8 8-10h-5.4z" fill="#e8912d" stroke="none"/></svg> Battery priority</button>
   </div>`;
   if (unavailableNote) h += `<div class="note">${esc(unavailableNote)}</div>`;
+  if (laptopRes.no_full_match && picks.length)
+    h += `<div class="note">⚠ <b>Nothing in our catalog matched everything you asked for.</b> The #1 pick is the closest match — its card says exactly what it bends, and so does every other pick that bends one of your answers.</div>`;
   if (!picks.length) {
     h += `<div class="note">No laptops matched those answers — a fresh start with a few different answers may turn some up.</div>`;
   } else if (picks.length === 1) {
@@ -353,7 +392,7 @@ async function finishLaptops() {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   }).then(x => x.json());
-  lshowAll = false; ltwoInOne = false; lbattery = false;
+  lshowAll = false; ltwoInOne = false; lbattery = false; lvalue = false;
   renderLaptopResults();
 }
 
@@ -410,11 +449,11 @@ const DESKTOP_QUESTIONS = [
       { v: 'yes', t: 'Yes', s: 'Phone, TV, watch and computer in sync' },
       { v: 'no', t: 'No / don\'t care', s: 'Just the best desktop for the job' } ] },
   { key: 'eco_phone', when: () => danswers.eco_wants === 'yes',
-    q: "What brand is your phone?", opts: () => BRAND_OPTS },
+    q: "What brand is your phone?", opts: () => BRAND_OPTS_BY_KEY.eco_phone },
   { key: 'eco_tv', when: () => danswers.eco_wants === 'yes',
-    q: "What brand is your TV?", opts: () => BRAND_OPTS },
+    q: "What brand is your TV?", opts: () => BRAND_OPTS_BY_KEY.eco_tv },
   { key: 'eco_watch', when: () => danswers.eco_wants === 'yes',
-    q: "What brand is your smartwatch?", opts: () => BRAND_OPTS },
+    q: "What brand is your smartwatch?", opts: () => BRAND_OPTS_BY_KEY.eco_watch },
 ];
 function dvisible() { return DESKTOP_QUESTIONS.filter(q => !q.when || q.when()); }
 function startDesktopQuizFromForm() {
@@ -441,10 +480,12 @@ function drender() {
   h += `<div class="quiz-stage" data-tint="${dstep % 5}">`;
   h += `<p class="q">${Q.q}</p>`;
   h += '<div class="tile-grid">';
-  Q.opts().forEach((o, i) => {
+  const dopts = Q.opts();
+  dopts.forEach((o, i) => {
+    const wide = i === dopts.length - 1 && dopts.length % 2 === 1;
     const icon = pcIconFor(Q.key, o.v);
-    const t = icon ? o.t.replace(/^[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]\s*/u, '') : o.t;
-    h += tileHTML({ i, icon, title: t, desc: o.s, onclick: `dpick('${Q.key}','${o.v}')` });
+    const t = icon ? o.t.replace(/^[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]\u{FE0F}?\s*/u, '') : o.t;
+    h += tileHTML({ i, wide, icon, title: t, desc: o.s, onclick: `dpick('${Q.key}','${o.v}')` });
   });
   h += '</div></div>';
   stepsEl.innerHTML = h;
@@ -464,8 +505,8 @@ let desktopRes = null, dshowAll = false;
 let dsortMode = 'match';
 const DSORT_ICONS = { match: 'target', gaming: 'gamepad', ai: 'chip', value: 'pig' };
 const DSORT_MODES = {
-  match: { label: 'Best match', w: null,
-    info: 'Best match: ranked by how well each desktop fits all your answers.' },
+  match: { label: 'Best fit', w: null,
+    info: 'Best fit: ranked by how well each desktop fits all your answers.' },
   gaming: { label: 'Gaming / performance', w: { gpu: 0.5, cpu: 0.3, ram: 0.2 },
     info: 'Sorted for gaming/performance: the graphics card weighs most, then the processor, then memory.' },
   ai: { label: 'AI', w: { gpu_ai: 0.7, ram: 0.2, cpu: 0.1 },
@@ -510,12 +551,12 @@ function desktopBadge(p) {
   if (p.platform === 'macOS') return ['Apple silicon', ''];
   if (p.platform === 'DGX OS') return ['NVIDIA DGX', ''];
   if (p.platform === 'ChromeOS') return ['Chromebook', 'x86'];
-  return ['Intel / AMD', 'x86'];
+  return cpuBadge(p.cpu);
 }
 function desktopWhyHTML(p) {
   const bullets = Array.isArray(p.why) ? p.why : [];
   if (!bullets.length) return '';
-  return `<details class="setupbox"><summary>💡 Why we picked this desktop</summary>
+  return `<details class="setupbox"><summary>💡 Why it fits</summary>
     <ul class="whylist">${bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul></details>`;
 }
 function desktopCardHTML(p, i, isTop, rankLabel) {
@@ -528,11 +569,12 @@ function desktopCardHTML(p, i, isTop, rankLabel) {
   if (p.storage_text || p.storage_short) chips.push('Storage · ' + esc(p.storage_short || p.storage_text));
   if (p.gpu) chips.push('GPU · ' + esc(p.gpu_short || p.gpu));
   const maxBit = p.price_max
-    ? ` <span class="permo">— up to $${p.price_max.toLocaleString()} fully loaded${p.max_config_note ? ' (' + esc(p.max_config_note) + ')' : ''}</span>` : '';
+    ? ` <span class="permo">— up to $${fmt$(p.price_max)} fully loaded${p.max_config_note ? ' (' + esc(p.max_config_note) + ')' : ''}</span>` : '';
   return `<div class="card${isTop ? ' combo breakout' : ''}"><span class="rank">${rankLabel || (isTop ? '⭐ OUR TOP DESKTOP PICK' : '#' + (i + 1) + ' DESKTOP')}</span>
     ${cardGallery('desktop', p.images, p.name)}
     <h3>${esc(p.name)}</h3>
-    <div class="price">from $${p.price.toLocaleString()}${maxBit}</div>
+    <div class="price">from $${fmt$(p.price)}${maxBit}</div>
+    ${(p.bends && p.bends.length) ? `<p class="bendline">⚠ Bends your answers: ${esc(p.bends.join('; '))}</p>` : ''}
     <p class="permo" style="color:#94a3b8;font-size:.78rem;margin:2px 0 0">Prices via ${esc(p.price_source || 'manufacturer')}, checked Oct 2026</p>
     ${p.price_note ? `<p class="warnline">⚠️ ${esc(p.price_note)}</p>` : ''}
     ${p.formerly ? `<p class="why">ℹ️ Formerly the ${esc(p.formerly)} — same family, new name.</p>` : ''}
@@ -543,14 +585,14 @@ function desktopCardHTML(p, i, isTop, rankLabel) {
     ${desktopWhyHTML(p)}
     ${fullSpecsHTML(p)}
     <button class="pairbtn" onclick="openPairing('desktop','${p.id}')">🔌 Find my screen or dock to pair with it</button>
-    <button class="savebtn" onclick="saveSetupFromCard(this,'desktop','${p.id}')">💾 Save this setup</button>
+    <button class="savebtn" onclick="saveSetupFromCard(this,'desktop','${p.id}')">💾 Save this one</button>
     <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
 }
 function desktopCmpRows(cols) {
   const spec = (full, short) => { const v = short || full; return v ? esc(v) : ''; };
   return [
     { label: 'Photo', vals: cols.map(c => cardGallery('desktop', c.p.images, c.p.name)) },
-    { label: 'Price', vals: cols.map(c => `<span class="price">from $${c.p.price.toLocaleString()}</span>${c.p.price_max ? ` <span class="permo">— up to $${c.p.price_max.toLocaleString()} fully loaded</span>` : ''}<div class="permo">Prices via ${esc(c.p.price_source || 'manufacturer')}, checked Oct 2026</div>`) },
+    { label: 'Price', vals: cols.map(c => `<span class="price">from $${fmt$(c.p.price)}</span>${c.p.price_max ? ` <span class="permo">— up to $${fmt$(c.p.price_max)} fully loaded</span>` : ''}<div class="permo">Prices via ${esc(c.p.price_source || 'manufacturer')}, checked Oct 2026</div>`) },
     { label: 'Brand', vals: cols.map(c => c.p.brand ? esc(c.p.brand) : '') },
     { label: 'Case', vals: cols.map(c => c.p.form_factor_label ? esc(c.p.form_factor_label) : '') },
     { label: 'Screen', vals: cols.map(c => c.p.display_inches ? c.p.display_inches + '″ built in' : '') },
@@ -567,14 +609,29 @@ function desktopCmpRows(cols) {
         // along in the table cell so the disclosure is on the surface
         // where the finalists are compared.
         const bits = [];
+        if (c.p.bends && c.p.bends.length) bits.push('⚠ Bends your answers: ' + esc(c.p.bends.join('; ')) + '.');
         if (c.p.summary) bits.push(esc(c.p.summary));
         (Array.isArray(c.p.why) ? c.p.why : []).forEach(b => {
           if (b.indexOf(' case — ') >= 0) bits.push(esc(b));
         });
         return bits.length ? `<span class="why">${bits.join(' ')}</span>` : '';
       }) },
-    { label: '', vals: cols.map(c => `<button class="pairbtn" onclick="openPairing('desktop','${c.p.id}')">🔌 Find my screen or dock to pair with it</button><button class="savebtn" onclick="saveSetupFromCard(this,'desktop','${c.p.id}')">💾 Save this setup</button>`) },
+    { label: '', vals: cols.map(c => `<button class="pairbtn" onclick="openPairing('desktop','${c.p.id}')">🔌 Find my screen or dock to pair with it</button><button class="savebtn" onclick="saveSetupFromCard(this,'desktop','${c.p.id}')">💾 Save this one</button>`) },
   ];
+}
+function backToLaptopQuiz() {
+  hideAllSections();
+  document.getElementById('quiz').style.display = 'block';
+  lstep = lvisible().length - 1;
+  lrender();
+  window.scrollTo(0, 0);
+}
+function backToDesktopQuiz() {
+  hideAllSections();
+  document.getElementById('quiz').style.display = 'block';
+  dstep = dvisible().length - 1;
+  drender();
+  window.scrollTo(0, 0);
 }
 function renderDesktopResults() {
   modelOrigin = null; // guided walkthrough — never the manual (lookup) path
@@ -584,10 +641,13 @@ function renderDesktopResults() {
   setPageTheme(themeForUse(q.use, desktopRes.kid));
   const useLabel = { school: 'School', everyday: 'Everyday use', work: 'Work', gaming: 'Gaming', creative: 'Creative work' }[q.use] || q.use;
   const caseLabel = { mini: 'Mini PC', sff: 'Small form factor', tower: 'Tower', full: 'Full tower', aio: 'All-in-one' }[q.case] || 'Any case';
-  let h = `<div class="scene">${(desktopRes.kid || q.use === 'school') ? FAMILY_DESK_SCENE : TOWER_SCENE}</div>
+  let h = `<button class="back" onclick="backToDesktopQuiz()">← Back</button>
+  <div class="scene">${(desktopRes.kid || q.use === 'school') ? FAMILY_DESK_SCENE : TOWER_SCENE}</div>
            <h1>Your top <span class="accent">desktop picks</span></h1>
            <p class="sub">${useLabel} · ${q.os === 'any' ? 'Any system' : q.os} · ${caseLabel} · prices shown as a range (starting → fully loaded)</p>`;
   h += desktopSortHTML();
+  if (desktopRes.no_full_match && picks.length)
+    h += `<div class="note">⚠ <b>Nothing in our catalog matched everything you asked for.</b> The #1 pick is the closest match — its card says exactly what it bends, and so does every other pick that bends one of your answers.</div>`;
   if (!picks.length) {
     h += `<div class="note">No desktops matched those answers — a fresh start with a few different answers may turn some up.</div>`;
   } else if (picks.length === 1) {

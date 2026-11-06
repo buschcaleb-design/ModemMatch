@@ -90,7 +90,7 @@ function showTheater() {
   window.scrollTo(0, 0);
 }
 
-const LOGO_EXT = { centurylink: 'svg', frontier: 'svg' };
+const LOGO_EXT = { centurylink: 'svg', frontier: 'svg', xfinity: 'svg', spectrum: 'svg', cox: 'svg', mediacom: 'svg', att: 'svg' };
 const logoExt = id => LOGO_EXT[id] || 'png';
 
 const QUESTIONS = [
@@ -190,8 +190,20 @@ let allPicks = [], sortMode = 'value', showAll = false, meta = {};
 function sortedPicks() {
   const p = [...allPicks];
   if (sortMode === 'cheapest') p.sort((a, b) => a.price - b.price);
-  else if (sortMode === 'stability') p.sort((a, b) => (b.stability - a.stability) || (a.price - b.price));
-  else p.sort((a, b) => (b.performance / b.price) - (a.performance / a.price));
+  else if (sortMode === 'stability') p.sort((a, b) =>
+    ((Number(b.stability) || 0) - (Number(a.stability) || 0)) ||
+    ((Number(b.performance) || 0) - (Number(a.performance) || 0)) ||
+    (a.price - b.price));
+  else {
+    p.sort((a, b) => (b.performance / b.price) - (a.performance / a.price));
+    // Build .8 — the #1 pick rule in the default order: a pick that
+    // bends a stated constraint never outranks one that meets them
+    // all (stable partitions keep each group's own order). An
+    // all-in-one run also leads with actual combo boxes.
+    p.sort((a, b) => ((a.bends && a.bends.length) ? 1 : 0) - ((b.bends && b.bends.length) ? 1 : 0));
+    if (meta.setup === 'combo')
+      p.sort((a, b) => (a.type === 'combo' ? 0 : 1) - (b.type === 'combo' ? 0 : 1));
+  }
   return p;
 }
 function setSort(m) { sortMode = m; showAll = false; renderResults(); }
@@ -227,9 +239,10 @@ function rico(name) {
 // Money renders trimmed to cents, never a raw float (a savings figure
 // once printed as $117.05000000000001).
 function fmt$(n) {
+  // Build .8: money renders at exactly two decimals everywhere —
+  // no more "$963.3" or bare "$999" next to "$999.99".
   const v = Math.round(Number(n) * 100) / 100;
-  return Number.isInteger(v) ? v.toLocaleString()
-    : v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 function bico(name) {
   const V2 = { pig: 'piggy-bank', shield: 'shield', tag: 'price-tag', bookmark: 'bookmark', plug: 'plug-power', signal: 'signal-wifi', globe: 'globe', laptop: 'laptop', tv: 'tv', search: 'search', target: 'target', gamepad: 'game-controller', chip: 'chip-ai' };
@@ -239,14 +252,20 @@ function bico(name) {
 
 function sortButtonsHTML(extra) {
   return `<div class="sortrow bigs">
-    <button class="sort bigbtn${sortMode === 'value' ? ' on' : ''}" onclick="setSort('value')">${bico('pig')}Best value</button>
+    <button class="sort bigbtn${sortMode === 'value' ? ' on' : ''}" onclick="setSort('value')">${bico('pig')}Best fit</button>
     <button class="sort bigbtn${sortMode === 'stability' ? ' on' : ''}" onclick="setSort('stability')">${bico('shield')}Most reliable</button>
     <button class="sort bigbtn${sortMode === 'cheapest' ? ' on' : ''}" onclick="setSort('cheapest')">${bico('tag')}Cheapest</button>
     <button class="sort bigbtn" data-savedbtn="1" onclick="openMySetup()">${savedBtnHTML()}</button>${extra || ''}
   </div>`;
 }
+function savedCount() {
+  // One count for the one collection (R3): saved gear plus saved
+  // computer setups — the same two lists the My Setup page shows.
+  return savedGear.length + (typeof setupStore !== 'undefined' ? setupStore.setups.length : 0);
+}
 function savedBtnHTML() {
-  return `${bico('bookmark')}Saved gear${savedGear.length ? ` (${savedGear.length})` : ''}`;
+  const n = savedCount();
+  return `${bico('bookmark')}My Setup${n ? ` (${n})` : ''}`;
 }
 
 function bestCombo() {
@@ -336,7 +355,7 @@ function gearCmpRows(cols) {
     { label: 'Wi-Fi', vals: cols.map(c => c.p.wifi ? esc(c.p.wifi) : '') },
     { label: 'DOCSIS', vals: cols.map(c => c.p.docsis || '') },
     { label: 'Top speed', vals: cols.map(c => c.p.max_speed_mbps ? Number(c.p.max_speed_mbps).toLocaleString() + ' Mbps' : '') },
-    { label: 'Why it fits', vals: cols.map(c => c.p.why ? `<span class="why">${c.p.why}</span>` : '') },
+    { label: 'Why it fits', vals: cols.map(c => `${(c.p.bends && c.p.bends.length) ? `<span class="bendline">⚠ Bends your answers: ${esc(c.p.bends.join('; '))}. </span>` : ''}${c.p.why ? `<span class="why">${c.p.why}</span>` : ''}`) },
     { label: '', vals: cols.map(c => `<button class="pairbtn" onclick="openGearPage('${c.p.id}','results')">📄 View its page</button><button class="pairbtn savebtn" data-savegear="${c.p.id}" onclick="toggleSaveGear(this,'${c.p.id}')">${saveBtnHTML(c.p.id)}</button>`) },
   ];
 }
@@ -468,6 +487,7 @@ function cardHTML(p, i, isHero) {
     ${cardGallery(kind, p.images, p.name)}
     <h3>${p.name}</h3>
     <div class="price">$${fmt$(p.price)} <span class="permo">— ${saveLine}</span></div>
+    ${(p.bends && p.bends.length) ? `<p class="bendline">⚠ Bends your answers: ${esc(p.bends.join('; '))}</p>` : ''}
     ${p.price_source ? `<p class="permo" style="color:#94a3b8;font-size:.78rem;margin:2px 0 0">Price via ${esc(p.price_source)}, checked Oct 2026</p>` : ''}
     <p class="why">${p.why}</p>
     ${p.blurb ? `<p class="blurb">${p.blurb}</p>` : ''}
@@ -520,7 +540,7 @@ function gearPageHTML(g) {
   facts.push('Stability · ' + g.stability + ' / 10');
   let priceBlock;
   if (g.price != null) {
-    priceBlock = `<div class="price">$${Number(g.price).toLocaleString()}</div>
+    priceBlock = `<div class="price">$${fmt$(g.price)}</div>
       ${g.price_source ? `<p class="permo" style="color:#94a3b8;font-size:.78rem;margin:2px 0 0">Price via ${esc(g.price_source)}, checked ${esc(g.price_checked || 'Oct 2026')}</p>` : ''}`;
   } else {
     priceBlock = `<div class="note">No direct-store price yet — we only show prices we've verified at the store, so this one's page carries its specs until a price checks out.</div>`;
@@ -528,7 +548,7 @@ function gearPageHTML(g) {
   const ispRows = (g.compatible_isps || []).map(i => {
     if (g.price != null && i.rental_fee_monthly > 0 && (g.type === 'modem' || g.type === 'combo' || g.type === 'dsl_modem')) {
       const mo = Math.max(1, Math.ceil(g.price / i.rental_fee_monthly));
-      return `${esc(i.name)} · rents theirs for $${i.rental_fee_monthly}/mo — this pays for itself in ~${mo} months`;
+      return `${esc(i.name)} · rents theirs for $${fmt$(i.rental_fee_monthly)}/mo — this pays for itself in ~${mo} months`;
     }
     return `${esc(i.name)} · works on this provider`;
   });
@@ -548,18 +568,49 @@ function gearPageHTML(g) {
     <button class="pairbtn savebtn" data-savegear="${g.id}" onclick="toggleSaveGear(this,'${g.id}')">${saveBtnHTML(g.id)}</button></div>`;
 }
 
+function backToGearQuiz() {
+  // Build .8: Back from gear results means the previous STEP (the
+  // last quiz question) — it used to land wherever the results tabs
+  // left things.
+  hideAllSections();
+  document.getElementById('quiz').style.display = 'block';
+  step = visible().length - 1;
+  render();
+  window.scrollTo(0, 0);
+}
+function comboPickCardHTML() {
+  const c = sortedPicks().find(p => p.type === 'combo');
+  if (!c) return '';
+  const saveBit = meta.fee > 0 ? ` <span class="permo">— saves you $${fmt$(meta.fee * 24 - c.price)} over 2 years</span>` : '';
+  return `<div class="card combo breakout"><span class="rank">⭐ OUR ALL-IN-ONE PICK</span>
+    <h3>${c.name}</h3>
+    <div class="price">$${fmt$(c.price)}${saveBit}</div>
+    <p class="why">One box, modem and router together — the all-in-one you asked for. The full ranked list is below.</p></div>`;
+}
 function renderResults() {
   const r = document.getElementById('results');
-  let h = `<h1>Your top <span class="accent">picks</span></h1>
+  let h = `<button class="back" onclick="backToGearQuiz()">← Back</button>
+  <h1>Your top <span class="accent">picks</span></h1>
            <p class="sub">${meta.isp} · ${meta.conn} · ~${meta.devices} devices</p>`;
+  if (meta.gateway) {
+    // Fiber modem-only / combo intent: the honest answer IS the
+    // notice — it renders as a results-face card, not a footnote.
+    h += `<div class="card combo breakout"><span class="rank">ℹ️ ABOUT YOUR GATEWAY</span><p class="why" style="margin-top:8px">${esc(meta.gateway)}</p></div>`;
+  }
+  if (meta.noFull && allPicks.length)
+    h += `<div class="note">⚠ <b>Nothing in our catalog matched everything you asked for.</b> The #1 pick is the closest match — its card says exactly what it bends, and so does every other pick that bends one of your answers.</div>`;
   if (meta.setup === 'separate') {
     const modems = sortedPicks().filter(p => p.type === 'modem');
     const routers = sortedPicks().filter(p => p.type === 'router' || p.type === 'mesh');
-    h += sortButtonsHTML(tabButtonsHTML(modems, routers));
+    h += sortButtonsHTML();
+    h += `<div class="sortrow bigs tabrow">${tabButtonsHTML(modems, routers)}</div>`;
     h += comboCardHTML();
     h += gearResultsHTML(activeTab === 'modems' ? modems : routers);
+  } else if (meta.gateway && !allPicks.length) {
+    h += sortButtonsHTML();
   } else {
     h += sortButtonsHTML();
+    if (meta.setup === 'combo') h += comboPickCardHTML();
     h += gearResultsHTML(sortedPicks());
   }
   meta.notes.forEach(n => { h += `<div class="note">${n}</div>`; });
@@ -600,8 +651,12 @@ async function finish() {
   meta = { isp: res.isp, conn: res.connection.toUpperCase(), devices: res.estimated_devices,
            headline: res.savings.headline, notes: res.notes.filter(n => n),
            fee: Math.round(res.savings.yearly_rental / 12), setup: payload.setup,
-           isp_id: payload.isp };
-  sortMode = 'value'; showAll = false; activeTab = 'modems';
+           isp_id: payload.isp, gateway: res.gateway_notice || null,
+           noFull: !!res.no_full_match };
+  sortMode = 'value'; showAll = false;
+  // Open on the first tab that actually has picks (fiber/DSL
+  // separate-style runs can have an empty side).
+  activeTab = allPicks.some(p => p.type === 'modem') ? 'modems' : 'routers';
   renderResults();
 }
 
@@ -651,10 +706,10 @@ async function modelSearch(v) {
   }
   box.innerHTML = modelMatches.map((m, i) =>
     `<button class="opt" onclick="pickModel(${i})">${esc(m.name)}<small>${m.kind === 'gear'
-      ? `${esc(m.brand || '')} · ${esc(m.type_label)} · ${m.price != null ? '$' + Number(m.price).toLocaleString() : 'specs page — no verified price yet'}`
+      ? `${esc(m.brand || '')} · ${esc(m.type_label)} · ${m.price != null ? '$' + fmt$(m.price) : 'specs page — no verified price yet'}`
       : m.type === 'desktop'
-      ? `${esc(m.brand)} · Desktop · ${esc(m.form_factor_label)} · ${esc(m.platform)} · from $${m.price.toLocaleString()}`
-      : `${esc(m.brand)} · ${esc(m.platform)} · from $${m.price.toLocaleString()}`}</small></button>`).join('');
+      ? `${esc(m.brand)} · Desktop · ${esc(m.form_factor_label)} · ${esc(m.platform)} · from $${fmt$(m.price)}`
+      : `${esc(m.brand)} · ${esc(m.platform)} · from $${fmt$(m.price)}`}</small></button>`).join('');
 }
 async function pickModel(i) {
   const m = modelMatches[i];
@@ -672,7 +727,7 @@ function renderModelCard(m, origin) {
   laptopRes = { recommendations: [m], notes: [], kid: false,
                 query: { use: 'everyday', os: 'any', screen: 'any',
                          budget: 'any', snapdragon: 'unsure', usage: 'light' } };
-  ltwoInOne = false; lbattery = false; lshowAll = false;
+  ltwoInOne = false; lbattery = false; lvalue = false; lshowAll = false;
   r.innerHTML = `<button class="back" onclick="startModelLookup()">← Search again</button>
     <h1>Your <span class="accent">model</span></h1>
     ${laptopCardHTML(m, 0, true, '🔎 YOUR MODEL')}
@@ -713,7 +768,7 @@ function showSlideHTML(s, i) {
     : cardArt(kind);
   const desc = m.kind === 'gear' ? (m.blurb || '') : (m.summary || '');
   const price = m.price != null
-    ? (m.kind === 'gear' ? `$${Number(m.price).toLocaleString()}` : `from $${Number(m.price).toLocaleString()}`)
+    ? (m.kind === 'gear' ? `$${fmt$(m.price)}` : `from $${fmt$(m.price)}`)
     : 'See its page for the specs';
   return `<button class="show-slide" onclick="showOpen(${i})"><span class="show-img">${img}</span><span class="show-txt"><span class="show-cat">${s.label}</span><span class="show-name">${esc(m.name)}</span><span class="show-desc">${esc(desc)}</span><span class="show-price">${price}</span></span></button>`;
 }
@@ -921,7 +976,7 @@ function browseCardHTML(it) {
     chips.push('Performance · ' + it.performance + ' / 10');
     chips.push('Stability · ' + it.stability + ' / 10');
     priceHTML = it.price != null
-      ? `<div class="price">$${Number(it.price).toLocaleString()}${it.price_source ? ` <span class="permo">— via ${esc(it.price_source)}, checked Oct 2026</span>` : ''}</div>`
+      ? `<div class="price">$${fmt$(it.price)}${it.price_source ? ` <span class="permo">— via ${esc(it.price_source)}, checked Oct 2026</span>` : ''}</div>`
       : `<div class="price" style="color:var(--muted);font-size:.95rem">No verified price yet</div>`;
     actions = `<button class="pairbtn" onclick="openGearPage('${it.id}','browse')">📄 View its page</button>
       <button class="pairbtn savebtn" data-savegear="${it.id}" onclick="toggleSaveGear(this,'${it.id}')">${saveBtnHTML(it.id)}</button>`;
@@ -932,10 +987,10 @@ function browseCardHTML(it) {
     if (it.ram_short) chips.push('Memory · ' + esc(it.ram_short));
     if (it.storage_short) chips.push('Storage · ' + esc(it.storage_short));
     if (it.gpu_short) chips.push('Graphics · ' + esc(it.gpu_short));
-    priceHTML = `<div class="price">from $${Number(it.price).toLocaleString()}${it.price_max ? ` <span class="permo">— up to $${Number(it.price_max).toLocaleString()} configured</span>` : ''}</div>`;
+    priceHTML = `<div class="price">from $${fmt$(it.price)}${it.price_max ? ` <span class="permo">— up to $${fmt$(it.price_max)} fully loaded</span>` : ''}</div>`;
     const openFn = it.cat === 'desktop' ? 'renderDesktopModelCard' : 'renderModelCard';
     actions = `<button class="pairbtn" onclick="browseOpenComputer('${it.cat}','${it.id}')">📄 View its page</button>
-      <button class="savebtn" onclick="saveSetupFromCard(this,'${it.cat}','${it.id}')">💾 Save this setup</button>`;
+      <button class="pairbtn savebtn" onclick="saveSetupFromCard(this,'${it.cat}','${it.id}')">💾 Save this one</button>`;
   }
   const rankLabel = it.cat === 'gear' ? esc(it.type_label || 'GEAR')
     : it.cat === 'laptop' ? 'LAPTOP' : 'DESKTOP';
@@ -984,7 +1039,7 @@ function renderBrowse() {
   filters += `<button class="sort bf-reset" onclick="browseReset()">↺ Clear all filters</button></div></div>`;
   el.innerHTML = `<button class="back" onclick="backHome()">← Back</button>
     <h1>Build Your <span class="accent">Own</span></h1>
-    <p class="sub">The whole catalog, no quiz. Filter it your way, save what you like, and check out from your Saved stuff.</p>
+    <p class="sub">The whole catalog, no quiz. Filter it your way, save what you like, and check out from My Setup.</p>
     <div class="sortrow bigs">${tabs}</div>
     ${filters}
     <div id="browse-grid"></div>`;

@@ -302,21 +302,54 @@ def api_recommend():
         plain = sorted([e for e in routers if e["type"] == "router"],
                        key=lambda e: e["price"])
         ordered = (mesh + plain) if needs_mesh else (plain + mesh)
-        for e in ordered[:4]:
-            picks.append((e, _why_router(e, coverage_notes, False) +
-                          " Pairs with your ISP gateway in passthrough mode.", 90))
-        notes_extra = [
-            f"{isp['name']} requires their gateway — you can't replace it. "
-            "The win here is putting your own router behind it for better WiFi."
-        ]
+        if setup == "modem_only":
+            # Build .8 (Caleb's #1-pick ruling round): "just a modem" on
+            # fiber must NOT silently return routers. There is no modem
+            # to sell — the gateway is required — so say exactly that,
+            # prominently, on the results face (gateway_notice), and
+            # return no picks at all.
+            gateway_notice = (
+                f"{isp['name']} requires its own gateway — there is no "
+                "separate modem to buy for fiber. The gateway they give "
+                "you IS the modem, and it has to stay. If your WiFi is "
+                "the weak spot, run the quiz again and pick the "
+                "router answers — your own router behind their gateway "
+                "is the upgrade that actually helps.")
+            notes_extra = []
+        elif setup == "combo":
+            for e in ordered[:4]:
+                picks.append((e, _why_router(e, coverage_notes, False) +
+                              " Pairs with your ISP gateway in passthrough mode.", 90))
+            gateway_notice = (
+                f"On {isp['name']} fiber, the gateway they require IS "
+                "your all-in-one box — modem and router in one, and it "
+                "has to stay in the chain. There is no separate combo "
+                "box to buy; the picks below are routers that pair with "
+                "that gateway when you want stronger WiFi than it gives.")
+            notes_extra = []
+        else:
+            for e in ordered[:4]:
+                picks.append((e, _why_router(e, coverage_notes, False) +
+                              " Pairs with your ISP gateway in passthrough mode.", 90))
+            notes_extra = [
+                f"{isp['name']} requires their gateway — you can't replace it. "
+                "The win here is putting your own router behind it for better WiFi."
+            ]
 
     elif conn == "dsl":
         dsl = by_type("dsl_modem")
-        routers = sorted(by_type("router", "mesh"), key=lambda e: e["price"])
-        for e in dsl[:1]:
-            picks.append((e, "Replaces your DSL rental modem.", 100))
-        for e in routers[:2]:
-            picks.append((e, _why_router(e, coverage_notes, False), 80))
+        if setup == "modem_only":
+            # Build .8: "just a modem" means modems only — no routers
+            # riding along (verified bug: CenturyLink modem-only runs
+            # returned two mesh routers next to the one DSL modem).
+            for e in dsl[:3]:
+                picks.append((e, "Replaces your DSL rental modem.", 100))
+        else:
+            routers = sorted(by_type("router", "mesh"), key=lambda e: e["price"])
+            for e in dsl[:1]:
+                picks.append((e, "Replaces your DSL rental modem.", 100))
+            for e in routers[:2]:
+                picks.append((e, _why_router(e, coverage_notes, False), 80))
 
     notes_extra = locals().get("notes_extra", [])
 
@@ -328,7 +361,17 @@ def api_recommend():
         if e["id"] not in seen:
             seen.add(e["id"])
             life_mo = 24 if e["type"] == "combo" else 36
+            bends = []
+            if e.get("max_speed_mbps") and e["max_speed_mbps"] < speed:
+                bends.append(
+                    f"Rated to {e['max_speed_mbps']} Mbps — below the "
+                    f"{speed}+ Mbps your plan tier starts at")
+            if setup == "combo" and e["type"] in ("router", "mesh"):
+                bends.append(
+                    "Two-box pick — it pairs with a separate modem; "
+                    "it is not an all-in-one box")
             ranked_all.append({"id": e["id"], "name": e["name"],
+                           "bends": bends,
                            "type": e["type"], "price": e["price"],
                            "performance": e.get("performance", 5),
                            "stability": e.get("stability", 5),
@@ -341,6 +384,12 @@ def api_recommend():
                            "brand": e.get("brand"),
                            "price_source": e.get("price_source"),
                            "affiliate_url": ""})
+    # Build .8 — Caleb's #1 pick rule: a pick that bends a stated
+    # constraint never outranks one that meets them all. Stable
+    # partition: full matches keep their score order up front, benders
+    # follow in theirs. Bends ride on each pick ("bends") and are
+    # disclosed on the card face by the client.
+    ranked_all.sort(key=lambda r: 1 if r["bends"] else 0)
     if setup == "separate":
         # A separate modem + router answer must never crowd one side out:
         # modems outscore routers, so a flat top-10 can return ten modems
@@ -377,9 +426,9 @@ def api_recommend():
                    "equipment_cost": total_cost,
                    "breakeven_months": breakeven,
                    "yearly_savings_after_payback": yearly_rent,
-                   "headline": (f"Ditch the ${fee}/mo rental and this setup pays "
+                   "headline": (f"Ditch the ${fee:.2f}/mo rental and this setup pays "
                                 f"for itself in ~{breakeven} months — then it's "
-                                f"${yearly_rent}/yr back in your pocket.")}
+                                f"${yearly_rent:.2f}/yr back in your pocket.")}
     else:
         savings = {"yearly_rental": 0, "equipment_cost": total_cost,
                    "first_year_savings": 0, "breakeven_months": 0,
@@ -393,6 +442,8 @@ def api_recommend():
         "recommendations": ranked,
         "savings": savings,
         "notes": [isp.get("notes", "")] + notes_extra,
+        "gateway_notice": locals().get("gateway_notice"),
+        "no_full_match": bool(ranked) and all(r["bends"] for r in ranked),
     })
 
 
@@ -508,10 +559,6 @@ def api_recommend_laptops():
                 continue  # Snapdragon-only machine — not the safe lane
             kept.append(l)
         pool = kept
-    elif snap_answer == "no":
-        notes.append(
-            "Snapdragon laptops are in the mix — that's the battery-life "
-            "lane. Mainstream apps (browser, Office, Zoom) run great on them.")
     # Hard filters with graceful relaxation: screen, then budget
     relaxed = []
     if screen != "any":
@@ -562,7 +609,8 @@ def api_recommend_laptops():
                 s += 8
         if snap_answer == "no" and l["snapdragon"]:
             s += 10
-            why_bits.append("Snapdragon powered — the battery-life lane")
+            if l["architecture"] != "both":
+                why_bits.append("Snapdragon powered — the battery-life lane")
         if ext_n:
             native = _laptop_native_externals(l)
             if native is not None and ext_n > native:
@@ -725,6 +773,30 @@ def api_recommend_laptops():
                     "it over.")
         return bullets
 
+    def laptop_bends(l):
+        # Build .8 — Caleb's #1 pick rule. The constraints a shopper
+        # actually specified are the screen band and the budget band
+        # (OS and the Snapdragon lane are hard filters — a pick that
+        # violates them is never in the pool at all). Anything outside
+        # a stated band is a bend, disclosed on the card face.
+        b = []
+        if screen != "any":
+            band = _laptop_screen_band(l["display_inches"])
+            if band is not None and band != screen:
+                b.append(f"{l['display_inches']}″ screen — outside the "
+                         f"{screen_label} size you picked")
+        if budget != "any" and budget_label and \
+                not _laptop_in_budget(l["price"], budget):
+            if budget in ("under500", "500-900", "900-1400") and \
+                    l["price"] > {"under500": 500, "500-900": 900,
+                                  "900-1400": 1400}[budget]:
+                b.append(f"Starts at {_fmt_price(l['price'])} — over "
+                         f"your {budget_label} budget")
+            else:
+                b.append(f"Starts at {_fmt_price(l['price'])} — under "
+                         f"your {budget_label} budget")
+        return b
+
     scored = []
     for l in pool:
         s, why_bits, eco_note = score(l)
@@ -733,8 +805,9 @@ def api_recommend_laptops():
             why += (f" Specs go up to {l['ram_max_gb']}GB RAM"
                     + (f" and {l['storage_max_gb']}GB storage"
                        if l["storage_max_gb"] else "") + ".")
-        scored.append((s, l, why, eco_note))
-    scored.sort(key=lambda t: (-t[0], t[1]["price"]))
+        scored.append((s, l, why, eco_note, laptop_bends(l)))
+    # Full matches first (the #1 rule), then score, then price.
+    scored.sort(key=lambda t: (1 if t[4] else 0, -t[0], t[1]["price"]))
 
     # Brand diversity: cap 3 per brand in the first pass, then backfill
     ranked, deferred, per_brand = [], [], {}
@@ -748,7 +821,7 @@ def api_recommend_laptops():
     ranked = (ranked + deferred)[:10]
 
     recs, os_keys, brand_keys = [], set(), set()
-    for s, l, why, eco_note in ranked:
+    for s, l, why, eco_note, bends in ranked:
         os_key = LAPTOP_OS_KEY[l["platform"]]
         brand_key = l["brand"].lower()
         os_keys.add(os_key)
@@ -768,7 +841,7 @@ def api_recommend_laptops():
             "price_source": l["price_source"],
             "max_config_note": l["max_config_note"],
             "score": round(s), "why": why_list_for(l, eco_note),
-            "summary": why, "ecosystem_note": eco_note,
+            "summary": why, "ecosystem_note": eco_note, "bends": bends,
             "cpu_check": bool(l["snapdragon"] and l["architecture"] == "both"),
             "setup": {"os_key": os_key, "brand_key": brand_key},
         })
@@ -814,7 +887,7 @@ def api_recommend_laptops():
     # silent — no claim either way.
     if ext_n and ranked:
         known = [n for n in (_laptop_native_externals(l)
-                             for _, l, _, _ in ranked) if n is not None]
+                             for _, l, _, _, _ in ranked) if n is not None]
         if known and max(known) < ext_n:
             notes.append(
                 "That many external screens is past what these laptop "
@@ -822,12 +895,17 @@ def api_recommend_laptops():
                 "its Why notes the dock route that can add the rest, on "
                 "models with a dock-capable USB-C or Thunderbolt port.")
 
+    if snap_answer == "no" and any(r["snapdragon"] for r in recs):
+        notes.append(
+            "Snapdragon laptops are in the mix — that's the battery-life "
+            "lane. Mainstream apps (browser, Office, Zoom) run great on them.")
     return jsonify({
         "recommendations": recs,
         "notes": notes,
         "guides": guides,
         "kid": kid,
         "filter_facts": {"two_in_one_available": two_in_one_available},
+        "no_full_match": bool(recs) and all(r["bends"] for r in recs),
         "query": {"use": use, "os": os_pref, "screen": screen,
                   "budget": budget, "snapdragon": snap_answer,
                   "usage": usage, "ext_screens": ext_ans,
@@ -1246,6 +1324,26 @@ def api_recommend_desktops():
                     "it over.")
         return bullets
 
+    def desktop_bends(d):
+        # Build .8 — the #1 pick rule for desktops. Stated constraints:
+        # the case-size bucket and the budget band (OS is a hard
+        # filter). Bends are disclosed on the card face.
+        b = []
+        if case != "any" and case_label and d["case_bucket"] != case:
+            b.append(f"{d['form_factor_label']} case — outside the "
+                     f"{case_label} size you picked")
+        if budget != "any" and budget_label and \
+                not _laptop_in_budget(d["price"], budget):
+            if budget in ("under500", "500-900", "900-1400") and \
+                    d["price"] > {"under500": 500, "500-900": 900,
+                                  "900-1400": 1400}[budget]:
+                b.append(f"Starts at {_fmt_price(d['price'])} — over "
+                         f"your {budget_label} budget")
+            else:
+                b.append(f"Starts at {_fmt_price(d['price'])} — under "
+                         f"your {budget_label} budget")
+        return b
+
     scored = []
     for d in pool:
         s, why_bits, eco_note = score(d)
@@ -1254,8 +1352,9 @@ def api_recommend_desktops():
             why += (f" Specs go up to {d['ram_max_gb']}GB RAM"
                     + (f" and {d['storage_max_gb']}GB storage"
                        if d["storage_max_gb"] else "") + ".")
-        scored.append((s, d, why, eco_note))
-    scored.sort(key=lambda t: (-t[0], t[1]["price"]))
+        scored.append((s, d, why, eco_note, desktop_bends(d)))
+    # Full matches first (the #1 rule), then score, then price.
+    scored.sort(key=lambda t: (1 if t[4] else 0, -t[0], t[1]["price"]))
 
     # Brand diversity: cap 3 per brand in the first pass, then backfill
     ranked, deferred, per_brand = [], [], {}
@@ -1269,7 +1368,7 @@ def api_recommend_desktops():
     ranked = (ranked + deferred)[:10]
 
     recs, os_keys, brand_keys = [], set(), set()
-    for s, d, why, eco_note in ranked:
+    for s, d, why, eco_note, bends in ranked:
         os_key = LAPTOP_OS_KEY.get(d["platform"])
         brand_key = d["brand"].lower()
         if os_key:
@@ -1304,11 +1403,11 @@ def api_recommend_desktops():
             "max_config_note": d["max_config_note"],
             "price_note": d["price_note"],
             "score": round(s), "why": why_list_for(d, eco_note),
-            "summary": why, "ecosystem_note": eco_note,
+            "summary": why, "ecosystem_note": eco_note, "bends": bends,
             "setup": {"os_key": os_key, "brand_key": brand_key},
         })
     if req_gpu and ranked and not any(
-            (_desktop_perf(d)["gpu"] or 0) >= req_gpu for _, d, _, _ in ranked):
+            (_desktop_perf(d)["gpu"] or 0) >= req_gpu for _, d, _, _, _ in ranked):
         notes.append(
             f"{SCREEN_WORD[screens_n].capitalize()} at "
             f"{RES_LABEL[resolution]} is a lot of pixels to push — no "
@@ -1353,6 +1452,7 @@ def api_recommend_desktops():
         "notes": notes,
         "guides": guides,
         "kid": kid,
+        "no_full_match": bool(recs) and all(r["bends"] for r in recs),
         "query": {"use": use, "os": os_pref, "case": case,
                   "budget": budget, "snapdragon": snap_answer,
                   "usage": usage, "screens": screens_ans,
@@ -1994,7 +2094,7 @@ def asset(name):
             and name.rsplit(".", 1)[-1].lower()
             in ("png", "svg", "jpg", "jpeg", "webp")):
         return ("Not found", 404)
-    if name.startswith(("icons-v2/", "photos/")):
+    if name.startswith(("icons-v2/", "photos/", "logos/")):
         fixed = _decoded_image_response(name)
         if fixed is not None:
             return fixed

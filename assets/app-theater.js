@@ -14,6 +14,12 @@ let TH_DATA = null;
 const tanswers = {};
 let tstep = -1;               // -1 cover, -2 "I know what I want", >= 0 quiz
 let thTab = 'better';
+// Build .8 (Caleb's ruling R1): swap chips actually swap. State is
+// keyed "tier:slot" (slot: tv | sound | sound2) and holds the chosen
+// product object; it lives outside the render so it persists across
+// tab switches, and every total reads through the effective-product
+// helpers below — card, copy, price, and tier total all follow.
+let thSwapState = {};
 
 const thIc = n => `<img class="v2ic" src="/assets/icons-v2/${n}.png" alt="">`;
 const thGlyph = t => `<span class="th-glyph">${t}</span>`;
@@ -36,7 +42,7 @@ const THEATER_QUESTIONS = [
       { v: '8-9', t: '8 – 9 ft', s: 'The most common living room', icon: thGlyph('8') },
       { v: '10-11', t: '10 – 11 ft', s: '', icon: thGlyph('10') },
       { v: '12plus', t: '12 ft or more', s: 'Projectors enter the chat', icon: thGlyph('12') },
-      { v: 'dontknow', t: "Don't know", s: 'Small, medium or large room', icon: thIc('help-question') } ] },
+      { v: 'dontknow', t: 'Not sure', s: 'Small, medium or large room', icon: thIc('help-question') } ] },
   { key: 'roomsize', num: 2, when: () => tanswers.dist === 'dontknow',
     q: "How big is the room, roughly?",
     why: "No tape measure needed — the room's size is a good stand-in for the couch distance.",
@@ -138,6 +144,7 @@ function startTheaterBuy() {
   hideAllSections();
   document.getElementById('quiz').style.display = 'block';
   Object.keys(tanswers).forEach(k => delete tanswers[k]);
+  thSwapState = {};
   tstep = -1;
   setScene('');
   if (TH_DATA) { thRenderCover(); return; }
@@ -163,10 +170,10 @@ function thRenderCover() {
   bar.style.width = '4%';
   setScene('');
   const feat = [
-    { icon: 'tv', t: 'Right size, first try', s: 'Seating distance runs the size formula — no more too-small regrets' },
-    { icon: 'surround-sound', t: 'Sound that fits your room', s: 'Soundbar or real speakers — decided by your wiring tolerance, not hype' },
-    { icon: 'money-bag', t: 'One honest total', s: 'Mount, cables and extras inside the price — never a bare product price' },
-    { icon: 'swap-arrows', t: 'Out of stock? Swap it', s: 'Every item has same-level alternatives, so one empty shelf never sinks the trip' } ];
+    { icon: 'tv', t: 'Right size, first try', s: 'Seating distance runs the size formula' },
+    { icon: 'surround-sound', t: 'Sound that fits your room', s: 'Soundbar or real speakers — your wiring tolerance decides' },
+    { icon: 'money-bag', t: 'One honest total', s: 'Mount, cables and extras inside the price' },
+    { icon: 'swap-arrows', t: 'Out of stock? Swap it', s: 'Every item has same-level alternatives — tap to swap one in' } ];
   stepsEl.innerHTML = `<button class="back" onclick="backToFlowPick()">← Back</button>
     <div class="quiz-stage" data-tint="0">
     <p class="th-kicker">Home Theater Picker</p>
@@ -185,12 +192,16 @@ function thRenderCover() {
 function thShowOverride() {
   tstep = -2;
   bar.style.width = '4%';
-  const cat = (role, name, states) => `<div class="th-cat"><div class="th-role">${role}</div><div class="th-catname">${name}</div>${states.map(s => `<span class="th-state"><b>${s[0]}</b> — ${s[1]}</span>`).join('')}</div>`;
+  // Build .8: the three columns used to be static divs dressed as
+  // controls. They are buttons now, and honest ones: tapping any of
+  // them starts the questions (a per-piece picker doesn't exist as
+  // its own flow, and the columns no longer pretend otherwise).
+  const cat = (role, name, states) => `<button class="th-cat th-catbtn" onclick="thStartQuiz()"><div class="th-role">${role}</div><div class="th-catname">${name}</div>${states.map(s => `<span class="th-state"><b>${s[0]}</b> — ${s[1]}</span>`).join('')}<div class="th-catgo">Start the questions →</div></button>`;
   stepsEl.innerHTML = `<button class="back" onclick="thRenderCover()">← Back</button>
     <div class="quiz-stage" data-tint="1">
     <p class="th-kicker">I Know What I Want</p>
     <p class="th-h">Pick your pieces. We'll mind the fit.</p>
-    <p class="th-sub">Knowing one piece doesn't mean knowing them all. Set each one your way — and where you'd like help, we step in for just that piece, like the monitor offers around a laptop setup.</p>
+    <p class="th-sub">Knowing one piece doesn't mean knowing them all. Set each one your way — and where you'd like help, we step in for just that piece, the same way the pairing flow offers screens and docks around a laptop.</p>
     <div class="th-catrow">
       ${cat('The TV', 'Television', [['I know mine', 'pick it from the full list'], ['Already have it', 'tell us the model — it still counts for fit and ports'], ['Help me choose', "we'll ask the TV questions only"]])}
       ${cat('The Sound', 'Audio', [['I know mine', 'bar, kit, or receiver + speakers'], ['Already have it', "we'll build the rest around it"], ['Help me choose', "we'll ask the sound questions only"]])}
@@ -239,8 +250,8 @@ function trender() {
       h += tileHTML({ i, wide, icon: o.icon, title: o.t, desc: o.s, on: sel.includes(o.v), onclick: `ttoggle('${Q.key}','${o.v}')` });
     });
     h += '</div>';
-    h += `<p class="th-why">${sel.length} of 2 picked — tap to change.${sel.length ? '' : ' Pick at least one to go on.'}</p>`;
-    if (sel.length) h += thContinueHTML();
+    h += `<p class="th-why">${sel.length} of 2 picked${sel.length === 2 ? ' — tap Next when ready.' : ' — pick ' + (2 - sel.length) + ' more to go on.'}</p>`;
+    if (sel.length === 2) h += thContinueHTML();
   } else {
     h += '<div class="tile-grid">';
     const opts = Q.opts();
@@ -300,23 +311,87 @@ function thTierTV(tierKey) {
   return { tv: base, note: '' };
 }
 
+function thSwapKey(tierKey, slot) { return tierKey + ':' + slot; }
+function thEffTV(tierKey) {
+  const base = thTierTV(tierKey);
+  const sw = thSwapState[thSwapKey(tierKey, 'tv')];
+  if (sw) return { tv: sw, note: '', swapped: true, baseTv: base.tv };
+  return { tv: base.tv, note: base.note, swapped: false, baseTv: base.tv };
+}
+function thEffSound(tierKey, slot) {
+  const T = TH_DATA.tiers[tierKey];
+  const base = slot === 'sound2' ? T.sound2 : T.sound;
+  const sw = thSwapState[thSwapKey(tierKey, slot)];
+  return { p: sw || base, swapped: !!sw, base };
+}
 function thTierTotal(tierKey) {
   const T = TH_DATA.tiers[tierKey];
-  const { tv } = thTierTV(tierKey);
-  let t = tv.price + T.sound.price + (T.sound2 ? T.sound2.price : 0);
+  const { tv } = thEffTV(tierKey);
+  const s1 = thEffSound(tierKey, 'sound').p;
+  const s2 = T.sound2 ? thEffSound(tierKey, 'sound2').p : null;
+  let t = tv.price + s1.price + (s2 ? s2.price : 0);
   if (tierKey !== 'best') t += TH_DATA.cable.price;
   return t;
+}
+function thSwapName(p) {
+  // A swapped-in product wears its plain product name — the data's
+  // "Swap receiver: …" prefixes are chip dressing, not names.
+  return String(p.name || '').replace(/^Swap (receiver|speakers): /, '');
+}
+function thSwapMeta(s) {
+  // The Bar 9's gamer line appears only when Gaming was picked.
+  let m = (s.gmeta && (tanswers.watch || []).includes('gaming')) ? s.gmeta : (s.meta || '');
+  // Hand-written price deltas come out: the renderer computes the
+  // delta against the product actually shown, so the copy can never
+  // disagree with the tier on screen (stand-in TVs included).
+  return m.replace(/\s*\([+\u2212-]\$[\d,]+\)/g, '');
+}
+function thSwapCandidates(tierKey, slot) {
+  // The candidate list for a slot. TV swaps always come from the
+  // tier's BASE tv, so the step-up chips (LG G5 included) are offered
+  // in the stand-in variant too, with deltas against the TV shown.
+  const T = TH_DATA.tiers[tierKey];
+  if (slot === 'tv') return (T.tv.swaps || []).slice();
+  const base = slot === 'sound2' ? T.sound2 : T.sound;
+  return base ? (base.swaps || []).slice() : [];
+}
+function thDoSwap(tierKey, slot, idx) {
+  const key = thSwapKey(tierKey, slot);
+  if (idx < 0) delete thSwapState[key];
+  else {
+    const cand = thSwapCandidates(tierKey, slot)[idx];
+    if (cand && cand.price != null) thSwapState[key] = cand;
+  }
+  renderThResults();
+}
+function thSwapsHTML(tierKey, slot, current, isSwapped, baseName) {
+  const cands = thSwapCandidates(tierKey, slot);
+  if (!cands.length && !isSwapped) return '';
+  let h = '<div class="th-swaplab">Out of stock? Swap — same level, same ballpark. Tap one to swap it in:</div><div class="th-swaps">';
+  if (isSwapped)
+    h += `<button class="th-swap th-swapback" onclick="thDoSwap('${tierKey}','${slot}',-1)"><div class="th-sname">↩ Swap back to ${esc(baseName)}</div><div class="th-smeta">Undo this swap</div></button>`;
+  cands.forEach((s, i) => {
+    if (s.price == null) {
+      h += `<div class="th-swap th-swapnote"><div class="th-sname">${esc(s.name)}</div><div class="th-smeta">${esc(thSwapMeta(s))}</div></div>`;
+      return;
+    }
+    if (current && s.name === current.name) return;
+    const d = s.price - current.price;
+    const dTxt = d === 0 ? 'same price' : (d > 0 ? `+$${fmt$(d)}` : `\u2212$${fmt$(-d)}`);
+    h += `<button class="th-swap" onclick="thDoSwap('${tierKey}','${slot}',${i})"><div class="th-sname">${esc(s.name)} — $${fmt$(s.price)}</div><div class="th-smeta">${esc(thSwapMeta(s))} (${dTxt} vs the pick above)</div></button>`;
+  });
+  return h + '</div>';
 }
 
 function thSizeNote() {
   const d = tanswers.dist;
   if (d === 'dontknow') {
-    return { small: 'Small room ≈ 5–7 ft of viewing distance — 55–65″ territory. The 65″ systems below sit at the top of that range.',
-             medium: 'Medium room ≈ 8–9 ft — 65″ is the sweet spot, and it is exactly what GOOD and BETTER carry.',
+    return { small: 'Small room ≈ 5–7 ft of viewing distance — 55–65″ territory. The 65″ systems below sit at the top of that range; the 77″ in BEST runs a size over it — the deliberate stretch pick.',
+             medium: 'Medium room ≈ 8–9 ft — 65″ is the sweet spot, and it is exactly what GOOD and BETTER carry. BEST carries 77″ — one size up, the cinematic stretch.',
              large: 'Large room ≈ 10–12 ft — you want 77″ or more. BEST carries it; the 65″ systems will feel a size small from the couch.' }[tanswers.roomsize] || '';
   }
   return { under6: 'Your couch distance sizes a 55″ screen. The systems below start at 65″ — one size up. In a small room that reads as cinematic, not cramped, as long as the stand fits it.',
-           '6-7': 'At 6–7 ft, 65″ is the immersive size — and it is exactly what GOOD and BETTER carry.',
+           '6-7': 'At 6–7 ft, 65″ is the immersive size — and it is exactly what GOOD and BETTER carry. BEST stretches to 77″ — a size up, for the full cinema feel.',
            '8-9': 'At 8–9 ft, 65″ is the sweet spot and 77″ is the cinematic stretch — GOOD and BETTER sit at the sweet spot, BEST takes the stretch.',
            '10-11': 'At 10–11 ft you want 77″. BEST carries it; GOOD and BETTER at 65″ will feel a size small from your couch — that is their honest trade for the price.',
            '12plus': 'At 12 ft or more you want 85″ or a projector — bigger than any system below. These picks still fit your room and your answers; just know the screen runs a size under ideal at that distance.' }[d] || '';
@@ -328,7 +403,7 @@ function thChips() {
   if (tanswers.placement === 'mount') c.push('✓ Wall mount planned in');
   if (tanswers.placement === 'renter') c.push('✓ No-drilling picks only');
   c.push('✓ Certified HDMI cable included');
-  if ((tanswers.watch || []).includes('gaming')) c.push(`✓ Fast HDMI ports counted for your ${TH_GAME_LABEL[tanswers.gaming] || 'gaming gear'} + the soundbar`);
+  if ((tanswers.watch || []).includes('gaming')) c.push(`✓ Fast HDMI ports counted for your ${TH_GAME_LABEL[tanswers.gaming] || 'gaming gear'} + the sound`);
   if (tanswers.subs === 'often') c.push('✓ Real center channel in every system — dialogue stays clear');
   if (tanswers.own === 'streamer') c.push("✓ No streamer sold to you twice");
   return c;
@@ -340,20 +415,26 @@ function thFinish() {
 }
 
 function thShowTab(t) { thTab = t; renderThResults(); }
-
-function thSwapsHTML(swaps) {
-  if (!swaps || !swaps.length) return '';
-  return `<div class="th-swaplab">Out of stock? Swap — same level, same ballpark</div><div class="th-swaps">${swaps.map(s => `<div class="th-swap"><div class="th-sname">${esc(s.name)}${s.price != null ? ` — $${fmt$(s.price)}` : ''}</div><div class="th-smeta">${esc(s.meta)}</div></div>`).join('')}</div>`;
+function thBackToQuestions() {
+  hideAllSections();
+  document.getElementById('quiz').style.display = 'block';
+  tstep = tvisible().length - 1;
+  trender();
+  window.scrollTo(0, 0);
 }
 
-function thProductBlock(kind, p, role) {
-  return `${cardGallery(kind, p.photo ? [p.photo] : null, p.name)}<div class="th-role">${role}</div><div class="th-name">${esc(p.name)}</div><div class="th-price">$${fmt$(p.price)}</div><div class="th-meta">${esc(p.meta)}</div>${thSwapsHTML(p.swaps)}`;
+function thProductBlock(kind, p, role, tierKey, slot, isSwapped, baseName) {
+  return `${cardGallery(kind, p.photo ? [p.photo] : null, p.name)}<div class="th-role">${role}</div><div class="th-name">${esc(p.name)}</div><div class="th-price">$${fmt$(p.price)}</div><div class="th-meta">${esc(p.meta)}</div>${thSwapsHTML(tierKey, slot, p, isSwapped, baseName)}`;
 }
 
 function thPanelHTML(tierKey) {
   const T = TH_DATA.tiers[tierKey];
-  const { tv, note: tvNote } = thTierTV(tierKey);
+  const { tv, note: tvNote, swapped: tvSwapped, baseTv } = thEffTV(tierKey);
   const total = thTierTotal(tierKey);
+  // Copy follows the gear actually shown: a stand-in Mini-LED never
+  // wears the OLED tagline.
+  const standIn = !tvSwapped && tv !== T.tv;
+  const tagline = standIn ? T.tagline.replace('OLED picture', 'Mini-LED picture') : T.tagline;
   let flags = '';
   if (tierKey === 'best' && tanswers.wires === 'none')
     flags += `<p class="th-flag">⚠ This tier breaks your “no wires at all” answer — a receiver system runs speaker wire. BETTER is your no-wire ceiling.</p>`;
@@ -361,16 +442,23 @@ function thPanelHTML(tierKey) {
     flags += `<p class="th-flag">You already own a receiver: if its HDMI ports are 2.1, keep it and put the sound budget into the speakers — the SVS set is the upgrade, not the box.</p>`;
   if (tanswers.own === 'sonos' && tierKey === 'better')
     flags += `<p class="th-flag">You own Sonos: the Arc Ultra swap keeps your whole home in one family.</p>`;
+  const snd1 = thEffSound(tierKey, 'sound');
+  const snd2 = T.sound2 ? thEffSound(tierKey, 'sound2') : null;
   const soundHTML = T.sound2
-    ? `${cardGallery('speaker', [T.sound.photo, T.sound2.photo], T.sound.name + ' + ' + T.sound2.name)}<div class="th-role">The sound we like</div><div class="th-name">${esc(T.sound.name)} + ${esc(T.sound2.name)}</div><div class="th-price">$${fmt$(T.sound.price + T.sound2.price)}</div><div class="th-prod"><div class="th-name2">${esc(T.sound.name)} — $${fmt$(T.sound.price)}</div><div class="th-meta">${esc(T.sound.meta)}</div>${thSwapsHTML(T.sound.swaps)}</div><div class="th-prod"><div class="th-name2">${esc(T.sound2.name)} — $${fmt$(T.sound2.price)}</div><div class="th-meta">${esc(T.sound2.meta)}</div>${thSwapsHTML(T.sound2.swaps)}</div>`
-    : thProductBlock('speaker', T.sound, 'The sound we like');
+    ? `${cardGallery('speaker', [snd1.p.photo, snd2.p.photo], thSwapName(snd1.p) + ' + ' + thSwapName(snd2.p))}<div class="th-role">The sound we like</div><div class="th-name">${esc(thSwapName(snd1.p))} + ${esc(thSwapName(snd2.p))}</div><div class="th-price">$${fmt$(snd1.p.price + snd2.p.price)}</div><div class="th-prod"><div class="th-name2">${esc(thSwapName(snd1.p))} — $${fmt$(snd1.p.price)}</div><div class="th-meta">${esc(snd1.p.meta)}</div>${thSwapsHTML(tierKey, 'sound', snd1.p, snd1.swapped, thSwapName(snd1.base))}</div><div class="th-prod"><div class="th-name2">${esc(thSwapName(snd2.p))} — $${fmt$(snd2.p.price)}</div><div class="th-meta">${esc(snd2.p.meta)}</div>${thSwapsHTML(tierKey, 'sound2', snd2.p, snd2.swapped, thSwapName(snd2.base))}</div>`
+    : thProductBlock('speaker', snd1.p, 'The sound we like', tierKey, 'sound', snd1.swapped, thSwapName(snd1.base));
   const cableLine = tierKey === 'best'
     ? 'Cables: speaker wire and certified HDMI run about $40 — inside this tier’s reserve.'
     : `${esc(TH_DATA.cable.name)} — $${fmt$(TH_DATA.cable.price)}, already in the total.`;
-  return `<p class="th-tagline">${esc(T.tagline)}</p>
+  const swappedNames = [];
+  if (tvSwapped) swappedNames.push(thSwapName(tv));
+  if (snd1.swapped) swappedNames.push(thSwapName(snd1.p));
+  if (snd2 && snd2.swapped) swappedNames.push(thSwapName(snd2.p));
+  const totalLabel = `${esc(T.label)} total${swappedNames.length ? ' with ' + esc(swappedNames.join(' + ')) : ''}${tierKey === 'best' ? '' : ' (cables in)'}: $${fmt$(total)}`;
+  return `<p class="th-tagline">${esc(tagline)}</p>
   ${flags}
   <div class="th-squares">
-    <div class="th-square">${thProductBlock('tv', tv, tierKey === 'best' ? 'The TV' : 'The TV we like')}${tvNote ? `<p class="th-flag">${esc(tvNote)}</p>` : ''}</div>
+    <div class="th-square">${thProductBlock('tv', tv, tierKey === 'best' ? 'The TV' : 'The TV we like', tierKey, 'tv', tvSwapped, thSwapName(baseTv))}${tvNote ? `<p class="th-flag">${esc(tvNote)}</p>` : ''}</div>
     <div class="th-square">${soundHTML}</div>
   </div>
   <div class="th-roomviz">
@@ -378,7 +466,7 @@ function thPanelHTML(tierKey) {
     <div class="th-viz"><p class="th-vizcap">From the couch — heights &amp; eye line</p>${thCouchview(T.viz)}</div>
   </div>
   <p class="factline">${esc(thRoomLine())} ${esc(TH_LIGHT_CLAUSE[tanswers.light] || '')}</p>
-  <div class="th-foot"><div><div class="th-total">${esc(T.label)} total ${tierKey === 'best' ? '' : '(cables in)'}: $${fmt$(total)}</div><div class="th-cable">${cableLine}</div></div>
+  <div class="th-foot"><div><div class="th-total">${totalLabel}</div><div class="th-cable">${cableLine}</div></div>
   <div class="th-note">${esc(T.note)}</div></div>`;
 }
 
@@ -398,7 +486,7 @@ function renderThResults() {
   const recap = `${TH_DIST_LABEL[tanswers.dist] === undefined ? '' : 'Couch ' + TH_DIST_LABEL[tanswers.dist].toLowerCase() + ' · '}${watchTxt} · ${TH_LIGHT_LABEL[tanswers.light] || ''} · ${TH_HOME_LABEL[tanswers.home] || ''}`;
   const bandMax = TH_BAND_MAX[tanswers.budget];
   const defTotal = thTierTotal(thTab);
-  let h = `<button class="back" onclick="backToFlowPick()">← All aisles</button>
+  let h = `<button class="back" onclick="thBackToQuestions()">← Back</button>
   <p class="q">Three complete systems for your room</p>
   <p class="th-sub">${esc(recap)} — every total includes the cables. ${esc(TH_DATA.checked_label || '')}.</p>
   <div class="note">📐 <b>Sizing, honestly:</b> ${esc(thSizeNote())}</div>`;
@@ -416,7 +504,9 @@ function renderThResults() {
     <ol>
       <li><b>One trip list:</b> the TV, the sound, the certified cable — and a spare HDMI, because the second one is always the one you needed.</li>
       <li><b>Open it within 48 hours.</b> Check the panel corners in a dark room. A bad corner found this week is an exchange; found next month, it's a warranty claim.</li>
-      <li><b>Soundbar first, TV second</b> if you're wall-mounting — the bar's mount height decides where the TV's bottom edge lands.</li>
+      ${thTab === 'best'
+        ? '<li><b>Receiver first, TV second</b> if you\'re wall-mounting — the center speaker\'s placement decides where the TV\'s bottom edge lands.</li>'
+        : '<li><b>Soundbar first, TV second</b> if you\'re wall-mounting — the bar\'s mount height decides where the TV\'s bottom edge lands.</li>'}
       <li><b>Run eARC, then check the TV says “eARC”</b> — not just ARC. That's the setting that carries the good formats.</li>
       <li><b>Sub crawl, short version:</b> put the sub in your seat, play something bassy, walk the front wall — where it's smoothest is where it lives.</li>
     </ol>

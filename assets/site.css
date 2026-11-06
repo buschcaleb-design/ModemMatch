@@ -73,6 +73,7 @@
   /* Cozy desk scene + icon buttons (design pass, laptop page) */
   #scene-slot { display: none; margin: 0 0 14px; }
   #scene-slot svg, .scene svg { width: 100%; height: auto; display: block; }
+  #scene-slot svg { width: auto; max-width: 100%; max-height: 175px; margin: 0 auto; }
   .scene { margin: 0 0 14px; }
   .opt.has-icon { display: flex; align-items: center; gap: 14px; text-align: left; }
   .opt-ic { flex: 0 0 54px; width: 54px; height: 54px; border-radius: 15px; background: var(--panel-2);
@@ -315,7 +316,8 @@
   .buybtn { display: block; width: 100%; background: var(--panel-2); border: 2px dashed var(--faint);
             color: var(--faint); border-radius: 12px; padding: 12px; font-size: .9rem;
             cursor: not-allowed; }
-  .pairbtn { display: block; width: 100%; margin-top: 12px; background: var(--panel-2);
+  .pairbtn { display: flex; align-items: center; justify-content: center; gap: 6px;
+             width: 100%; min-height: 52px; margin-top: 12px; background: var(--panel-2);
              border: 2px solid var(--accent); color: var(--accent); border-radius: 12px;
              padding: 12px; font-size: .92rem; font-weight: 700; cursor: pointer; }
   .pairbtn:active { background: var(--line); }
@@ -325,9 +327,10 @@
   #setupbtn-wrap { max-width: 640px; margin: 0 auto; padding: 0 16px; text-align: right; position: relative; z-index: 1; }
   #setupbtn { background: none; border: none; color: var(--accent); font-size: .88rem;
               font-weight: 700; cursor: pointer; padding: 6px 0; }
-  .savebtn { display: block; width: 100%; margin-top: 10px; background: var(--panel-2);
+  .savebtn { display: flex; align-items: center; justify-content: center; gap: 6px;
+             width: 100%; min-height: 52px; margin-top: 10px; background: var(--panel-2);
              border: 2px solid var(--faint); color: var(--ink-soft); border-radius: 12px;
-             padding: 11px; font-size: .9rem; font-weight: 700; cursor: pointer; }
+             padding: 12px; font-size: .92rem; font-weight: 700; cursor: pointer; }
   .savebtn:active { background: var(--line); }
   .setupline { margin: 6px 0; color: var(--ink); font-size: .95rem; }
   .setupactions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
@@ -575,8 +578,8 @@
        Round 2 (same day): the text is anchored to the TOP of the zone
        (flex-start), not centered — centering started a one-line title
        half a line lower than a two-line title's first line. */
-    display: flex; align-items: flex-start; justify-content: center;
-    width: 100%; min-height: 2.56em; text-align: center; }
+    display: block; width: 100%; height: 2.56em; overflow: hidden;
+    text-align: center; }
   .tile-desc { display: block; margin-top: 8px; padding: 0 5px; font-size: .82rem;
     line-height: 1.42; text-align: center; color: var(--ink-soft);
     /* Uniform tiles (Caleb, 2026-11-05): the caption zone is exactly
@@ -616,7 +619,7 @@
     border: 2px solid var(--line); border-radius: 16px; overflow: hidden; }
   .cmp th, .cmp td { padding: 12px; vertical-align: top; text-align: left; }
   .cmp thead th { background: var(--panel-2); border-bottom: 2px solid var(--line); }
-  .cmp thead th.cmp-lab { width: 96px; background: transparent; border-bottom: 2px solid var(--line); }
+  .cmp thead th.cmp-lab { width: 118px; background: transparent; border-bottom: 2px solid var(--line); }
   .cmp thead th.ourpick { background: linear-gradient(160deg, #fff7d6, #ffe3a3);
     box-shadow: inset 0 4px 0 #d97706; }
   .cmp thead th.ourpick h3 { color: #14213d; }
@@ -629,8 +632,8 @@
     padding: 3px 10px; background: #1a73e8; color: #ffffff; }
   .cmp-badge.ourpick { background: #14213d; color: #ffd166; }
   .cmp-badge.budget { background: #16a34a; color: #ffffff; }
-  .cmp tbody th { color: var(--muted); font-size: .7rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .06em; padding-top: 15px; }
+  .cmp tbody th { color: var(--muted); font-size: .68rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .02em; padding-top: 15px; }
   .cmp tbody td { font-weight: 600; color: var(--ink); font-size: .94rem;
     border-top: 1.5px solid var(--line); }
   .cmp tbody th { border-top: 1.5px solid var(--line); }
@@ -798,3 +801,17 @@
   .th-next ol { margin: 6px 0; padding-left: 20px; color: var(--muted); line-height: 1.55; font-size: .95rem; }
   .th-next li { margin: 4px 0; }
   .th-next li b { color: var(--ink); }
+
+  /* Build 2026-11-05.8 */
+  .bendline { color: #b45309; font-weight: 600; font-size: .9rem; margin: 6px 0 0; }
+  .cmp .bendline { color: #b45309; font-weight: 600; }
+  .card .bendline { text-align: left; }
+  .sortrow.tabrow { border-top: 1.5px dashed var(--line); padding-top: 10px; margin-top: 2px; }
+  button.th-swap { font: inherit; color: inherit; text-align: left; width: 100%; cursor: pointer; }
+  button.th-swap:hover { border-color: #1a73e8; }
+  .th-swap.th-swapback { background: #eef4ff; border-color: #bcd3f7; }
+  .th-swap.th-swapnote { opacity: .85; }
+  button.th-cat { font: inherit; color: inherit; text-align: left; cursor: pointer; }
+  button.th-cat:hover { border-color: #1a73e8; }
+  .th-catgo { margin-top: 10px; font-weight: 700; color: #1a73e8; font-size: .9rem; }
+  .th-static .tile-desc { height: auto; min-height: 2.84em; overflow: visible; }

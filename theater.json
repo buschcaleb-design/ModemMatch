@@ -1,1 +1,241 @@
-{"cable":{"name":"Monoprice Certified Ultra High Speed HDMI cable, 3 ft","note":"The certified $9 cable is the right cable — anyone selling a $100 HDMI cable is selling a story.","price":8.89,"source":"Monoprice (PID 42673)"},"checked":"2026-11-05","checked_label":"Prices checked Nov 5, 2026 at Best Buy, Walmart, and the makers' own stores","tiers":{"best":{"label":"BEST","legend":["TV + left / center / right","Receiver by the TV stand","Sub — front corner","Surrounds at the sides","of the couch"],"note":"Growth path: this receiver and these speakers outlive the TV. Next upgrade is the TV, not the sound.","sound":{"id":"denon-avr-s770h","meta":"7.2 or 5.1.2 Atmos, three fast HDMI inputs, room correction included.","model":"AVR-S770H","name":"Denon AVR-S770H","photo":"/assets/photos/denon-avr-s770h.webp","price":749.0,"source":"Denon","swaps":[{"id":"onkyo-tx-nr7100","meta":"Dirac room correction INCLUDED + 9.2 channels — grows to 5.1.4","name":"Swap receiver: Onkyo TX-NR7100","price":749.99,"source":"Best Buy"}]},"sound2":{"id":"svs-prime-satellite-51","meta":"Five satellites + SB-1000 Pro sub. A real center channel carries dialogue for the whole couch.","model":"Prime Satellite 5.1","name":"SVS Prime Satellite 5.1 system","photo":"/assets/photos/svs-prime-satellite-51.webp","price":1399.99,"source":"SVS","swaps":[{"id":"klipsch-50-svs-sub","meta":"Towers up front, bigger sound, needs floor space (−$200)","name":"Swap speakers: Klipsch Reference 5.0 + SVS SB-1000 Pro","price":1198.99,"source":"Adorama / SVS"},{"id":"staged-31","meta":"Front three + sub now, surrounds when budget allows","name":"Start 3.1, add rears later","price":null,"source":""}]},"tagline":"Receiver and real speakers: the system that grows with you for a decade. The TV is one tier under flagship — that's the honest trade for sound this good.","tv":{"id":"lg-b6-77","meta":"One size up from Better — the cinematic end of the mid-distance range.","model":"OLED77B6EUA","name":"LG B6 77″ OLED (2026)","photo":"/assets/photos/lg-b6-77.webp","price":1599.99,"source":"Best Buy","swaps":[{"id":"lg-c5-77","meta":"Last year's, same ballpark — easiest swap here","name":"LG C5 77″ OLED (2025)","price":1999.99,"source":""},{"id":"lg-g5-77","meta":"Flagship (+$1,545) — wall-mount design, stand sold separately","name":"LG G5 77″ OLED (2025)","price":3144.99,"source":"Best Buy"}]},"viz":"comp51"},"better":{"label":"BETTER","legend":["TV + Atmos soundbar","Wireless sub — front corner","Wireless rears behind","the couch · height bounces","off the ceiling"],"note":"One honest trade-off: the Samsung bar works fully over eARC on this TV — you just don't get Samsung's Q-Symphony TV-speaker blend.","sound":{"id":"samsung-hw-q990f","meta":"Bar + wireless sub + two wireless rears. Real Atmos, zero speaker wire. Rears need outlets near the couch.","model":"HW-Q990F/ZA","name":"Samsung HW-Q990F 11.1.4","photo":"/assets/photos/samsung-hw-q990f.jpg","price":1599.99,"source":"Best Buy / Samsung","swaps":[{"id":"sonos-arc-ultra","meta":"Trade-off: bar only at this price — rears and sub become later add-ons","name":"Sonos Arc Ultra","price":1099.0,"source":"Sonos"},{"id":"sony-bravia-theatre-bar-9","meta":"The gamer's swap: real HDMI 2.1 passthrough (−$100)","name":"Sony Bravia Theatre Bar 9","price":1499.99,"source":"Best Buy"}]},"tagline":"OLED picture plus flagship wireless surround. The upgrade you will notice every single night.","tv":{"id":"lg-c6-65","meta":"4× HDMI 2.1 — consoles and the soundbar all fit. Perfect blacks for movie nights.","model":"OLED65C6PUA","name":"LG C6 65″ OLED evo (2026)","photo":"/assets/photos/lg-c6-65.jpg","price":1399.99,"source":"Best Buy","swaps":[{"id":"samsung-s90f-65","meta":"Same price, brighter color — but NO Dolby Vision. Only swap if that doesn't matter to you","name":"Samsung S90F 65″ QD-OLED","price":1399.99,"source":"Best Buy"},{"id":"lg-c5-65","meta":"Last year's model — same picture family, now on clearance","name":"LG C5 65″ OLED (2025)","price":1499.99,"source":"Best Buy"}]},"viz":"atmos"},"good":{"label":"GOOD","legend":["TV + soundbar up front","Sub — front corner","Rears behind the couch,","wired back to the sub"],"note":"Fit checks passed: feet span fits a standard stand · one certified HDMI included · rears need one outlet near the couch.","sound":{"id":"vizio-51-se","meta":"Bar + wireless sub + real rear speakers (they wire to the sub). Physical surround at the lowest honest price.","model":"SV510X-0806","name":"Vizio 5.1 Soundbar SE","photo":"/assets/photos/vizio-51-se.webp","price":198.0,"source":"Walmart / Best Buy","swaps":[{"id":"vizio-sv510xw","meta":"The newer model of the same kit, with fully wireless surrounds","name":"Vizio 5.1 SV510XW (2026)","price":198.0,"source":""},{"id":"sonos-beam-gen2","meta":"Trade-off: no rears, but joins a Sonos home (+$301)","name":"Sonos Beam (Gen 2)","price":499.0,"source":"Best Buy"}]},"tagline":"The biggest correct TV we can buy at this budget, plus real 5.1 — not TV speakers and hope.","tv":{"id":"hisense-u6-65","meta":"144Hz, Fire TV. Bright enough for mixed light, with an anti-glare screen.","model":"65U6SF","name":"Hisense U6 65″ Mini-LED (2026)","photo":"/assets/photos/hisense-u6-65.jpg","price":549.99,"source":"Best Buy","swaps":[{"id":"tcl-qm6k-65","meta":"Same class, Google TV instead of Fire TV (+$50)","name":"TCL QM6K 65″","price":599.99,"source":"Best Buy"},{"id":"hisense-u6-pro-65","meta":"Glare-free step-up inside the tier (+$50)","name":"Hisense U6 Pro 65″","price":599.99,"source":"Best Buy"}]},"viz":"bar51"}},"veto":{"best_tv":{"id":"tcl-qm8k-75","meta":"Flagship Mini-LED — extremely bright, zero burn-in risk. On clearance at Best Buy, so stock is limited.","model":"75QM8K","name":"TCL QM8K 75″ Mini-LED","photo":"/assets/photos/tcl-qm8k-75.webp","price":1399.99,"source":"Best Buy","swaps":[]},"better_tv":{"id":"sony-bravia-7-ii-65","meta":"True RGB Mini-LED — the bright-room, static-safe panel at this level.","model":"K65XR70M2","name":"Sony Bravia 7 II 65″ Mini-LED","photo":"/assets/photos/sony-bravia-7-ii-65.jpg","price":1599.99,"source":"Sony","swaps":[]}}}
+{
+ "cable": {
+  "name": "Monoprice Certified Ultra High Speed HDMI cable, 3 ft",
+  "note": "The certified $9 cable is the right cable — anyone selling a $100 HDMI cable is selling a story.",
+  "price": 8.89,
+  "source": "Monoprice (PID 42673)"
+ },
+ "checked": "2026-11-05",
+ "checked_label": "Prices checked Nov 5, 2026 at Best Buy, Walmart, and the makers' own stores",
+ "tiers": {
+  "best": {
+   "label": "BEST",
+   "legend": [
+    "TV + left / center / right",
+    "Receiver by the TV stand",
+    "Sub — front corner",
+    "Surrounds at the sides",
+    "of the couch"
+   ],
+   "note": "Growth path: this receiver and these speakers outlive the TV. Next upgrade is the TV, not the sound.",
+   "sound": {
+    "id": "denon-avr-s770h",
+    "meta": "7.2 or 5.1.2 Atmos, three fast HDMI inputs, room correction included.",
+    "model": "AVR-S770H",
+    "name": "Denon AVR-S770H",
+    "photo": "/assets/photos/denon-avr-s770h.webp",
+    "price": 749.0,
+    "source": "Denon",
+    "swaps": [
+     {
+      "id": "onkyo-tx-nr7100",
+      "meta": "Dirac room correction INCLUDED + 9.2 channels — grows to 5.1.4",
+      "name": "Swap receiver: Onkyo TX-NR7100",
+      "price": 749.99,
+      "source": "Best Buy"
+     }
+    ]
+   },
+   "sound2": {
+    "id": "svs-prime-satellite-51",
+    "meta": "Five satellites + SB-1000 Pro sub. A real center channel carries dialogue for the whole couch.",
+    "model": "Prime Satellite 5.1",
+    "name": "SVS Prime Satellite 5.1 system",
+    "photo": "/assets/photos/svs-prime-satellite-51.webp",
+    "price": 1399.99,
+    "source": "SVS",
+    "swaps": [
+     {
+      "id": "klipsch-50-svs-sub",
+      "meta": "Towers up front, bigger sound, needs floor space (−$200)",
+      "name": "Swap speakers: Klipsch Reference 5.0 + SVS SB-1000 Pro",
+      "price": 1198.99,
+      "source": "Adorama / SVS"
+     },
+     {
+      "id": "staged-31",
+      "meta": "Front three + sub now, surrounds when budget allows",
+      "name": "Start 3.1, add rears later",
+      "price": null,
+      "source": ""
+     }
+    ]
+   },
+   "tagline": "Receiver and real speakers: the system that grows with you for a decade. The TV is one tier under flagship — that's the honest trade for sound this good.",
+   "tv": {
+    "id": "lg-b6-77",
+    "meta": "One size up from Better — the cinematic end of the mid-distance range.",
+    "model": "OLED77B6EUA",
+    "name": "LG B6 77″ OLED (2026)",
+    "photo": "/assets/photos/lg-b6-77.webp",
+    "price": 1599.99,
+    "source": "Best Buy",
+    "swaps": [
+     {
+      "id": "lg-c5-77",
+      "meta": "Last year's, same ballpark — easiest swap here",
+      "name": "LG C5 77″ OLED (2025)",
+      "price": 1999.99,
+      "source": ""
+     },
+     {
+      "id": "lg-g5-77",
+      "meta": "Flagship (+$1,545) — wall-mount design, stand sold separately",
+      "name": "LG G5 77″ OLED (2025)",
+      "price": 3144.99,
+      "source": "Best Buy"
+     }
+    ]
+   },
+   "viz": "comp51"
+  },
+  "better": {
+   "label": "BETTER",
+   "legend": [
+    "TV + Atmos soundbar",
+    "Wireless sub — front corner",
+    "Wireless rears behind",
+    "the couch · height bounces",
+    "off the ceiling"
+   ],
+   "note": "One honest trade-off: the Samsung bar works fully over eARC on this TV — you just don't get Samsung's Q-Symphony TV-speaker blend.",
+   "sound": {
+    "id": "samsung-hw-q990f",
+    "meta": "Bar + wireless sub + two wireless rears. Real Atmos, zero speaker wire. Rears need outlets near the couch.",
+    "model": "HW-Q990F/ZA",
+    "name": "Samsung HW-Q990F 11.1.4",
+    "photo": "/assets/photos/samsung-hw-q990f.jpg",
+    "price": 1599.99,
+    "source": "Best Buy / Samsung",
+    "swaps": [
+     {
+      "id": "sonos-arc-ultra",
+      "meta": "Trade-off: bar only at this price — rears and sub become later add-ons",
+      "name": "Sonos Arc Ultra",
+      "price": 1099.0,
+      "source": "Sonos"
+     },
+     {
+      "id": "sony-bravia-theatre-bar-9",
+      "meta": "Real HDMI 2.1 passthrough",
+      "name": "Sony Bravia Theatre Bar 9",
+      "price": 1499.99,
+      "source": "Best Buy",
+      "gmeta": "The gamer's swap: real HDMI 2.1 passthrough"
+     }
+    ]
+   },
+   "tagline": "OLED picture plus flagship wireless surround. The upgrade you will notice every single night.",
+   "tv": {
+    "id": "lg-c6-65",
+    "meta": "4× HDMI 2.1 — consoles and the soundbar all fit. Perfect blacks for movie nights.",
+    "model": "OLED65C6PUA",
+    "name": "LG C6 65″ OLED evo (2026)",
+    "photo": "/assets/photos/lg-c6-65.jpg",
+    "price": 1399.99,
+    "source": "Best Buy",
+    "swaps": [
+     {
+      "id": "samsung-s90f-65",
+      "meta": "Same price, brighter color — but NO Dolby Vision. Only swap if that doesn't matter to you",
+      "name": "Samsung S90F 65″ QD-OLED",
+      "price": 1399.99,
+      "source": "Best Buy"
+     },
+     {
+      "id": "lg-c5-65",
+      "meta": "Last year's model — same picture family, now on clearance",
+      "name": "LG C5 65″ OLED (2025)",
+      "price": 1499.99,
+      "source": "Best Buy"
+     }
+    ]
+   },
+   "viz": "atmos"
+  },
+  "good": {
+   "label": "GOOD",
+   "legend": [
+    "TV + soundbar up front",
+    "Sub — front corner",
+    "Rears behind the couch,",
+    "wired back to the sub"
+   ],
+   "note": "Fit checks passed: feet span fits a standard stand · one certified HDMI included · rears need one outlet near the couch.",
+   "sound": {
+    "id": "vizio-51-se",
+    "meta": "Bar + wireless sub + real rear speakers (they wire to the sub). Physical surround at the lowest honest price.",
+    "model": "SV510X-0806",
+    "name": "Vizio 5.1 Soundbar SE",
+    "photo": "/assets/photos/vizio-51-se.webp",
+    "price": 198.0,
+    "source": "Walmart / Best Buy",
+    "swaps": [
+     {
+      "id": "vizio-sv510xw",
+      "meta": "The newer model of the same kit, with fully wireless surrounds",
+      "name": "Vizio 5.1 SV510XW (2026)",
+      "price": 198.0,
+      "source": ""
+     },
+     {
+      "id": "sonos-beam-gen2",
+      "meta": "Trade-off: no rears, but joins a Sonos home (+$301)",
+      "name": "Sonos Beam (Gen 2)",
+      "price": 499.0,
+      "source": "Best Buy"
+     }
+    ]
+   },
+   "tagline": "The biggest correct TV we can buy at this budget, plus real 5.1 — not TV speakers and hope.",
+   "tv": {
+    "id": "hisense-u6-65",
+    "meta": "144Hz, Fire TV. Bright enough for mixed light, with an anti-glare screen.",
+    "model": "65U6SF",
+    "name": "Hisense U6 65″ Mini-LED (2026)",
+    "photo": "/assets/photos/hisense-u6-65.jpg",
+    "price": 549.99,
+    "source": "Best Buy",
+    "swaps": [
+     {
+      "id": "tcl-qm6k-65",
+      "meta": "Same class, Google TV instead of Fire TV (+$50)",
+      "name": "TCL QM6K 65″",
+      "price": 599.99,
+      "source": "Best Buy"
+     },
+     {
+      "id": "hisense-u6-pro-65",
+      "meta": "Glare-free step-up inside the tier (+$50)",
+      "name": "Hisense U6 Pro 65″",
+      "price": 599.99,
+      "source": "Best Buy"
+     }
+    ]
+   },
+   "viz": "bar51"
+  }
+ },
+ "veto": {
+  "best_tv": {
+   "id": "tcl-qm8k-75",
+   "meta": "Flagship Mini-LED — extremely bright, zero burn-in risk. On clearance at Best Buy, so stock is limited.",
+   "model": "75QM8K",
+   "name": "TCL QM8K 75″ Mini-LED",
+   "photo": "/assets/photos/tcl-qm8k-75.webp",
+   "price": 1399.99,
+   "source": "Best Buy",
+   "swaps": []
+  },
+  "better_tv": {
+   "id": "sony-bravia-7-ii-65",
+   "meta": "True RGB Mini-LED — the bright-room, static-safe panel at this level.",
+   "model": "K65XR70M2",
+   "name": "Sony Bravia 7 II 65″ Mini-LED",
+   "photo": "/assets/photos/sony-bravia-7-ii-65.jpg",
+   "price": 1599.99,
+   "source": "Sony",
+   "swaps": []
+  }
+ }
+}
