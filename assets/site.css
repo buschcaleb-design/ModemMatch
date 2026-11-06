@@ -592,7 +592,21 @@
   .tile.wide { grid-column: 1 / -1; }
   .tile.on .tile-main { outline: 3.5px solid #14213d; outline-offset: 2px; }
   .tile-main.logo { background: #ffffff; border: 2px solid var(--line); color: #14213d; }
-  .tile-main.logo .tile-logo { height: 44px; max-width: 82%; object-fit: contain; display: block; }
+  /* Uniform tiles, round 3 (Caleb, 2026-11-05): the provider step's
+     logo slot is a FIXED 44px zone on every tile, logo or no logo.
+     Rounds 1-2 fixed the title and caption zones, but the logo was a
+     bare <img> that hid itself on error — and six of the eight
+     providers have no logo file at all, so their tiles lost the 44px
+     image plus the 9px flex gap and rendered 53px shorter than the
+     two logo tiles (and in a mixed row their titles started 53px
+     higher). The zone can no longer collapse: a missing logo swaps
+     in the drawn placeholder mark inside the same fixed slot. */
+  .tile-logozone { height: 44px; flex: 0 0 auto; width: 100%;
+    display: flex; align-items: center; justify-content: center; }
+  .tile-logozone .tile-logo { height: 44px; max-width: 82%; object-fit: contain; display: block; }
+  .tile-logofallback { display: none; align-items: center; justify-content: center; }
+  .tile-logofallback svg { width: 30px; height: 30px; display: block; }
+  .tile-logozone.nologo .tile-logofallback { display: flex; }
   .tile-main.logo .tile-title { font-size: 1.02rem; }
 
   /* Results comparison table: product columns, OUR PICK first. */

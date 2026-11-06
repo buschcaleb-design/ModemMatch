@@ -66,7 +66,7 @@ function tileHTML(o) {
   // o: { i, onclick, title, desc, icon (svg html), logo (img src), wide, on, lg }
   const c = tileColor(o.i || 0);
   const main = o.logo
-    ? `<span class="tile-main logo"><img class="tile-logo" src="${o.logo}" alt="" onerror="this.style.display='none'"><span class="tile-title">${o.title}</span></span>`
+    ? `<span class="tile-main logo"><span class="tile-logozone"><img class="tile-logo" src="${o.logo}" alt="" onerror="this.style.display='none';this.parentNode.classList.add('nologo')"><span class="tile-logofallback">${tileMark(o.i || 0)}</span></span><span class="tile-title">${o.title}</span></span>`
     : `<span class="tile-main" style="--tile:${c.bg};--tile-ink:${c.ink}"><span class="tile-ic${o.lg ? ' lg' : ''}">${o.icon || tileMark(o.i || 0)}</span><span class="tile-title">${o.title}</span></span>`;
   return `<button class="tile${o.wide ? ' wide' : ''}${o.on ? ' on' : ''}" onclick="${o.onclick}">${main}<span class="tile-desc">${o.desc || ''}</span></button>`;
 }
