@@ -52,6 +52,16 @@ if os.path.exists(_pairing_path):
     with open(_pairing_path) as f:
         PAIRING = json.load(f)
 
+# Home Theater picker data (Build 2026-11-05.5): the three tier systems
+# with live-pass prices, verified at Caleb's lanes (Best Buy, Walmart,
+# manufacturer stores) on the date stamped inside the file. Absent file
+# = the theater flow shows its honest "still being stocked" state.
+THEATER = {}
+_theater_path = os.path.join(BASE, "theater.json")
+if os.path.exists(_theater_path):
+    with open(_theater_path) as f:
+        THEATER = json.load(f)
+
 # Product photos for computers live in their own file (same push-size
 # split as the guides and desktops); attach them to the records in memory
 # so every computer endpoint serves them without the data files growing.
@@ -1869,6 +1879,17 @@ def api_pairing_data():
     return jsonify(PAIRING)
 
 
+@app.route("/api/theater-data")
+def api_theater_data():
+    """The Home Theater picker's tier systems (TV + sound per tier,
+    same-level swaps, the certified cable, and the Mini-LED stand-ins
+    used when a shopper's answers rule OLED out). Prices carry the
+    store they were verified at and the file's check date."""
+    if not THEATER:
+        return jsonify({"error": "theater data unavailable"}), 404
+    return jsonify(THEATER)
+
+
 @app.route("/api/laptop-guides")
 def api_laptop_guides():
     """Full laptop setup-guide library: OS first-boot flows, per-brand
@@ -1914,7 +1935,7 @@ def index():
 # the CSS/JS live in assets/ and are referenced with ?v=<build stamp>, so a
 # long cache is safe — every build bumps the stamp and the query together.
 ASSET_FILES = {"site.css", "app-core.js", "app-computers.js",
-               "app-guides.js", "app-pairing.js"}
+               "app-guides.js", "app-pairing.js", "app-theater.js"}
 
 
 # Build 2026-11-05.2 — why this decode step exists: the icons-v2 PNGs

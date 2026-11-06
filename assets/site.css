@@ -701,3 +701,86 @@
      original art/photos, so no .pimg img rules exist here. */
   .tile-ic img.v2ic { width: 36px; height: 36px; display: block; }
   .tile-ic.lg img.v2ic { width: 52px; height: 52px; }
+
+  /* Home Theater picker (Build 2026-11-05.5): cover, override page,
+     two-part questions, and the tabbed GOOD / BETTER / BEST results.
+     Tiles themselves are the shared .tile component — nothing here
+     restyles them, so the uniformity construction carries over. */
+  .th-kicker { font-family: 'Poppins', sans-serif; font-size: .78rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--accent); font-weight: 700; margin: 4px 0 2px; }
+  .th-h { font-family: 'Poppins', sans-serif; font-size: 1.55rem; line-height: 1.18;
+    color: var(--ink); margin: 2px 0 8px; font-weight: 700; }
+  .th-sub { color: var(--muted); font-size: .98rem; line-height: 1.5; margin: 0 0 14px; }
+  .th-why { color: var(--muted); font-size: .92rem; line-height: 1.45; margin: 0 0 12px; max-width: 640px; }
+  .th-qcount { font-family: 'Poppins', sans-serif; font-size: .75rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 2px; font-weight: 600; }
+  .th-cond { background: #fef3c7; color: #92400e; border-radius: 6px; padding: 1px 7px;
+    letter-spacing: .04em; }
+  .th-partlab { font-family: 'Poppins', sans-serif; font-weight: 700; color: var(--ink);
+    margin: 14px 0 6px; font-size: 1.02rem; }
+  .th-cont { margin: 16px 0 4px; text-align: center; }
+  .th-coverbtns { display: flex; flex-wrap: wrap; gap: 12px; margin: 14px 0; }
+  .cta-big.th-alt { background: #ffffff; color: #1a73e8; border: 2px solid #1a73e8;
+    box-shadow: none; }
+  .cta-big.th-alt:hover { background: #eef4fd; }
+  .th-static .tile { cursor: default; }
+  .th-glyph { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 1.25rem;
+    color: #10304f; line-height: 1; }
+  .th-catrow { display: flex; flex-wrap: wrap; gap: 12px; margin: 6px 0 14px; }
+  .th-cat { flex: 1 1 200px; background: #ffffff; border: 1.5px solid #dbe4f0; border-radius: 14px;
+    padding: 14px 16px; }
+  .th-catname { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 1.1rem;
+    color: var(--ink); margin: 2px 0 8px; }
+  .th-state { display: block; font-size: .9rem; color: var(--muted); padding: 5px 0;
+    border-top: 1px dashed #e2e8f0; }
+  .th-state b { color: var(--ink); }
+  .th-warn { background: #fff7ed; border-left: 3px solid #ea580c; padding: 10px 14px;
+    border-radius: 0 10px 10px 0; margin: 0 0 14px; font-size: .95rem; line-height: 1.5; }
+  .th-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 6px; }
+  .th-tab { flex: 1 1 150px; display: flex; flex-direction: column; align-items: center; gap: 1px;
+    background: #ffffff; border: 2px solid #dbe4f0; border-radius: 14px; padding: 10px 8px;
+    cursor: pointer; font-family: 'Poppins', sans-serif; }
+  .th-tab.on { border-color: #1a73e8; background: #eef4fd; box-shadow: 0 4px 14px rgba(26,115,232,.18); }
+  .th-tabname { font-weight: 800; letter-spacing: .06em; color: var(--ink); font-size: 1rem; }
+  .th-tabprice { font-weight: 700; color: #1a73e8; font-size: 1.05rem; }
+  .th-badge { font-size: .68rem; letter-spacing: .1em; color: var(--muted); font-weight: 700; }
+  .th-tagline { color: var(--muted); font-size: 1rem; line-height: 1.5; margin: 8px 0 4px; }
+  .th-flag { background: #fff7ed; border-left: 3px solid #ea580c; padding: 8px 12px;
+    border-radius: 0 8px 8px 0; font-size: .92rem; line-height: 1.45; margin: 10px 0; }
+  .th-squares { display: flex; flex-wrap: wrap; gap: 14px; margin: 12px 0; }
+  .th-square { flex: 1 1 300px; background: #ffffff; border: 1.5px solid #dbe4f0; border-radius: 16px;
+    padding: 16px; }
+  .th-square .pimg { margin-bottom: 10px; }
+  .th-role { font-family: 'Poppins', sans-serif; font-size: .72rem; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--muted); font-weight: 700; }
+  .th-name { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 1.12rem;
+    color: var(--ink); margin: 2px 0 0; }
+  .th-name2 { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: .98rem;
+    color: var(--ink); margin: 2px 0 0; }
+  .th-price { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 1.25rem;
+    color: #1a73e8; margin: 1px 0 4px; }
+  .th-meta { color: var(--muted); font-size: .93rem; line-height: 1.45; }
+  .th-prod { border-top: 1px dashed #e2e8f0; margin-top: 12px; padding-top: 10px; }
+  .th-swaplab { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); font-weight: 700; margin: 14px 0 6px; font-family: 'Poppins', sans-serif; }
+  .th-swaps { display: flex; flex-direction: column; gap: 8px; }
+  .th-swap { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 11px; }
+  .th-sname { font-weight: 700; font-size: .92rem; color: var(--ink); }
+  .th-smeta { font-size: .86rem; color: var(--muted); line-height: 1.4; }
+  .th-roomviz { display: flex; flex-wrap: wrap; gap: 14px; margin: 14px 0 4px; }
+  .th-viz { flex: 1 1 300px; background: #ffffff; border: 1.5px solid #dbe4f0; border-radius: 16px;
+    padding: 12px; }
+  .th-viz svg { width: 100%; height: auto; display: block; }
+  .th-vizcap { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: .9rem;
+    color: var(--ink); margin: 0 0 8px; }
+  .th-foot { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: flex-start;
+    background: var(--panel); border-radius: 14px; padding: 14px 16px; margin: 12px 0; }
+  .th-total { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 1.2rem; color: var(--ink); }
+  .th-cable { color: var(--muted); font-size: .9rem; margin-top: 2px; }
+  .th-note { flex: 1 1 240px; color: var(--muted); font-size: .93rem; line-height: 1.5; }
+  .th-next { background: #ffffff; border: 1.5px solid #dbe4f0; border-radius: 16px;
+    padding: 14px 18px; margin: 14px 0; }
+  .th-nextlab { font-family: 'Poppins', sans-serif; font-weight: 700; color: var(--ink); margin: 0 0 6px; }
+  .th-next ol { margin: 6px 0; padding-left: 20px; color: var(--muted); line-height: 1.55; font-size: .95rem; }
+  .th-next li { margin: 4px 0; }
+  .th-next li b { color: var(--ink); }

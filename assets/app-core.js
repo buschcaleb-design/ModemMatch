@@ -75,6 +75,10 @@ function routeFlow(kind) {
   if (kind === 'internet') startBuy(); else startLaptopBuy();
 }
 function showTheater() {
+  // The real picker lives in app-theater.js (Build 2026-11-05.5); the
+  // stocking note below stays as the honest fallback if that file (or
+  // its data) ever fails to load.
+  if (typeof startTheaterBuy === 'function') { startTheaterBuy(); return; }
   hideAllSections();
   const el = document.getElementById('theater');
   el.style.display = 'block';
@@ -371,7 +375,9 @@ function cardArt(kind) {
     dock: `<svg ${W}><g ${G}><rect x="17" y="42" width="66" height="17" rx="5" stroke="#7c3aed"/><path d="M31 42 v-8 M69 42 v-8 M24 22 q6 -6 12 0 M64 22 q6 -6 12 0" stroke="#7c3aed"/><circle cx="74" cy="50.5" r="2" fill="#e84393" stroke="none"/></g></svg>`,
     modem: `<svg ${W}><g ${G}><rect x="19" y="33" width="62" height="25" rx="5" stroke="#10304f"/><circle cx="30" cy="45.5" r="2.2" fill="#16a34a" stroke="none"/><circle cx="41" cy="45.5" r="2.2" fill="#f59e0b" stroke="none"/><path d="M58 45.5 h14 M64 26 a10 10 0 0 1 8 5" stroke="#0284c7"/></g></svg>`,
     router: `<svg ${W}><g ${G}><rect x="17" y="41" width="66" height="19" rx="5" stroke="#10304f"/><path d="M28 41 V22 M50 41 V16 M72 41 V22" stroke="#10304f"/><path d="M40 26 a14 14 0 0 1 20 0 M35 19 a22 22 0 0 1 30 0" stroke="#e84393"/><circle cx="28" cy="50.5" r="2" fill="#16a34a" stroke="none"/></g></svg>`,
-    mesh: `<svg ${W}><g ${G}><rect x="14" y="26" width="24" height="24" rx="6" stroke="#0d9488"/><rect x="62" y="26" width="24" height="24" rx="6" stroke="#7c3aed"/><path d="M42 38 h16" stroke="#64748b" stroke-dasharray="1.5 5"/><circle cx="26" cy="38" r="2" fill="#0d9488" stroke="none"/><circle cx="74" cy="38" r="2" fill="#7c3aed" stroke="none"/></g></svg>`
+    mesh: `<svg ${W}><g ${G}><rect x="14" y="26" width="24" height="24" rx="6" stroke="#0d9488"/><rect x="62" y="26" width="24" height="24" rx="6" stroke="#7c3aed"/><path d="M42 38 h16" stroke="#64748b" stroke-dasharray="1.5 5"/><circle cx="26" cy="38" r="2" fill="#0d9488" stroke="none"/><circle cx="74" cy="38" r="2" fill="#7c3aed" stroke="none"/></g></svg>`,
+    tv: `<svg ${W}><g ${G}><rect x="13" y="12" width="74" height="46" rx="4" stroke="#0284c7"/><path d="M50 58 v7 M34 68 h32" stroke="#10304f"/><path d="M25 24 l16 11 M45 24 l-7 7" stroke="#f59e0b" stroke-width="2.6"/></g></svg>`,
+    speaker: `<svg ${W}><g ${G}><rect x="20" y="30" width="60" height="13" rx="6" stroke="#7c3aed"/><circle cx="32" cy="36.5" r="2.2" fill="#e84393" stroke="none"/><circle cx="68" cy="36.5" r="2.2" fill="#16a34a" stroke="none"/><path d="M38 52 a16 10 0 0 1 24 0 M33 58 a24 15 0 0 1 34 0" stroke="#0284c7"/></g></svg>`
   };
   return `<div class="pimg">${arts[kind] || arts.router}</div>`;
 }
