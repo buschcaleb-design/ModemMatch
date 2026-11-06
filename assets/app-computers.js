@@ -286,7 +286,7 @@ function laptopCardHTML(p, i, isTop, rankLabel) {
     ${laptopWhyHTML(p)}
     ${fullSpecsHTML(p)}
     <div class="actrow"><button class="pairbtn" onclick="openPairing('laptop','${p.id}')">🔌 Find my screen or dock to pair with it</button>
-    <button class="savebtn" onclick="saveSetupFromCard(this,'laptop','${p.id}')">💾 Save this one</button></div>
+    <button class="savebtn" data-savecomp="laptop:${p.id}" onclick="saveSetupFromCard(this,'laptop','${p.id}')">${computerSaveBtnHTML('laptop', p.id)}</button></div>
     <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
 }
 function twoInOneUnavailableNote() {
@@ -315,7 +315,7 @@ function laptopCmpRows(cols) {
     { label: 'Weight', vals: cols.map(c => c.p.weight_text ? esc(c.p.weight_text) : '') },
     { label: 'System', vals: cols.map(c => c.p.platform ? esc(c.p.platform) : '') },
     { label: 'Why it fits', vals: cols.map(c => `${(c.p.bends && c.p.bends.length) ? `<span class="bendline">⚠ Bends your answers: ${esc(c.p.bends.join('; '))}. </span>` : ''}${c.p.summary ? `<span class="why">${esc(c.p.summary)}</span>` : ''}`) },
-    { label: '', vals: cols.map(c => `<div class="actrow"><button class="pairbtn" onclick="openPairing('laptop','${c.p.id}')">🔌 Find my screen or dock to pair with it</button><button class="savebtn" onclick="saveSetupFromCard(this,'laptop','${c.p.id}')">💾 Save this one</button></div>`) },
+    { label: '', vals: cols.map(c => `<div class="actrow"><button class="pairbtn" onclick="openPairing('laptop','${c.p.id}')">🔌 Find my screen or dock to pair with it</button><button class="savebtn" data-savecomp="laptop:${c.p.id}" onclick="saveSetupFromCard(this,'laptop','${c.p.id}')">${computerSaveBtnHTML('laptop', c.p.id)}</button></div>`) },
   ];
 }
 function renderLaptopResults() {
@@ -585,7 +585,7 @@ function desktopCardHTML(p, i, isTop, rankLabel) {
     ${desktopWhyHTML(p)}
     ${fullSpecsHTML(p)}
     <div class="actrow"><button class="pairbtn" onclick="openPairing('desktop','${p.id}')">🔌 Find my screen or dock to pair with it</button>
-    <button class="savebtn" onclick="saveSetupFromCard(this,'desktop','${p.id}')">💾 Save this one</button></div>
+    <button class="savebtn" data-savecomp="desktop:${p.id}" onclick="saveSetupFromCard(this,'desktop','${p.id}')">${computerSaveBtnHTML('desktop', p.id)}</button></div>
     <div class="buylinks"><button class="buybtn" disabled>🛒 Buy links coming soon</button></div></div>`;
 }
 function desktopCmpRows(cols) {
@@ -616,7 +616,7 @@ function desktopCmpRows(cols) {
         });
         return bits.length ? `<span class="why">${bits.join(' ')}</span>` : '';
       }) },
-    { label: '', vals: cols.map(c => `<div class="actrow"><button class="pairbtn" onclick="openPairing('desktop','${c.p.id}')">🔌 Find my screen or dock to pair with it</button><button class="savebtn" onclick="saveSetupFromCard(this,'desktop','${c.p.id}')">💾 Save this one</button></div>`) },
+    { label: '', vals: cols.map(c => `<div class="actrow"><button class="pairbtn" onclick="openPairing('desktop','${c.p.id}')">🔌 Find my screen or dock to pair with it</button><button class="savebtn" data-savecomp="desktop:${c.p.id}" onclick="saveSetupFromCard(this,'desktop','${c.p.id}')">${computerSaveBtnHTML('desktop', c.p.id)}</button></div>`) },
   ];
 }
 function backToLaptopQuiz() {

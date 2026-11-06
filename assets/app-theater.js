@@ -151,7 +151,7 @@ const THEATER_QUESTIONS = [
       { v: 'pc', t: 'A PC desktop on the TV', s: 'Same protection applies', icon: thIc('desktop-pc') },
       { v: 'hud', t: 'Same game, fixed HUD, long sessions', s: '', icon: thIc('game-controller') },
       { v: 'no', t: 'No — mixed content', s: 'OLED is safe for you. No scare tactics', icon: thIc('check') } ] },
-  { key: 'subs', group: 'sound', q: "Do you use subtitles because voices are hard to follow?",
+  { key: 'subs', group: 'sound', groups: ['sound', 'tv'], q: "Do you use subtitles because voices are hard to follow?",
     why: "The most common complaint in home theater — and the most fixable. Riding the volume all night (up for voices, down for explosions) is the same signal. A real center channel carries most of a movie's dialogue.",
     opts: () => [
       { v: 'often', t: 'Yes, often', s: 'A center channel becomes non-negotiable', icon: thIc('check') },
@@ -194,6 +194,16 @@ const TH_MODE_GROUPS = {
   fit: ['budget', 'room', 'check']
 };
 const TH_GROUP_LABEL = { budget: 'Step 1 · Your budget', room: 'Step 2 · Design your room', check: 'Step 3 · Check your room', tv: 'Step 4 · TV questions', sound: 'Step 5 · Sound questions', rest: 'Step 5 · Sound questions' };
+// Build .12 minor (a): the section label is mode-aware. A question in
+// several groups (subs: sound + tv) wears its own group's label when
+// the current mode runs that group — "Step 5 · Sound questions" in
+// the full path — and the mode's group label otherwise, so on the
+// TV-only path subs reads "Step 4 · TV questions".
+function thLabelGroup(q) {
+  const want = TH_MODE_GROUPS[thMode] || [];
+  if (q.group && want.includes(q.group)) return q.group;
+  return thQGroups(q).find(g => want.includes(g)) || thQGroups(q)[0];
+}
 
 function thQGroups(q) { return q.groups || [q.group]; }
 function tvisible() {
@@ -202,7 +212,12 @@ function tvisible() {
     if (!thQGroups(q).some(g => want.includes(g))) return false;
     // A part the shopper already owns asks no questions.
     if (q.group === 'tv' && thOwned.tv) return false;
-    if ((q.key === 'subs' || q.key === 'feel') && thOwned.sound) return false;
+    // Build .12 minor (a): subs belongs to the TV subset too (it is
+    // asked among the TV questions in the full path and its answer
+    // matters to TV shoppers), so owned-sound only hides it when the
+    // run is not a TV run — in tv mode the TV is the part in play.
+    if (q.key === 'subs' && thOwned.sound && thMode !== 'tv') return false;
+    if (q.key === 'feel' && thOwned.sound) return false;
     if ((q.key === 'own' || q.key === 'home') && thOwned.sound && thOwned.rest) return false;
     return !q.when || q.when();
   });
@@ -352,7 +367,7 @@ function trender() {
   const pos = tstep + 1;
   let h = `<button class="back" onclick="${tstep === 0 ? 'thRenderCover()' : 'tback()'}">← Back</button>`;
   h += `<div class="quiz-stage" data-tint="${tstep % 5}">`;
-  h += `<p class="th-qcount">${TH_GROUP_LABEL[thQGroups(Q)[0]] || ''} · ${pos} of ${V.length}${Q.cond ? ` <span class="th-cond">${Q.cond}</span>` : ''}</p>`;
+  h += `<p class="th-qcount">${TH_GROUP_LABEL[thLabelGroup(Q)] || ''} · ${pos} of ${V.length}${Q.cond ? ` <span class="th-cond">${Q.cond}</span>` : ''}</p>`;
   h += `<p class="q">${Q.q}</p>`;
   if (Q.why) h += `<p class="th-why">${Q.why}</p>`;
   if (Q.roomcheck) {
@@ -646,10 +661,50 @@ function thBackToQuestions() {
   window.scrollTo(0, 0);
 }
 
+// Build .12 (D6 residual) — Single-part copy scope. theater.json's
+// tier taglines/notes are written for the FULL path: they talk about
+// both halves at once ("real 5.1", "next upgrade is the TV"). On a
+// TV-only or sound-only path that prose pushes the part the shopper
+// did not choose, so single-part panels take their tagline and note
+// from here instead — same voice, chosen part only. The full path
+// and the REST path keep the theater.json copy untouched.
+const TH_SCOPED_COPY = {
+  good: {
+    tv: { tagline: 'The biggest correct TV we can buy at this budget — sized to your couch, not the showroom.',
+          note: 'The honest trade at this tier: you give up the fancy panel tech, not the size or the brightness your room needs.' },
+    sound: { tagline: 'A real soundbar with a wireless sub — voices come forward and the action gets its weight back.',
+          note: 'The honest trade at this tier: the sub is wireless, not invisible — it needs an outlet and a corner to live in.' }
+  },
+  better: {
+    tv: { tagline: 'OLED picture, sized right — perfect blacks for the movie nights you described.',
+          note: 'The honest trade at this tier: OLED asks for varied content — the set rotates a screensaver and shifts the picture a few pixels on its own.' },
+    sound: { tagline: 'Flagship wireless surround — the bar, a real sub, and rears that put the sound behind you.',
+          note: 'The honest trade at this tier: the rears are wireless, not wire-free — each one still needs an outlet within cord reach.' }
+  },
+  best: {
+    tv: { tagline: 'The flagship panel, full stop — the picture the rest of the room gets judged against.',
+          note: 'Growth path: panels age slower than formats change — this is the TV you keep through the next two console generations.' },
+    sound: { tagline: 'A real receiver and real speakers — the honest trade for sound this good is one visible box.',
+          note: 'Growth path: this receiver and these speakers are the keepers — channels and formats can grow around them for years.' }
+  }
+};
+// One catalog meta mentions the other half outright (the BETTER TV's
+// "consoles and the soundbar all fit"); on the TV-only path it wears
+// this scoped line instead. Sound-path metas were checked and are
+// clean as written.
+const TH_SCOPED_META = {
+  'lg-c6-65': { tv: '4× HDMI 2.1 — every console you named fits. Perfect blacks for movie nights.' }
+};
+function thMetaFor(p) {
+  const single = thSinglePart();
+  const o = single && TH_SCOPED_META[p.id] ? TH_SCOPED_META[p.id][single] : null;
+  return o != null ? o : p.meta;
+}
+
 function thProductBlock(kind, p, role, tierKey, slot, isSwapped, baseName, owned) {
   if (owned)
-    return `${cardGallery(kind, p.photo ? [p.photo] : null, p.name)}<div class="th-role">${role}</div><div class="th-name">${esc(p.name)}</div><div class="th-ownedtag">✓ Yours already — $0 in the total. Shown so the fit checks still run.</div><div class="th-meta">${esc(p.meta)}</div>`;
-  return `${cardGallery(kind, p.photo ? [p.photo] : null, p.name)}<div class="th-role">${role}</div><div class="th-name">${esc(p.name)}</div><div class="th-price">$${fmt$(p.price)}</div><div class="th-meta">${esc(p.meta)}</div>${thSwapsHTML(tierKey, slot, p, isSwapped, baseName)}`;
+    return `${cardGallery(kind, p.photo ? [p.photo] : null, p.name)}<div class="th-role">${role}</div><div class="th-name">${esc(p.name)}</div><div class="th-ownedtag">✓ Yours already — $0 in the total. Shown so the fit checks still run.</div><div class="th-meta">${esc(thMetaFor(p))}</div>`;
+  return `${cardGallery(kind, p.photo ? [p.photo] : null, p.name)}<div class="th-role">${role}</div><div class="th-name">${esc(p.name)}</div><div class="th-price">$${fmt$(p.price)}</div><div class="th-meta">${esc(thMetaFor(p))}</div>${thSwapsHTML(tierKey, slot, p, isSwapped, baseName)}`;
 }
 
 function thPanelHTML(tierKey) {
@@ -660,7 +715,15 @@ function thPanelHTML(tierKey) {
   // Copy follows the gear actually shown: a stand-in Mini-LED never
   // wears the OLED tagline.
   const standIn = !tvSwapped && tv !== T.tv;
-  const tagline = standIn ? T.tagline.replace('OLED picture', 'Mini-LED picture') : T.tagline;
+  // Build .12 (D6 residual): single-part panels take their tagline
+  // and note from TH_SCOPED_COPY — the full-path prose talks about
+  // the other half and must not leak. Each field falls back to the
+  // unscoped copy if no scoped one exists; the standIn Mini-LED swap
+  // applies only on the unscoped path (scoped strings are final).
+  const scoped = single ? (TH_SCOPED_COPY[tierKey] || {})[single] : null;
+  const tagline = scoped && scoped.tagline != null ? scoped.tagline
+    : (standIn ? T.tagline.replace('OLED picture', 'Mini-LED picture') : T.tagline);
+  const note = scoped && scoped.note != null ? scoped.note : T.note;
   let flags = '';
   if (single !== 'tv' && tierKey === 'best' && tanswers.wires === 'none')
     flags += `<p class="th-flag">⚠ This tier breaks your “no wires at all” answer — a receiver system runs speaker wire. BETTER is your no-wire ceiling.</p>`;
@@ -713,7 +776,7 @@ function thPanelHTML(tierKey) {
   <p class="factline">${esc(thRoomLine())} ${esc(TH_LIGHT_CLAUSE[tanswers.light] || '')}</p>
   ${cols}
   <div class="th-foot"><div><div class="th-total">${totalLabel}</div><div class="th-cable">${cableLine}</div></div>
-  <div class="th-note">${esc(T.note)}</div></div>`;
+  <div class="th-note">${esc(note)}</div></div>`;
 }
 
 function thRoomLine() {
@@ -732,7 +795,15 @@ function renderThResults() {
   const tiers = ['good', 'better', 'best'];
   const badges = { good: 'LOWEST COMPLETE', better: 'OUR PICK ★', best: 'NO REGRETS' };
   const watchTxt = (tanswers.watch || []).map(w => TH_WATCH_LABEL[w]).join(' + ').toLowerCase();
-  const recap = `${TH_DIST_LABEL[tanswers.dist] === undefined ? '' : 'Couch ' + TH_DIST_LABEL[tanswers.dist].toLowerCase() + ' · '}${watchTxt} · ${TH_LIGHT_LABEL[tanswers.light] || ''} · ${TH_HOME_LABEL[tanswers.home] || ''}`;
+  // Build .12: build the recap from the parts that were actually
+  // answered — single-part paths leave the unasked parts empty, and
+  // empty parts used to leave doubled separators behind.
+  const recap = [
+    TH_DIST_LABEL[tanswers.dist] === undefined ? '' : 'Couch ' + TH_DIST_LABEL[tanswers.dist].toLowerCase(),
+    watchTxt,
+    TH_LIGHT_LABEL[tanswers.light] || '',
+    TH_HOME_LABEL[tanswers.home] || ''
+  ].filter(Boolean).join(' · ');
   const bandMax = TH_BAND_MAX[tanswers.budget];
   const defTotal = thTierTotal(thTab);
   const single = thSinglePart();
@@ -760,13 +831,21 @@ function renderThResults() {
         : single === 'sound'
           ? '<li><b>One trip list:</b> the sound setup — and a spare HDMI, because the second one is always the one you needed.</li>'
           : '<li><b>One trip list:</b> the TV, the sound, the certified cable — and a spare HDMI, because the second one is always the one you needed.</li>'}
-      <li><b>Open it within 48 hours.</b> Check the panel corners in a dark room. A bad corner found this week is an exchange; found next month, it's a warranty claim.</li>
+      ${single === 'sound'
+        ? '<li><b>Power it on within 48 hours</b> and run a scene you know well. A dead channel or a silent sub found this week is an exchange, not a repair.</li>'
+        : '<li><b>Open it within 48 hours.</b> Check the panel corners in a dark room. A bad corner found this week is an exchange; found next month, it\'s a warranty claim.</li>'}
       ${single === 'tv'
         ? '<li><b>Measure the stand before the TV lands</b> — the feet span in the fit checks is the number that decides whether it sits or tips.</li>'
-        : thTab === 'best'
-          ? '<li><b>Receiver first, TV second</b> if you\'re wall-mounting — the center speaker\'s placement decides where the TV\'s bottom edge lands.</li>'
-          : '<li><b>Soundbar first, TV second</b> if you\'re wall-mounting — the bar\'s mount height decides where the TV\'s bottom edge lands.</li>'}
-      <li><b>Run eARC, then check the TV says “eARC”</b> — not just ARC. That's the setting that carries the good formats.</li>
+        : single === 'sound'
+          ? thTab === 'best'
+            ? '<li><b>Center channel first</b> — centered under the screen, front edge flush with the shelf. Everything else in the setup keys off where it sits.</li>'
+            : '<li><b>Mount the bar at ear height where you sit</b> — that height, more than anything, decides how the voices land.</li>'
+          : thTab === 'best'
+            ? '<li><b>Receiver first, TV second</b> if you\'re wall-mounting — the center speaker\'s placement decides where the TV\'s bottom edge lands.</li>'
+            : '<li><b>Soundbar first, TV second</b> if you\'re wall-mounting — the bar\'s mount height decides where the TV\'s bottom edge lands.</li>'}
+      ${single === 'tv'
+        ? '<li><b>Turn motion smoothing off for movie inputs</b> — it ships on by default, and it is what makes films look like soap operas. Sports can keep it; movies cannot.</li>'
+        : '<li><b>Run eARC, then check the TV says “eARC”</b> — not just ARC. That\'s the setting that carries the good formats.</li>'}
       ${single === 'tv' ? '' : '<li><b>Sub crawl, short version:</b> put the sub in your seat, play something bassy, walk the front wall — where it\'s smoothest is where it lives.</li>'}
     </ol>
     <p class="factline">Still price-shopping? Anyone selling you a $100 HDMI cable is selling you a story — the certified $9 cable ${single ? 'is the right cable when you need one' : 'in these totals is the right cable'}.</p></div>

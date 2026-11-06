@@ -671,11 +671,53 @@ function ensureSetupForComputer(kind, id) {
   return s;
 }
 function getSetup(id) { return setupStore.setups.find(s => s.id === id) || null; }
-function touchSetup(s) { s.updated = Date.now(); persistSetups(); }
+function touchSetup(s) { s.updated = Date.now(); persistSetups(); refreshComputerSaveButtons(); }
+// A2 (build 2026-11-06.12) — Computer saved-state single source of
+// truth. Mirrors saveBtnLabel/saveBtnHTML on the gear side: every
+// computer save button's label is DERIVED from setupStore, never
+// hardcoded, so catalog cards, other-matches, compare rows and the
+// browse grid can never disagree about whether a computer is saved.
+// Ruling: a setup is "built" once a dock or any monitor is attached.
+// A card tap never deletes a built setup (that would silently throw
+// away pairing work) — it routes to My Setup instead. Only "bare"
+// setups (computer saved, nothing attached) toggle off from the card.
+function computerSetupIsBuilt(s) {
+  return !!(s && (s.dock_id || (Array.isArray(s.monitors) && s.monitors.length > 0)));
+}
+function computerSaveLabel(kind, id) {
+  const s = findSetupForComputer(kind, id);
+  if (!s) return 'Save this one';
+  return computerSetupIsBuilt(s) ? '✓ Saved — find it in My Setup' : '✓ Saved — tap to remove';
+}
+function computerSaveBtnHTML(kind, id) {
+  return findSetupForComputer(kind, id) ? computerSaveLabel(kind, id) : `${bico('bookmark')}Save this one`;
+}
+// Re-derive every computer save button on screen from the store. The
+// attribute format is "kind:id"; split on the FIRST colon only.
+function refreshComputerSaveButtons() {
+  document.querySelectorAll('[data-savecomp]').forEach(b => {
+    const v = b.getAttribute('data-savecomp') || '';
+    const i = v.indexOf(':');
+    if (i < 1) return;
+    b.innerHTML = computerSaveBtnHTML(v.slice(0, i), v.slice(i + 1));
+  });
+}
 function saveSetupFromCard(btn, kind, id) {
-  const s = ensureSetupForComputer(kind, id);
-  touchSetup(s);
-  if (btn) btn.textContent = '✓ Saved — find it in My Setup';
+  const s = findSetupForComputer(kind, id);
+  if (!s) {
+    const created = ensureSetupForComputer(kind, id);
+    touchSetup(created);
+  } else if (!computerSetupIsBuilt(s)) {
+    setupStore.setups = setupStore.setups.filter(x => x.id !== s.id);
+    if (setupStore.active_id === s.id) setupStore.active_id = null;
+    persistSetups();
+  } else {
+    // Built: delete nothing. Make it active so My Setup opens on it.
+    setupStore.active_id = s.id;
+    persistSetups();
+    if (typeof openMySetup === 'function') openMySetup();
+  }
+  refreshComputerSaveButtons();
   renderModelOwnSlot(); // no-op unless the manual "Your model" card is on screen
 }
 // Catalog resolution: ids -> current records (null = no longer listed)
@@ -926,6 +968,7 @@ function setupDelete(id) {
   setupStore.setups = setupStore.setups.filter(s => s.id !== id);
   if (setupStore.active_id === id) setupStore.active_id = null;
   persistSetups();
+  refreshComputerSaveButtons(); // A2: card labels follow the store
   renderSetupList();
 }
 function setupRemoveDock(id) {

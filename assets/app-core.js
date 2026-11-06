@@ -917,28 +917,60 @@ function browsePool() {
   return browseF.cat === 'all' ? browseItems
     : browseItems.filter(it => it.cat === browseF.cat);
 }
+// A3 (build 2026-11-06.12) — Brand canonicalization. The catalog
+// carries the same brand under different capitalizations (ASUS /
+// Asus), which used to list the brand twice in the dropdown and let
+// each variant match only its own spelling. Brands now group
+// case-insensitively; the display form is the variant the catalog
+// uses MOST (ties go to the first variant in sort order).
+function browseBrandKey(b) { return String(b || '').trim().toLowerCase(); }
+function browseBrandCanon(items) {
+  const counts = new Map(); // key -> Map(variant -> count)
+  items.forEach(it => {
+    if (!it.brand) return;
+    const k = browseBrandKey(it.brand);
+    if (!k) return;
+    if (!counts.has(k)) counts.set(k, new Map());
+    const m = counts.get(k);
+    m.set(it.brand, (m.get(it.brand) || 0) + 1);
+  });
+  const canon = new Map(); // key -> display form
+  counts.forEach((m, k) => {
+    const variants = [...m.keys()].sort();
+    let best = variants[0];
+    variants.forEach(v => { if (m.get(v) > m.get(best)) best = v; });
+    canon.set(k, best);
+  });
+  return canon;
+}
 function browseFiltered() {
   const f = browseF;
+  // A3 (build 2026-11-06.12) — A SET attribute filter now requires
+  // the item to actually HAVE that attribute with a matching value.
+  // Before, each filter only constrained its own category and let
+  // every other category pass (DOCSIS 3.1 returned ~207 of 497 items
+  // because all computers sailed through; Screen 15–16″ ~438).
+  // Brand compares canonical keys, so case variants match together.
   let list = browsePool().filter(it => {
     if (f.q && !it.searchText.includes(f.q)) return false;
-    if (f.brand && it.brand !== f.brand) return false;
+    if (f.brand && browseBrandKey(it.brand) !== browseBrandKey(f.brand)) return false;
     if (f.maxPrice !== '' && (it.price == null || it.price > Number(f.maxPrice))) return false;
-    if (it.cat === 'gear') {
-      if (f.gearType && it.type !== f.gearType) return false;
-      if (f.wifi && it.wifiGen !== f.wifi) return false;
-      if (f.docsis && it.docsis !== f.docsis) return false;
-    }
-    if (it.cat === 'laptop' && f.screen) {
+    // Gear-only attributes (modem/router traits).
+    if (f.gearType && !(it.cat === 'gear' && it.type === f.gearType)) return false;
+    if (f.wifi && !(it.cat === 'gear' && it.wifiGen === f.wifi)) return false;
+    if (f.docsis && !(it.cat === 'gear' && it.docsis === f.docsis)) return false;
+    // Laptop-only attribute. Range boundaries unchanged.
+    if (f.screen) {
+      if (it.cat !== 'laptop') return false;
       const d = it.display_inches;
       if (d == null) return false;
       if (f.screen === '13-14' && d > 14.5) return false;
       if (f.screen === '15-16' && (d <= 14.5 || d > 16.5)) return false;
       if (f.screen === '17plus' && d <= 16.5) return false;
     }
-    if (it.cat !== 'gear') {
-      if (f.ram && !(it.ram_max_gb >= Number(f.ram))) return false;
-      if (f.storage && !(it.storage_max_gb >= Number(f.storage))) return false;
-    }
+    // Computer-only attributes. A missing value fails the >= test.
+    if (f.ram && !(it.cat !== 'gear' && it.ram_max_gb >= Number(f.ram))) return false;
+    if (f.storage && !(it.cat !== 'gear' && it.storage_max_gb >= Number(f.storage))) return false;
     return true;
   });
   const priced = it => it.price == null ? Infinity : it.price;
@@ -993,7 +1025,7 @@ function browseCardHTML(it) {
     priceHTML = `<div class="price">from $${fmt$(it.price)}${it.price_max ? ` <span class="permo">— up to $${fmt$(it.price_max)} fully loaded</span>` : ''}</div>`;
     const openFn = it.cat === 'desktop' ? 'renderDesktopModelCard' : 'renderModelCard';
     actions = `<div class="actrow"><button class="pairbtn" onclick="browseOpenComputer('${it.cat}','${it.id}')">📄 View its page</button>
-      <button class="pairbtn savebtn" onclick="saveSetupFromCard(this,'${it.cat}','${it.id}')">💾 Save this one</button></div>`;
+      <button class="pairbtn savebtn" data-savecomp="${it.cat}:${it.id}" onclick="saveSetupFromCard(this,'${it.cat}','${it.id}')">${computerSaveBtnHTML(it.cat, it.id)}</button></div>`;
   }
   const rankLabel = it.cat === 'gear' ? esc(it.type_label || 'GEAR')
     : it.cat === 'laptop' ? 'LAPTOP' : 'DESKTOP';
@@ -1015,7 +1047,7 @@ function renderBrowse() {
   if (!browseItems) { openBrowse(); return; }
   const f = browseF;
   const pool = browsePool();
-  const brands = [...new Set(pool.map(it => it.brand).filter(Boolean))].sort();
+  const brands = [...new Set(browseBrandCanon(pool).values())].sort();
   const tabs = BROWSE_CATS.map(c =>
     `<button class="sort bigbtn${f.cat === c.id ? ' on' : ''}" onclick="browseCat('${c.id}')">${c.label} (${c.id === 'all' ? browseItems.length : browseItems.filter(it => it.cat === c.id).length})</button>`).join('');
   let filters = `<div class="browse-filters quiz-stage" data-tint="0">
