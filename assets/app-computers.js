@@ -12,15 +12,15 @@ const LAPTOP_QUESTIONS = [
     opts: () => [
       { v: 'school', t: '🎒 School', s: 'Classes, homework, school accounts' },
       { v: 'everyday', t: '🏠 Everyday home use', s: 'Web, email, streaming, photos' },
-      { v: 'work', t: '💼 Work', s: 'Documents, calls, spreadsheets, business apps' },
+      { v: 'work', t: '💼 Work', s: 'Documents, calls, spreadsheets' },
       { v: 'gaming', t: '🎮 Gaming', s: 'Playing games is the point' },
       { v: 'creative', t: '🎨 Creative work', s: 'Photo/video editing, design, music' } ] },
   { key: 'os', q: "Which operating system?",
     opts: () => [
-      { v: 'windows', t: 'Windows', s: 'The most common — runs the most programs' },
+      { v: 'windows', t: 'Windows', s: 'Runs the most programs' },
       { v: 'mac', t: 'Mac (macOS)', s: 'Apple laptops' },
-      { v: 'chromebook', t: 'Chromebook (ChromeOS)', s: 'Simple, web-based, great for school' },
-      { v: 'any', t: 'No preference', s: 'Show me the best fit, any system' } ] },
+      { v: 'chromebook', t: 'Chromebook (ChromeOS)', s: 'Simple and web-based' },
+      { v: 'any', t: 'No preference', s: 'The best fit, any system' } ] },
   { key: 'form', q: "Tower (desktop) or laptop?",
     opts: () => [
       { v: 'laptop', t: '💻 Laptop', s: 'Portable — take it anywhere' },
@@ -34,15 +34,15 @@ const LAPTOP_QUESTIONS = [
   { key: 'ext_screens', q: "Will you plug in extra screens?",
     opts: () => [
       { v: '0', t: 'Just the laptop screen', s: 'No extra monitors' },
-      { v: '1', t: '+1 extra screen', s: 'One monitor plugged in at a desk' },
+      { v: '1', t: '+1 extra screen', s: 'One monitor at a desk' },
       { v: '2', t: '+2 or more extra screens', s: 'A full desk setup' } ] },
   { key: 'ext_resolution', when: () => lanswers.ext_screens && lanswers.ext_screens !== '0',
     q: "What resolution are the extra screens?",
     opts: () => [
       { v: '1080p', t: '1080p — Full HD', s: 'Sharp for work and most games' },
       { v: '1440p', t: '1440p — QHD', s: 'Crisper; the gaming sweet spot' },
-      { v: '4k', t: '4K — Ultra HD', s: 'Sharpest picture; needs a stronger graphics card' },
-      { v: 'unsure', t: 'Not sure', s: "We'll assume standard screens — no pressure either way" } ] },
+      { v: '4k', t: '4K — Ultra HD', s: 'Sharpest; needs a stronger graphics card' },
+      { v: 'unsure', t: 'Not sure', s: "We'll assume standard screens" } ] },
   { key: 'budget', q: "What's the budget?",
     opts: () => [
       { v: 'under500', t: 'Under $500' },
@@ -53,20 +53,20 @@ const LAPTOP_QUESTIONS = [
   { key: 'snapdragon', when: () => lanswers.os !== 'mac' && lanswers.os !== 'chromebook',
     q: "Do you need to run specific Windows programs, older printers or accessories, or competitive online games?",
     opts: () => [
-      { v: 'no', t: 'No', s: 'Browser, Office, Zoom, streaming — mainstream stuff. (This unlocks Snapdragon laptops: the battery-life champions.)' },
-      { v: 'yes', t: 'Yes, I have must-run stuff', s: "We'll stick to Intel/AMD machines that run everything" },
+      { v: 'no', t: 'No', s: 'Mainstream stuff — unlocks Snapdragon laptops' },
+      { v: 'yes', t: 'Yes, I have must-run stuff', s: 'Intel/AMD machines that run everything' },
       { v: 'unsure', t: 'Not sure', s: "We'll play it safe — same as yes" } ] },
   { key: 'usage', q: "How will it mostly be used, day to day?",
     opts: () => [
       { v: 'light', t: 'Mostly browser and documents', s: 'Web apps, email, a few tabs' },
-      { v: 'heavy', t: 'Big apps and lots of files', s: 'Huge photo libraries, video, many programs at once' } ] },
+      { v: 'heavy', t: 'Big apps and lots of files', s: 'Big apps, huge files, lots at once' } ] },
   { key: 'kid', q: "Is this laptop for a kid?",
     opts: () => [
       { v: 'no', t: 'No' },
       { v: 'yes', t: 'Yes' } ] },
   { key: 'eco_wants', q: "Do you want your devices to work together?",
     opts: () => [
-      { v: 'yes', t: 'Yes', s: 'Phone, TV, smartwatch, and laptop playing nice together' },
+      { v: 'yes', t: 'Yes', s: 'Phone, TV, watch and laptop in sync' },
       { v: 'no', t: 'No / don\'t care', s: 'Just the best laptop for the job' } ] },
   { key: 'eco_phone', when: () => lanswers.eco_wants === 'yes',
     q: "What brand is your phone?", opts: () => BRAND_OPTS },
@@ -367,23 +367,23 @@ let dstep = 0;
 const DESKTOP_QUESTIONS = [
   { key: 'case', q: "How big a case?",
     opts: () => [
-      { v: 'mini', t: '📦 Mini PC', s: 'Tiny box — sits on the desk or mounts behind a monitor' },
+      { v: 'mini', t: '📦 Mini PC', s: 'Tiny box — sits on the desk' },
       { v: 'sff', t: 'Small form factor', s: 'Compact tower — still a real desktop' },
       { v: 'tower', t: 'Tower', s: 'The classic desk tower (mini & mid towers)' },
-      { v: 'full', t: 'Full tower', s: 'Big case — maximum room for parts and cooling' },
-      { v: 'aio', t: 'All-in-one', s: 'Screen built into the computer — no separate monitor' },
+      { v: 'full', t: 'Full tower', s: 'Big case — most room for parts' },
+      { v: 'aio', t: 'All-in-one', s: 'Screen built in — no separate monitor' },
       { v: 'any', t: 'No preference' } ] },
   { key: 'screens', q: "How many screens will you plug in?",
     opts: () => [
       { v: '1', t: '1 screen', s: 'Just one monitor' },
-      { v: '2', t: '2 screens', s: 'Side by side — the classic desk setup' },
+      { v: '2', t: '2 screens', s: 'Side by side — classic setup' },
       { v: '3', t: '3 or more screens', s: 'A full command center' } ] },
   { key: 'resolution', q: "What resolution are the screens?",
     opts: () => [
       { v: '1080p', t: '1080p — Full HD', s: 'Sharp for work and most games' },
       { v: '1440p', t: '1440p — QHD', s: 'Crisper; the gaming sweet spot' },
-      { v: '4k', t: '4K — Ultra HD', s: 'Sharpest picture; needs a stronger graphics card' },
-      { v: 'unsure', t: 'Not sure', s: "We'll assume standard screens — no pressure either way" } ] },
+      { v: '4k', t: '4K — Ultra HD', s: 'Sharpest; needs a stronger graphics card' },
+      { v: 'unsure', t: 'Not sure', s: "We'll assume standard screens" } ] },
   { key: 'budget', q: "What's the budget?",
     opts: () => [
       { v: 'under500', t: 'Under $500' },
@@ -394,20 +394,20 @@ const DESKTOP_QUESTIONS = [
   { key: 'snapdragon', when: () => danswers.os !== 'mac' && danswers.os !== 'chromebook',
     q: "Do you need to run specific Windows programs, older printers or accessories, or competitive online games?",
     opts: () => [
-      { v: 'no', t: 'No', s: 'Browser, Office, Zoom, streaming — mainstream stuff' },
-      { v: 'yes', t: 'Yes, I have must-run stuff', s: "Every desktop in our catalog is Intel/AMD — you're covered either way" },
-      { v: 'unsure', t: 'Not sure', s: "Same answer — desktops here are all Intel/AMD" } ] },
+      { v: 'no', t: 'No', s: 'Browser, Office, Zoom — mainstream stuff' },
+      { v: 'yes', t: 'Yes, I have must-run stuff', s: "All our desktops are Intel/AMD — you're covered" },
+      { v: 'unsure', t: 'Not sure', s: "Same — all our desktops are Intel/AMD" } ] },
   { key: 'usage', q: "How will it mostly be used, day to day?",
     opts: () => [
       { v: 'light', t: 'Mostly browser and documents', s: 'Web apps, email, a few tabs' },
-      { v: 'heavy', t: 'Big apps and lots of files', s: 'Huge photo libraries, video, many programs at once' } ] },
+      { v: 'heavy', t: 'Big apps and lots of files', s: 'Big apps, huge files, lots at once' } ] },
   { key: 'kid', q: "Is this desktop for a kid?",
     opts: () => [
       { v: 'no', t: 'No' },
       { v: 'yes', t: 'Yes' } ] },
   { key: 'eco_wants', q: "Do you want your devices to work together?",
     opts: () => [
-      { v: 'yes', t: 'Yes', s: 'Phone, TV, smartwatch, and computer playing nice together' },
+      { v: 'yes', t: 'Yes', s: 'Phone, TV, watch and computer in sync' },
       { v: 'no', t: 'No / don\'t care', s: 'Just the best desktop for the job' } ] },
   { key: 'eco_phone', when: () => danswers.eco_wants === 'yes',
     q: "What brand is your phone?", opts: () => BRAND_OPTS },

@@ -28,13 +28,13 @@ function renderFlowPick() {
     <div class="quiz-stage" data-tint="0">
     <p class="q">What are you buying?</p>
     <div class="tile-grid">
-    ${tileHTML({ i: 0, lg: true, icon: bico('globe'), title: 'Internet', desc: 'Modems, routers & mesh — ditch the ISP rental fee', onclick: "routeFlow('internet')" })}
-    ${tileHTML({ i: 1, lg: true, icon: bico('laptop'), title: 'PC', desc: "Laptops & desktops matched to how you'll actually use them", onclick: "routeFlow('pc')" })}
-    ${tileHTML({ i: 2, lg: true, icon: bico('tv'), title: 'Home Theater', desc: 'TVs & sound — matched to your room and your couch', onclick: "routeFlow('theater')" })}
+    ${tileHTML({ i: 0, lg: true, icon: bico('globe'), title: 'Internet', desc: 'Modems, routers & mesh — ditch the rental fee', onclick: "routeFlow('internet')" })}
+    ${tileHTML({ i: 1, lg: true, icon: bico('laptop'), title: 'PC', desc: 'Laptops & desktops matched to your use', onclick: "routeFlow('pc')" })}
+    ${tileHTML({ i: 2, lg: true, icon: bico('tv'), title: 'Home Theater', desc: 'TVs & sound — matched to your room', onclick: "routeFlow('theater')" })}
     </div>
     <p class="orline">— or —</p>
     <div class="tile-grid">
-    ${tileHTML({ i: 3, lg: true, icon: bico('search'), title: 'Know your model?', desc: 'Type the name — or the model number off the box — and jump straight to it', onclick: 'startModelLookup()' })}
+    ${tileHTML({ i: 3, lg: true, icon: bico('search'), title: 'Know your model?', desc: 'Type the name or model number — jump straight to it', onclick: 'startModelLookup()' })}
     </div>
     </div>`;
   window.scrollTo(0, 0);
@@ -68,7 +68,7 @@ function tileHTML(o) {
   const main = o.logo
     ? `<span class="tile-main logo"><img class="tile-logo" src="${o.logo}" alt="" onerror="this.style.display='none'"><span class="tile-title">${o.title}</span></span>`
     : `<span class="tile-main" style="--tile:${c.bg};--tile-ink:${c.ink}"><span class="tile-ic${o.lg ? ' lg' : ''}">${o.icon || tileMark(o.i || 0)}</span><span class="tile-title">${o.title}</span></span>`;
-  return `<button class="tile${o.wide ? ' wide' : ''}${o.on ? ' on' : ''}" onclick="${o.onclick}">${main}${o.desc ? `<span class="tile-desc">${o.desc}</span>` : ''}</button>`;
+  return `<button class="tile${o.wide ? ' wide' : ''}${o.on ? ' on' : ''}" onclick="${o.onclick}">${main}<span class="tile-desc">${o.desc || ''}</span></button>`;
 }
 function routeFlow(kind) {
   if (kind === 'theater') { showTheater(); return; }
@@ -96,7 +96,7 @@ const QUESTIONS = [
   { key: 'speed_tier', q: "How fast is your internet?",
     opts: () => [
       { v: 'under100', t: 'Under 100 Mbps — Basic', s: 'Browsing, email, one person streaming' },
-      { v: '100-300', t: '100–300 Mbps — Standard (most common)', s: 'HD streaming on a couple of TVs' },
+      { v: '100-300', t: '100–300 Mbps — Standard', s: 'HD streaming on a couple of TVs' },
       { v: '300-600', t: '300–600 Mbps — Fast', s: '4K streaming, gaming, working from home' },
       { v: '600-1000', t: '600 Mbps–1 Gbps — Gigabit', s: 'Big household, tons of devices at once' },
       { v: 'unsure', t: 'Not sure / still shopping', s: "We'll go with the most common plan" } ] },
@@ -114,7 +114,7 @@ const QUESTIONS = [
   { key: 'yard', q: "Want WiFi out in the yard?",
     opts: () => [
       { v: 'small', t: 'Small yard or patio', s: 'Grilling, porch sitting' },
-      { v: 'large', t: 'Large yard', s: 'Kids playing, workshop, pool area' },
+      { v: 'large', t: 'Large yard', s: 'Kids, workshop, pool area' },
       { v: 'no', t: 'No, inside is fine' } ] },
   { key: 'garage', q: "Need WiFi in the garage?",
     opts: () => [
@@ -141,8 +141,8 @@ const QUESTIONS = [
       { v: 'none', t: 'None', s: 'Just phones, laptops, TVs' } ] },
   { key: 'setup', q: "How do you want your setup?",
     opts: () => [
-      { v: 'combo', t: 'All-in-one box', wide: true, s: 'Easiest to set up and manage — one box, one app. Tradeoff: when it\'s time to upgrade, you replace the whole thing.' },
-      { v: 'separate', t: 'Separate modem + router', s: 'Most reliable, best performance. A bit more to manage, but you can upgrade each piece on its own.' },
+      { v: 'combo', t: 'All-in-one box', wide: true, s: 'One box, one app — the easiest setup. Tradeoff: upgrading means replacing the whole thing.' },
+      { v: 'separate', t: 'Separate modem + router', s: 'Most reliable — upgrade each piece on its own' },
       { v: 'one_piece', t: 'Just one piece', s: 'I only need to replace part of my setup' } ] },
   { key: 'which_piece', when: () => answers.setup === 'one_piece',
     q: "Which piece do you need?",

@@ -550,14 +550,15 @@
   /* Even spacing (Caleb, 2026-11-03): tile rows are flex so every row of
      tiles spreads across the full width — a grid's empty tracks used to
      strand two tiles grouped at the left when a wide tile shared the grid. */
-  .tile-grid { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 8px; }
+  .tile-grid { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 8px;
+    align-items: stretch; }
   .tile-grid .tile { flex: 1 1 150px; }
   .tile-grid .tile.wide { flex-basis: 100%; }
   .tile { background: none; border: none; padding: 0; margin: 0; cursor: pointer;
     font-family: inherit; display: flex; flex-direction: column; width: 100%;
     text-align: center; -webkit-tap-highlight-color: transparent; }
   .tile-main { flex: 1; display: flex; flex-direction: column; align-items: center;
-    justify-content: center; gap: 9px; background: var(--tile, #1a73e8);
+    justify-content: flex-start; gap: 9px; background: var(--tile, #1a73e8);
     color: var(--tile-ink, #ffffff); border-radius: 16px; padding: 18px 10px 15px;
     box-shadow: 0 3px 0 rgba(20,33,61,.20); transition: transform .08s ease; width: 100%; }
   .tile:active .tile-main { transform: translateY(2px); box-shadow: 0 1px 0 rgba(20,33,61,.20); }
@@ -568,9 +569,17 @@
   .tile-ic.lg { width: 76px; height: 76px; }
   .tile-ic.lg svg, .tile-ic.lg .ric { width: 52px; height: 52px; }
   .tile-title { font-family: 'Poppins', -apple-system, system-ui, sans-serif;
-    font-weight: 700; font-size: 1rem; line-height: 1.28; }
+    font-weight: 700; font-size: 1rem; line-height: 1.28;
+    /* Uniform tiles (Caleb, 2026-11-05): the title zone always reserves
+       two lines, so a one-line title can never shrink its bubble. */
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; min-height: 2.56em; text-align: center; }
   .tile-desc { display: block; margin-top: 8px; padding: 0 5px; font-size: .82rem;
-    line-height: 1.42; text-align: center; color: var(--ink-soft); }
+    line-height: 1.42; text-align: center; color: var(--ink-soft);
+    /* Uniform tiles (Caleb, 2026-11-05): the caption zone always reserves
+       two lines; tileHTML now emits the span even when a tile has no
+       caption, so every tile in a row keeps the same silhouette. */
+    min-height: 2.84em; }
   .tile.wide { grid-column: 1 / -1; }
   .tile.on .tile-main { outline: 3.5px solid #14213d; outline-offset: 2px; }
   .tile-main.logo { background: #ffffff; border: 2px solid var(--line); color: #14213d; }

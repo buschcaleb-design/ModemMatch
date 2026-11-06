@@ -57,8 +57,8 @@ const PAIR_TIER_LABEL = { '1080p': '1080p Full HD', '1440p': '1440p QHD', '4k': 
 const PAIR_RES_OPTS = [
   { v: '1080p', t: '1080p — Full HD', s: 'Sharp for work and most games' },
   { v: '1440p', t: '1440p — QHD', s: 'Crisper; the gaming sweet spot' },
-  { v: '4k', t: '4K — Ultra HD', s: 'Sharpest picture; needs a stronger graphics card' },
-  { v: 'unsure', t: 'Not sure', s: "We'll assume standard screens — no pressure either way" } ];
+  { v: '4k', t: '4K — Ultra HD', s: 'Sharpest; needs a stronger graphics card' },
+  { v: 'unsure', t: 'Not sure', s: "We'll assume standard screens" } ];
 
 async function openPairing(type, id) {
   setPageTheme('screens');
@@ -150,9 +150,9 @@ function pairChoiceHTML() {
   const both = '<img class="v2ic" src="/assets/icons-v2/multi-monitor.png" alt="">';
   return `<div class="quiz-stage" data-tint="1"><p class="q">What are we pairing today?</p>
     <div class="tile-grid">
-    ${pairOptHTML(PAIR_TAB_ICONS.screens, 'Screens', 'Find screens this machine can actually drive', `pairChooseMode('screens')`)}
-    ${pairOptHTML(PAIR_TAB_ICONS.dock, 'Dock', 'One cable for power, ports and peripherals', `pairChooseMode('dock')`)}
-    ${pairOptHTML(both, 'Both', 'Screens first — they decide which dock you need', `pairChooseMode('both')`, 'wide')}
+    ${pairOptHTML(PAIR_TAB_ICONS.screens, 'Screens', 'Find screens this machine can drive', `pairChooseMode('screens')`)}
+    ${pairOptHTML(PAIR_TAB_ICONS.dock, 'Dock', 'One cable: power, ports, peripherals', `pairChooseMode('dock')`)}
+    ${pairOptHTML(both, 'Both', 'Screens first — they pick the dock', `pairChooseMode('both')`, 'wide')}
     </div></div>`;
 }
 function refreshPairStage() {
@@ -357,12 +357,12 @@ const PAIR_TAB_ICONS = {
 function pairCountOpts() {
   if (pairData && pairData.type === 'laptop') return [
     { v: 0, t: 'Just the laptop screen', s: 'No extra monitors' },
-    { v: 1, t: '+1 extra screen', s: 'One monitor plugged in at a desk' },
+    { v: 1, t: '+1 extra screen', s: 'One monitor at a desk' },
     { v: 2, t: '+2 extra screens', s: 'A full desk setup' },
     { v: 3, t: '+3 or more extra screens', s: 'A full command center' } ];
   return [
     { v: 1, t: '1 screen', s: 'Just one monitor' },
-    { v: 2, t: '2 screens', s: 'Side by side — the classic desk setup' },
+    { v: 2, t: '2 screens', s: 'Side by side — classic setup' },
     { v: 3, t: '3 or more screens', s: 'A full command center' } ];
 }
 function pairSetCount(v) {
@@ -570,7 +570,7 @@ function pairDockHTML() {
       <div class="note">Dell sells this model in two chassis, and they differ where it matters: the plastic-chassis version's USB-C port is data-only, while the aluminum-chassis version's USB-C carries DisplayPort video. Which is yours?</div>
       <div class="tile-grid">
       ${pairOptHTML(pairIconFor('chassis', 'plastic'), 'Plastic chassis', 'USB-C is data-only on this version', `pairSetChassis('plastic')`)}
-      ${pairOptHTML(pairIconFor('chassis', 'aluminum'), 'Aluminum chassis', 'USB-C carries DisplayPort video on this version', `pairSetChassis('aluminum')`)}
+      ${pairOptHTML(pairIconFor('chassis', 'aluminum'), 'Aluminum chassis', 'USB-C carries DisplayPort video', `pairSetChassis('aluminum')`)}
       </div>`;
   }
   let effClass = d.dock_class;
