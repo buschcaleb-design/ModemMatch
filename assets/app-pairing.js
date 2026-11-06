@@ -420,7 +420,7 @@ function pairScreensHTML() {
     if (n === 0) {
       h += `<div class="note">No extra screens — nothing to match for displays. ${pairMode === 'both' ? 'A dock can still tidy the desk (one cable for power and peripherals).' : 'A dock can still tidy the desk (one cable for power and peripherals).'}</div>`;
       if (pairMode === 'both')
-        h += `<button class="pairbtn" onclick="pairGo('dock')">${PAIR_TAB_ICONS.dock} Continue to the Dock step</button>`;
+        h += `<button class="pairbtn fwd" onclick="pairGo('dock')">${PAIR_TAB_ICONS.dock} Continue to the Dock step</button>`;
       return h;
     }
     const disp = d.display || {};
@@ -430,7 +430,7 @@ function pairScreensHTML() {
         h += `<div class="have">✅ <strong>Good news:</strong> ${esc(d.name)} drives up to ${mx} external screen${mx > 1 ? 's' : ''} on its own — your setup is covered natively.</div>`;
       } else {
         h += `<div class="note">⚠️ On its own, ${esc(d.name)} is rated for ${mx} external screen${mx > 1 ? 's' : ''} — getting to ${n} takes a dock that adds screens itself (DisplayLink).</div>
-          ${pairMode === 'both' ? `<button class="pairbtn" onclick="pairGo('dock')">${PAIR_TAB_ICONS.dock} Continue to the Dock step</button>` : ''}`;
+          ${pairMode === 'both' ? `<button class="pairbtn fwd" onclick="pairGo('dock')">${PAIR_TAB_ICONS.dock} Continue to the Dock step</button>` : ''}`;
       }
       if (disp.max_resolution)
         h += `<p class="sortline">Maker-rated external output: up to ${esc(disp.max_resolution)}.</p>`;
@@ -455,7 +455,7 @@ function pairScreensHTML() {
   else if (pairScreens.have === false)
     h += pairShelfHTML();
   if (pairMode === 'both')
-    h += `<button class="pairbtn" onclick="pairGo('dock')">${PAIR_TAB_ICONS.dock} Screens done — continue to the Dock step</button>`;
+    h += `<button class="pairbtn fwd" onclick="pairGo('dock')">${PAIR_TAB_ICONS.dock} Screens done — continue to the Dock step</button>`;
   return h;
 }
 function pairShelfHTML() {
@@ -560,7 +560,7 @@ function pairDockHTML() {
   const d = pairData;
   if (d.type === 'desktop') {
     return `<div class="note">Desktops plug screens in directly — the graphics card's own ports do the job, so there's no dock to pair with a desktop.${pairMode === 'both' ? '' : ' Matching the screens themselves happens in the Screens step.'}</div>
-      ${pairMode === 'both' ? '' : `<button class="pairbtn" onclick="pairGo('screens')">${PAIR_TAB_ICONS.screens} Go to Screens</button>`}`;
+      ${pairMode === 'both' ? '' : `<button class="pairbtn fwd" onclick="pairGo('screens')">${PAIR_TAB_ICONS.screens} Go to Screens</button>`}`;
   }
   if (pairScreens.count === null) {
     return `<div class="quiz-stage" data-tint="4"><p class="q">First — how many extra screens should the dock handle?</p>
@@ -778,10 +778,12 @@ function setupCardHTML(s, comp, cat, withActions) {
     totalHTML = `<div class="note">No total: the computer's price isn't shown, and we never guess one.</div>`;
   else
     totalHTML = `<div class="have" style="text-align:left">Estimated starting total: <strong>$${fmt$(t.total)}</strong><br><span style="font-weight:400">From the prices above, checked Oct 2026. ${s.computer_owned === true ? 'Your computer is marked Already owned, so it adds nothing to this total' : "The computer's figure is its starting price"}${t.missingPrice.length ? '; anything marked "price not shown" is not counted' : ''}${setupHasOwned(s) && s.computer_owned !== true ? '; anything marked Already owned is not counted' : ''} — configurations and final prices vary.</span></div>`;
+  const renaming = withActions && setupRenameId === s.id;
   return `<div class="card"><h3>🧩 ${esc(name)}</h3>
+    ${renaming ? `<div class="renamebox"><input id="rename-input" type="text" value="${esc(name)}" maxlength="80" aria-label="Setup name" onkeydown="if(event.key==='Enter')setupRenameSave('${s.id}');if(event.key==='Escape')setupRenameCancel()"><button class="sort" onclick="setupRenameSave('${s.id}')">Save name</button><button class="sort" onclick="setupRenameCancel()">Cancel</button></div>` : ''}
     ${setupLinesHTML(s, comp, cat)}
     ${totalHTML}
-    ${withActions ? `<div class="setupactions">
+    ${withActions && !renaming ? `<div class="setupactions">
       <button class="sort" onclick="setupOpen('${s.id}')">Open</button>
       <button class="sort" onclick="setupRename('${s.id}')">Rename</button>
       <button class="sort" onclick="setupDuplicate('${s.id}')">Duplicate</button>
@@ -853,6 +855,10 @@ async function renderSetupList() {
     h += `<div class="have" style="text-align:left">Everything in My Setup: <strong>$${fmt$(grandTotal)}</strong><br><span style="font-weight:400">Every setup above plus the saved gear — the whole page, one number.${grandPartial ? ' Anything on the page without a verified price is not counted.' : ''} Already-owned items are not counted.</span></div>`;
   }
   el.innerHTML = h;
+  if (setupRenameId) {
+    const inp = document.getElementById('rename-input');
+    if (inp) { inp.focus(); inp.select(); }
+  }
 }
 function removeSavedGear(id) {
   const i = savedGear.indexOf(id);
@@ -870,12 +876,28 @@ async function setupOpen(id) {
   if (s.computer.kind === 'laptop') renderModelCard(comp, 'setup');
   else renderDesktopModelCard(comp, 'setup');
 }
+// Build 2026-11-06.10 (audit A1): Rename used to gate on the native
+// prompt() dialog — the same silent no-op failure as Delete's old
+// confirm() (an embedded browser can swallow the dialog, and the
+// button reads as dead). It is an inline editor now: Rename swaps an
+// input into the card; Save writes the name through touchSetup, which
+// persists to localStorage, and the list re-renders with it in place.
+let setupRenameId = null;
 function setupRename(id) {
+  if (!getSetup(id)) return;
+  setupRenameId = id;
+  renderSetupList();
+}
+function setupRenameSave(id) {
   const s = getSetup(id);
-  if (!s) return;
-  const cur = s.name || (setupResolved[id] ? setupResolved[id].name : '');
-  const n = prompt('Name this setup:', cur);
-  if (n && n.trim()) { s.name = n.trim(); touchSetup(s); renderSetupList(); }
+  const inp = document.getElementById('rename-input');
+  setupRenameId = null;
+  if (s && inp && inp.value.trim()) { s.name = inp.value.trim(); touchSetup(s); }
+  renderSetupList();
+}
+function setupRenameCancel() {
+  setupRenameId = null;
+  renderSetupList();
 }
 function setupDuplicate(id) {
   const s = getSetup(id);

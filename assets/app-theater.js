@@ -1,15 +1,25 @@
 // ------------------------------------------------------------ home theater
-// The Home Theater picker (Build 2026-11-05.5): the fourth flow, built on
+// The Home Theater picker (Build 2026-11-06.10): the fourth flow, built on
 // the same tile component and quiz shell as the gear and computer pickers.
-// Design of record: ht-picker-design/gen.py (Caleb approved Nov 3, 2026) —
-// a cover, an "I know what I want" page, 12 questions, and tabbed
-// GOOD / BETTER / BEST results with same-level swaps and a room visual.
-// Prices live in theater.json (served at /api/theater-data) and were
-// verified Nov 5, 2026 at Best Buy, Walmart, and the makers' own stores.
-// The three step-up swaps (Sonos Beam Gen 2 in GOOD, Sony Bravia Theatre
-// Bar 9 in BETTER, LG G5 77″ in BEST) were held at launch for Caleb's
-// ruling; he approved all three on Nov 5, 2026 and they shipped in Build
-// 2026-11-05.6 with prices verified that day at Best Buy.
+// FLOW (design of record: ht-picker-design/FLOW-DESIGN-OF-RECORD.md,
+// dictated by Caleb Nov 6, 2026): (1) pick your budget; (2) DESIGN YOUR
+// ROOM — its own step (distance, seating, couch placement, open walls,
+// lighting, how the TV sits) because the room setup happens no matter
+// what the shopper buys; (3) RENDER CHECK — the room's above view, Edit
+// or Next; (4) the TV questions; (5) the sound questions, after all TV
+// questions. Results show the room again with BOTH views (above + front)
+// beside the picks, in two columns — TV left, sound right.
+// The room renders are the Nov 3 Jim set (33 serving files under
+// /assets/renders/, post-rename names per render-requirements-v3-final).
+// Prices live in theater.json (served at /api/theater-data), verified at
+// Best Buy, Walmart, and the makers' own stores.
+// PRESERVED from build .8: the recommendation engine — tiers, totals
+// math, swap mechanics (ruling R1), the #1-pick/bend behavior, and the
+// stand-in TV vetoes. Build .10 changes: the flow above; the override
+// page runs REAL SUBSET quizzes (audit A8); the "Start 3.1" chip is a
+// real priced swap (SVS component prices, verified at svsound.com
+// Nov 6, 2026); "Already have it" on the override page is real — the
+// part leaves the totals and its card says so.
 let TH_DATA = null;
 const tanswers = {};
 let tstep = -1;               // -1 cover, -2 "I know what I want", >= 0 quiz
@@ -20,12 +30,25 @@ let thTab = 'better';
 // tab switches, and every total reads through the effective-product
 // helpers below — card, copy, price, and tier total all follow.
 let thSwapState = {};
+// Build .10: which questions run. 'full' = the whole flow; 'tv' /
+// 'sound' / 'rest' = the override page's subset quizzes; 'fit' = the
+// room-only fit check (everything already owned).
+let thMode = 'full';
+// Build .10: parts the shopper already owns (override page). Owned
+// parts are excluded from every total and stamped on their cards.
+let thOwned = { tv: false, sound: false, rest: false };
 
 const thIc = n => `<img class="v2ic" src="/assets/icons-v2/${n}.png" alt="">`;
 const thGlyph = t => `<span class="th-glyph">${t}</span>`;
 
+// Question groups: budget | room | check | tv | sound | rest. The
+// room step (design step 2) is common to every path — the room setup
+// happens no matter what is bought (design's key principle).
+// own/home carry groups sound+rest: they decide sound-family fit AND
+// the extras rules (no second streamer, delivery fit), so both subset
+// quizzes that depend on them ask them (shared-context rule).
 const THEATER_QUESTIONS = [
-  { key: 'budget', num: 1, q: "What's your total budget for everything?",
+  { key: 'budget', group: 'budget', q: "What's your total budget for everything?",
     why: "TV + sound + mount and cables, before tax. We split it for you — soundbar setups put most of it in the TV; speaker setups split it closer to even.",
     opts: () => [
       { v: 'under750', t: 'Under $750', s: 'A sharp smaller setup, done right', icon: thGlyph('$') },
@@ -34,7 +57,7 @@ const THEATER_QUESTIONS = [
       { v: '2500-5000', t: '$2,500 – $5,000', s: 'Big screens and serious sound', icon: thGlyph('$') },
       { v: '5000plus', t: '$5,000+', s: 'Dedicated-room territory', icon: thGlyph('$') },
       { v: 'unsure', t: 'Not sure yet', s: 'See Good / Better / Best sizes', icon: thIc('help-question') } ] },
-  { key: 'dist', num: 2, q: "How far is the couch from the TV wall?",
+  { key: 'dist', group: 'room', q: "How far is the couch from the TV wall?",
     why: "This one number sizes your screen. Too small is the #1 regret — between two sizes, movies and games usually want the bigger one.",
     opts: () => [
       { v: 'under6', t: 'Under 6 ft', s: 'Cozy rooms and bedrooms', icon: thGlyph('6') },
@@ -43,28 +66,56 @@ const THEATER_QUESTIONS = [
       { v: '10-11', t: '10 – 11 ft', s: '', icon: thGlyph('10') },
       { v: '12plus', t: '12 ft or more', s: 'Projectors enter the chat', icon: thGlyph('12') },
       { v: 'dontknow', t: 'Not sure', s: 'Small, medium or large room', icon: thIc('help-question') } ] },
-  { key: 'roomsize', num: 2, when: () => tanswers.dist === 'dontknow',
+  { key: 'roomsize', group: 'room', when: () => tanswers.dist === 'dontknow',
     q: "How big is the room, roughly?",
     why: "No tape measure needed — the room's size is a good stand-in for the couch distance.",
     opts: () => [
       { v: 'small', t: 'Small room', s: 'Den, bedroom, small lounge', icon: thIc('armchair') },
       { v: 'medium', t: 'Medium room', s: 'A typical living room', icon: thIc('sofa-straight') },
       { v: 'large', t: 'Large room', s: 'Open plan or a big room', icon: thIc('room-open-plan') } ] },
-  { key: 'placement', num: 3, q: "What will the TV sit on — or hang on?",
-    why: "The screen can't be wider than the furniture under it, and renters shouldn't be sold a wall mount. This answer quietly caps your size.",
+  { key: 'couch', group: 'room', q: "What seating do you have — or want?",
+    why: "Your couch plus what's around it gives us the room's shape. Pick the seating first; where it sits comes next.",
     opts: () => [
-      { v: 'mount', t: 'Wall mount is fine', s: 'We include the right mount', icon: thIc('wall-mount') },
-      { v: 'stand', t: 'Stand on furniture', s: 'Tell us the furniture width if you know it', icon: thIc('tv-stand') },
-      { v: 'renter', t: 'Renter — no drilling', s: 'Stand + soundbar friendly picks', icon: thIc('no-drilling') },
-      { v: 'fireplace', t: 'Above the fireplace', s: 'We flag the height and tilt', icon: thIc('fireplace') } ] },
-  { key: 'light', num: 4, q: "How bright is the room when you watch?",
+      { v: 'straight', t: 'Straight sofa, facing the TV', s: 'The classic setup', icon: thIc('sofa-straight') },
+      { v: 'sectional', t: 'L-shaped sectional', s: 'Two viewing directions', icon: thIc('sectional-l') },
+      { v: 'recliners', t: 'Recliners / theater rows', s: 'Sound aims at the rows', icon: thIc('recliner') },
+      { v: 'chairs', t: 'Loveseat + chairs', s: 'Flexible, movable, smaller footprint', icon: thIc('armchair') } ] },
+  { key: 'couchpos', group: 'room', when: () => tanswers.couch === 'sectional',
+    q: "Where does the sectional sit?",
+    why: "An L can float in the middle of the room or tuck into a corner — the corner changes where surround sound can go.",
+    opts: () => [
+      { v: 'middle', t: 'In the middle of the room', s: 'Space around it', icon: thIc('sectional-l') },
+      { v: 'corner', t: 'Tucked into a corner', s: 'Against two walls', icon: thIc('sectional-l') } ] },
+  { key: 'corner', group: 'room', when: () => tanswers.couch === 'sectional' && tanswers.couchpos === 'corner',
+    q: "Which corner?",
+    why: "Standing at the TV wall, looking back at the couch — which corner is the sectional tucked into?",
+    opts: () => [
+      { v: 'corner-left', t: 'The left corner', s: 'The long side runs down the left wall', icon: thIc('sectional-l') },
+      { v: 'corner-right', t: 'The right corner', s: 'The long side runs down the right wall', icon: thIc('sectional-l') } ] },
+  { key: 'around', group: 'room', q: "What is around the couch?",
+    why: "An open side changes the sound plan, because there's no wall there to hold a surround speaker.",
+    opts: () => [
+      { v: 'enclosed', t: 'Walls all around', s: 'Surround sound behaves itself here', icon: thIc('room-enclosed') },
+      { v: 'openside', t: 'Open on one side', s: 'We compensate that side', icon: thIc('room-open-side') },
+      { v: 'openbehind', t: 'Open behind the couch', s: 'No wall for rear speakers — they move to your sides', icon: thIc('room-open-behind') },
+      { v: 'openplan', t: 'Big open-plan space', s: 'The whole area counts', icon: thIc('room-open-plan') } ] },
+  { key: 'light', group: 'room', q: "How bright is the room when you watch?",
     why: "Panels are picked for your light, not the showroom's. Windows opposite the screen are the one setup that changes everything.",
     opts: () => [
       { v: 'dark', t: 'Mostly dark', s: "Movie-night room — OLED's home turf", icon: thIc('moon-dark') },
       { v: 'mixed', t: 'Mixed light', s: 'Some day, some night', icon: thIc('half-light') },
       { v: 'glare', t: 'Bright — windows opposite', s: 'Anti-glare Mini-LED moves to the front', icon: thIc('sun-glare') },
       { v: 'bright', t: 'Bright, never opposite', s: "Less glare than you'd think", icon: thIc('sun-bright') } ] },
-  { key: 'watch', num: 5, multi: true, q: "What do you watch most? Pick your top 2",
+  { key: 'placement', group: 'room', q: "What will the TV sit on — or hang on?",
+    why: "The screen can't be wider than the furniture under it, and renters shouldn't be sold a wall mount. This answer quietly caps your size.",
+    opts: () => [
+      { v: 'mount', t: 'Wall mount is fine', s: 'We include the right mount', icon: thIc('wall-mount') },
+      { v: 'stand', t: 'Stand on furniture', s: 'Tell us the furniture width if you know it', icon: thIc('tv-stand') },
+      { v: 'renter', t: 'Renter — no drilling', s: 'Stand + soundbar friendly picks', icon: thIc('no-drilling') },
+      { v: 'fireplace', t: 'Above the fireplace', s: 'We flag the height and tilt', icon: thIc('fireplace') } ] },
+  { key: 'roomcheck', group: 'check', roomcheck: true, q: "Does this look like your room?",
+    why: "This is your room from above, drawn from your answers. If it looks wrong, tap Edit and fix the answer that's off — everything you've picked stays put." },
+  { key: 'watch', group: 'tv', multi: true, q: "What do you watch most? Pick your top 2",
     why: "We build for your top two and say plainly what got traded off — never one mushy average score.",
     opts: () => [
       { v: 'movies', t: 'Movies & prestige TV', s: 'Size and contrast lead', icon: thIc('film-clapper') },
@@ -72,43 +123,30 @@ const THEATER_QUESTIONS = [
       { v: 'gaming', t: 'Gaming', s: 'Unlocks the gaming check next', icon: thIc('game-controller') },
       { v: 'everyday', t: 'Everyday shows & news', s: 'All-day comfort picks', icon: thIc('newspaper') },
       { v: 'music', t: 'Music listening', s: 'Stereo quality and whole-home sound', icon: thIc('music-note') } ] },
-  { key: 'gaming', num: 6, when: () => (tanswers.watch || []).includes('gaming'),
+  { key: 'gaming', group: 'tv', when: () => (tanswers.watch || []).includes('gaming'),
     cond: 'Only if you game',
     q: "What do you game on — and how many?",
     why: "Consoles need fast ports, and the soundbar quietly takes one. We count your devices first, then check the TV can actually hold them.",
     opts: () => [
-      { v: 'ps5', t: 'PlayStation 5', s: '', icon: thIc('game-controller') },
-      { v: 'xbox', t: 'Xbox Series X | S', s: '', icon: thIc('game-controller') },
-      { v: 'pc', t: 'Gaming PC', s: 'Higher refresh rates pay off here', icon: thIc('desktop-pc') },
-      { v: 'switch', t: 'Switch only', s: 'Relaxed requirements — saves you money', icon: thIc('game-controller') },
-      { v: 'several', t: 'Several of these', s: 'Port count becomes the deciding spec', icon: thIc('game-controller') } ] },
-  { key: 'static', num: 7, q: "Do you leave one channel or app on for hours?",
+      { v: 'ps5', t: 'PlayStation 5', s: '', icon: thIc('game-controller'), bg: '#0070d1', ink: '#ffffff' },
+      { v: 'xbox', t: 'Xbox Series X | S', s: '', icon: thIc('game-controller'), bg: '#107c10', ink: '#ffffff' },
+      { v: 'switch', t: 'Nintendo Switch', s: 'Relaxed requirements — saves you money', icon: thIc('game-controller'), bg: '#e60012', ink: '#ffffff' },
+      { v: 'pc', t: 'Gaming PC', s: 'Higher refresh rates pay off here', icon: thIc('desktop-pc'), bg: '#f5c518', ink: '#14213d' },
+      { v: 'several', t: 'Several of these', s: 'Port count becomes the deciding spec', icon: thIc('game-controller'), bg: '#7c3aed', ink: '#ffffff' } ] },
+  { key: 'static', group: 'tv', q: "Do you leave one channel or app on for hours?",
     why: "The one habit that changes the panel pick. Thousands of hours of the same news ticker or desktop is hard on OLED — mixed use is not, and we'll say so.",
     opts: () => [
       { v: 'news', t: 'One news channel, most of the day', s: 'We steer you to Mini-LED, and explain why', icon: thIc('newspaper') },
       { v: 'pc', t: 'A PC desktop on the TV', s: 'Same protection applies', icon: thIc('desktop-pc') },
       { v: 'hud', t: 'Same game, fixed HUD, long sessions', s: '', icon: thIc('game-controller') },
       { v: 'no', t: 'No — mixed content', s: 'OLED is safe for you. No scare tactics', icon: thIc('check') } ] },
-  { key: 'room', num: 8, parts: true, q: "Show us your room — in two taps",
-    why: "No floor plans to draw and nothing to measure. Your couch plus what's around it gives us the room's shape — and an open side changes the sound plan, because there's no wall there to hold a surround speaker.",
-    partsList: [
-      { key: 'couch', label: 'Part A — Your couch', opts: () => [
-        { v: 'straight', t: 'Straight sofa, facing the TV', s: 'The classic setup', icon: thIc('sofa-straight') },
-        { v: 'sectional', t: 'L-shaped sectional', s: 'Two viewing directions', icon: thIc('sectional-l') },
-        { v: 'recliners', t: 'Recliners / theater rows', s: 'Sound aims at the rows', icon: thIc('recliner') },
-        { v: 'chairs', t: 'Loveseat + chairs', s: 'Flexible, movable, smaller footprint', icon: thIc('armchair') } ] },
-      { key: 'around', label: 'Part B — What is around it?', opts: () => [
-        { v: 'enclosed', t: 'Walls all around', s: 'Surround sound behaves itself here', icon: thIc('room-enclosed') },
-        { v: 'openside', t: 'Open on one side', s: 'We compensate that side', icon: thIc('room-open-side') },
-        { v: 'openbehind', t: 'Open behind the couch', s: 'No wall for rear speakers — they move to your sides', icon: thIc('room-open-behind') },
-        { v: 'openplan', t: 'Big open-plan space', s: 'The whole area counts', icon: thIc('room-open-plan') } ] } ] },
-  { key: 'subs', num: 9, q: "Do you use subtitles because voices are hard to follow?",
+  { key: 'subs', group: 'sound', q: "Do you use subtitles because voices are hard to follow?",
     why: "The most common complaint in home theater — and the most fixable. Riding the volume all night (up for voices, down for explosions) is the same signal. A real center channel carries most of a movie's dialogue.",
     opts: () => [
       { v: 'often', t: 'Yes, often', s: 'A center channel becomes non-negotiable', icon: thIc('check') },
       { v: 'sometimes', t: 'Sometimes', s: 'Dialogue features get a boost', icon: thIc('half-light') },
       { v: 'no', t: 'No', s: 'More freedom in the sound budget', icon: thIc('cross') } ] },
-  { key: 'feel', num: 10, parts: true, q: "How should it feel? — and the wires question",
+  { key: 'feel', group: 'sound', parts: true, q: "How should it feel? — and the wires question",
     why: "You don't need to know speaker counts or format names — that's our job. Part A is the feeling you're after; we spec the system that makes it. Part B is the one physical fact we do need from you.",
     partsList: [
       { key: 'feelA', label: 'Part A — How should it feel?', opts: () => [
@@ -121,7 +159,7 @@ const THEATER_QUESTIONS = [
         { v: 'power', t: 'Power cables OK, no speaker wire', s: 'Wireless kits live here', icon: thIc('plug-power') },
         { v: 'hidden', t: 'Speaker wire OK if hidden-ish', s: 'Component sound opens up', icon: thIc('cable-run') },
         { v: 'full', t: 'Full install is fine', s: 'Everything is on the table', icon: thIc('wrench-install') } ] } ] },
-  { key: 'own', num: 11, q: "What do you already own?",
+  { key: 'own', groups: ['sound', 'rest'], q: "What do you already own?",
     why: "So we never sell you a second streamer, the wrong speaker family, or a receiver you don't need.",
     opts: () => [
       { v: 'sonos', t: 'Sonos speakers', s: 'Your sound stays in the family', icon: thIc('speaker') },
@@ -129,7 +167,7 @@ const THEATER_QUESTIONS = [
       { v: 'other', t: 'Other speakers or a receiver', s: 'Could be the start of the build', icon: thIc('speaker') },
       { v: 'streamer', t: 'Apple TV or another streamer', s: "Noted — we won't sell you another", icon: thIc('streamer-box') },
       { v: 'nothing', t: 'Nothing yet', s: 'Clean slate, full choice', icon: thIc('empty-box') } ] },
-  { key: 'home', num: 12, q: "Last one — your home and your neighbours",
+  { key: 'home', groups: ['sound', 'rest'], q: "Last one — your home and your neighbours",
     why: "Apartments cap the subwoofer (your neighbours thank you). Media rooms unlock the big builds. Big screens also trigger a delivery and door-fit check.",
     opts: () => [
       { v: 'apartment', t: 'Apartment — neighbours below/beside', s: 'Smaller sealed sub, night mode surfaced', icon: thIc('apartment') },
@@ -137,7 +175,53 @@ const THEATER_QUESTIONS = [
       { v: 'media', t: 'Dedicated media room', s: 'Atmos and components unlocked', icon: thIc('theater-room') } ] },
 ];
 
-function tvisible() { return THEATER_QUESTIONS.filter(q => !q.when || q.when()); }
+const TH_MODE_GROUPS = {
+  full: ['budget', 'room', 'check', 'tv', 'sound', 'rest'],
+  tv: ['budget', 'room', 'check', 'tv'],
+  sound: ['budget', 'room', 'check', 'sound'],
+  rest: ['budget', 'room', 'check', 'rest'],
+  fit: ['budget', 'room', 'check']
+};
+const TH_GROUP_LABEL = { budget: 'Step 1 · Your budget', room: 'Step 2 · Design your room', check: 'Step 3 · Check your room', tv: 'Step 4 · TV questions', sound: 'Step 5 · Sound questions', rest: 'Step 5 · Sound questions' };
+
+function thQGroups(q) { return q.groups || [q.group]; }
+function tvisible() {
+  const want = TH_MODE_GROUPS[thMode] || TH_MODE_GROUPS.full;
+  return THEATER_QUESTIONS.filter(q => {
+    if (!thQGroups(q).some(g => want.includes(g))) return false;
+    // A part the shopper already owns asks no questions.
+    if (q.group === 'tv' && thOwned.tv) return false;
+    if ((q.key === 'subs' || q.key === 'feel') && thOwned.sound) return false;
+    if ((q.key === 'own' || q.key === 'home') && thOwned.sound && thOwned.rest) return false;
+    return !q.when || q.when();
+  });
+}
+
+// ---- room renders (the Nov 3 set, post-rename serving names) ------------
+function thAboveFile() {
+  const couch = tanswers.couch || 'straight';
+  let shell = tanswers.around || 'enclosed';
+  let place = 'centered';
+  if (couch === 'sectional') {
+    place = tanswers.couchpos === 'corner' ? (tanswers.corner || 'corner-left') : 'middle';
+  }
+  if (shell === 'openside') {
+    // The set's openside servers: most live in the openside-left shell;
+    // the exceptions are the recliners (openside-right file) and the
+    // sectional tucked into the LEFT corner (its server is the
+    // openside-right shell file — the open side faces the corner).
+    shell = 'openside-left';
+    if (couch === 'recliners') shell = 'openside-right';
+    if (couch === 'sectional' && place === 'corner-left') shell = 'openside-right';
+  }
+  return `corner__${shell}__${couch}__${place}.png`;
+}
+function thFrontFile(viz) {
+  const mount = { mount: 'wall-hung', stand: 'stand', renter: 'stand', fireplace: 'fireplace' }[tanswers.placement] || 'stand';
+  const snd = viz === 'comp51' ? 'component' : 'bar+rears';
+  return `tvwall__${mount}__${snd}.png`;
+}
+const thRenderURL = f => `/assets/renders/${f}`;
 
 function startTheaterBuy() {
   setPageTheme('everyday');
@@ -145,6 +229,8 @@ function startTheaterBuy() {
   document.getElementById('quiz').style.display = 'block';
   Object.keys(tanswers).forEach(k => delete tanswers[k]);
   thSwapState = {};
+  thMode = 'full';
+  thOwned = { tv: false, sound: false, rest: false };
   tstep = -1;
   setScene('');
   if (TH_DATA) { thRenderCover(); return; }
@@ -167,6 +253,7 @@ function thStockingFallback() {
 }
 
 function thRenderCover() {
+  tstep = -1;
   bar.style.width = '4%';
   setScene('');
   const feat = [
@@ -177,14 +264,14 @@ function thRenderCover() {
   stepsEl.innerHTML = `<button class="back" onclick="backToFlowPick()">← Back</button>
     <div class="quiz-stage" data-tint="0">
     <p class="th-kicker">Home Theater Picker</p>
-    <p class="th-h">Build your home theater in 12 quick questions</p>
-    <p class="th-sub">Tell us about your room and how you watch. We size the TV, pick the panel for your light, and build a <b>complete</b> system — TV, sound, cables and all — at three budgets: <b>Good, Better, Best</b>. Every item comes with same-level swaps in case your store is out of stock.</p>
+    <p class="th-h">Build your home theater — room first, then TV and sound</p>
+    <p class="th-sub">First your budget, then you <b>design your room</b> and check a picture of it — the room setup happens no matter what you buy. Then the TV questions, then the sound questions. We build a <b>complete</b> system — TV, sound, cables and all — at three budgets: <b>Good, Better, Best</b>. Every item comes with same-level swaps in case your store is out of stock.</p>
     <div class="th-coverbtns">
       <button class="cta-big" onclick="thStartQuiz()">Start Matching →</button>
       <button class="cta-big th-alt" onclick="thShowOverride()">I know what I want</button>
     </div>
     <p class="th-sub">Already know your TV, your sound, or any single piece? Tap <b>I know what I want</b> and pick it yourself — we'll offer guided help for the rest, and still check that everything fits together.</p>
-    <div class="tile-grid th-static">${feat.map((f, i) => tileHTML({ i, lg: true, icon: thIc(f.icon), title: f.t, desc: f.s, onclick: 'void(0)' })).join('')}</div>
+    <div class="th-infos">${feat.map((f, i) => { const c = tileColor(i); return `<div class="th-info"><span class="tile-main" style="--tile:${c.bg};--tile-ink:${c.ink}"><span class="tile-ic lg">${thIc(f.icon)}</span><span class="tile-title">${f.t}</span></span><span class="tile-desc">${f.s}</span></div>`; }).join('')}</div>
     </div>`;
   window.scrollTo(0, 0);
 }
@@ -192,32 +279,50 @@ function thRenderCover() {
 function thShowOverride() {
   tstep = -2;
   bar.style.width = '4%';
-  // Build .8: the three columns used to be static divs dressed as
-  // controls. They are buttons now, and honest ones: tapping any of
-  // them starts the questions (a per-piece picker doesn't exist as
-  // its own flow, and the columns no longer pretend otherwise).
-  const cat = (role, name, states) => `<button class="th-cat th-catbtn" onclick="thStartQuiz()"><div class="th-role">${role}</div><div class="th-catname">${name}</div>${states.map(s => `<span class="th-state"><b>${s[0]}</b> — ${s[1]}</span>`).join('')}<div class="th-catgo">Start the questions →</div></button>`;
+  // Build .10 (audit A8): every state on every column is a real
+  // button with its own job — "Help me choose" runs ONLY that part's
+  // questions (plus the shared budget + room steps every path needs),
+  // "Already have it" really removes the part from the totals, and
+  // "I know mine" goes to the model search where fit checks run.
+  const stateBtn = (label, sub, onclick, on) =>
+    `<button class="th-statebtn${on ? ' on' : ''}" onclick="${onclick}"><b>${label}</b> — ${sub}</button>`;
+  const cat = (part, role, name, knowSub, helpSub) => `<div class="th-cat"><div class="th-role">${role}</div><div class="th-catname">${name}</div>
+    ${stateBtn('I know mine', knowSub, part === 'rest' ? `thSetOwned('rest')` : 'startModelLookup()', false)}
+    ${stateBtn('Already have it', part === 'tv' ? 'it still counts for fit and ports — and leaves the total' : part === 'sound' ? "we'll build the rest around it — and it leaves the total" : 'bare minimum added, nothing upsold', `thSetOwned('${part}')`, thOwned[part])}
+    ${stateBtn('Help me choose', helpSub, `thStartSubset('${part}')`, false)}</div>`;
+  const allOwned = thOwned.tv && thOwned.sound && thOwned.rest;
   stepsEl.innerHTML = `<button class="back" onclick="thRenderCover()">← Back</button>
     <div class="quiz-stage" data-tint="1">
     <p class="th-kicker">I Know What I Want</p>
     <p class="th-h">Pick your pieces. We'll mind the fit.</p>
-    <p class="th-sub">Knowing one piece doesn't mean knowing them all. Set each one your way — and where you'd like help, we step in for just that piece, the same way the pairing flow offers screens and docks around a laptop.</p>
+    <p class="th-sub">Knowing one piece doesn't mean knowing them all. Set each one your way — and where you'd like help, we step in for just that piece and ask only its questions, after the budget and room steps every setup needs.</p>
     <div class="th-catrow">
-      ${cat('The TV', 'Television', [['I know mine', 'pick it from the full list'], ['Already have it', 'tell us the model — it still counts for fit and ports'], ['Help me choose', "we'll ask the TV questions only"]])}
-      ${cat('The Sound', 'Audio', [['I know mine', 'bar, kit, or receiver + speakers'], ['Already have it', "we'll build the rest around it"], ['Help me choose', "we'll ask the sound questions only"]])}
-      ${cat('The Rest', 'Cables, mount, extras', [['I know mine', 'add exactly what you want'], ['Skip it', 'bare minimum, nothing upsold'], ['Help me choose', "we'll spec the right cables and mount"]])}
+      ${cat('tv', 'The TV', 'Television', 'search it from the full list — fit checks run on its page', "we'll ask the TV questions only")}
+      ${cat('sound', 'The Sound', 'Audio', 'search it from the full list — fit checks run on its page', "we'll ask the sound questions only")}
+      ${cat('rest', 'The Rest', 'Cables, mount, extras', 'add exactly what you want — nothing extra from us', "we'll spec the right cables and mount")}
     </div>
     <div class="th-warn"><b>Your picks still get the checks.</b> Stand width, feet span, HDMI port counts, eARC, outlet placement — we verify your choices play nicely together and flag anything that won't, before you buy. Knowing what you want never gets argued with; it just gets verified.</div>
     <p class="th-sub">The fastest way to use a model you already know: search it, open its page, and the fit checks run there. Or take the questions and let the room decide.</p>
     <div class="th-coverbtns">
-      <button class="cta-big" onclick="startModelLookup()">Search a model →</button>
-      <button class="cta-big th-alt" onclick="thStartQuiz()">Start the questions</button>
+      ${allOwned
+        ? `<button class="cta-big" onclick="thStartSubset('fit')">Check the fit →</button>`
+        : `<button class="cta-big" onclick="startModelLookup()">Search a model →</button>
+      <button class="cta-big th-alt" onclick="thStartQuiz()">Start the questions</button>`}
     </div>
     </div>`;
   window.scrollTo(0, 0);
 }
 
-function thStartQuiz() { tstep = 0; trender(); }
+function thSetOwned(part) {
+  thOwned[part] = !thOwned[part];
+  thShowOverride();
+}
+function thStartSubset(part) {
+  thMode = part === 'fit' ? 'fit' : part;
+  tstep = 0;
+  trender();
+}
+function thStartQuiz() { thMode = 'full'; tstep = 0; trender(); }
 
 function trender() {
   const V = tvisible();
@@ -225,39 +330,44 @@ function trender() {
   const Q = V[tstep];
   bar.style.width = ((tstep + 1) / (V.length + 1) * 100) + '%';
   setScene('');
+  const realQs = V.filter(q => !q.roomcheck);
+  const pos = Q.roomcheck ? realQs.length : V.slice(0, tstep + 1).filter(q => !q.roomcheck).length;
   let h = `<button class="back" onclick="${tstep === 0 ? 'thRenderCover()' : 'tback()'}">← Back</button>`;
   h += `<div class="quiz-stage" data-tint="${tstep % 5}">`;
-  h += `<p class="th-qcount">Question ${Q.num} of 12${Q.cond ? ` <span class="th-cond">${Q.cond}</span>` : ''}</p>`;
+  h += `<p class="th-qcount">${TH_GROUP_LABEL[thQGroups(Q)[0]] || ''} · ${pos} of ${realQs.length}${Q.cond ? ` <span class="th-cond">${Q.cond}</span>` : ''}</p>`;
   h += `<p class="q">${Q.q}</p>`;
   if (Q.why) h += `<p class="th-why">${Q.why}</p>`;
-  if (Q.parts) {
+  if (Q.roomcheck) {
+    h += `<div class="th-viz th-checkviz"><img class="th-render" src="${thRenderURL(thAboveFile())}" alt="Your room from above, drawn from your answers"></div>`;
+    h += `<div class="th-coverbtns"><button class="cta-big th-alt" onclick="thEditRoom()">✎ Edit my answers</button><button class="cta-big" onclick="tcontinue()">Looks right — Next →</button></div>`;
+  } else if (Q.parts) {
     Q.partsList.forEach(part => {
-      h += `<p class="th-partlab">${part.label}</p><div class="tile-grid">`;
+      h += `<p class="th-partlab">${part.label}</p><div class="tile-grid th-grid">`;
       const opts = part.opts();
       opts.forEach((o, i) => {
         const wide = i === opts.length - 1 && opts.length % 2 === 1;
-        h += tileHTML({ i, wide, icon: o.icon, title: o.t, desc: o.s, on: tanswers[part.key] === o.v, onclick: `tpickPart('${part.key}','${o.v}')` });
+        h += tileHTML({ i, wide, icon: o.icon, title: o.t, desc: o.s, bg: o.bg, ink: o.ink, on: tanswers[part.key] === o.v, onclick: `tpickPart('${part.key}','${o.v}')` });
       });
       h += '</div>';
     });
     if (Q.partsList.every(p => tanswers[p.key])) h += thContinueHTML();
   } else if (Q.multi) {
     const sel = tanswers[Q.key] || [];
-    h += '<div class="tile-grid">';
+    h += '<div class="tile-grid th-grid">';
     const opts = Q.opts();
     opts.forEach((o, i) => {
       const wide = i === opts.length - 1 && opts.length % 2 === 1;
-      h += tileHTML({ i, wide, icon: o.icon, title: o.t, desc: o.s, on: sel.includes(o.v), onclick: `ttoggle('${Q.key}','${o.v}')` });
+      h += tileHTML({ i, wide, icon: o.icon, title: o.t, desc: o.s, bg: o.bg, ink: o.ink, on: sel.includes(o.v), onclick: `ttoggle('${Q.key}','${o.v}')` });
     });
     h += '</div>';
     h += `<p class="th-why">${sel.length} of 2 picked${sel.length === 2 ? ' — tap Next when ready.' : ' — pick ' + (2 - sel.length) + ' more to go on.'}</p>`;
     if (sel.length === 2) h += thContinueHTML();
   } else {
-    h += '<div class="tile-grid">';
+    h += '<div class="tile-grid th-grid">';
     const opts = Q.opts();
     opts.forEach((o, i) => {
       const wide = i === opts.length - 1 && opts.length % 2 === 1;
-      h += tileHTML({ i, wide, icon: o.icon, title: o.t, desc: o.s, onclick: `tpick('${Q.key}','${o.v}')` });
+      h += tileHTML({ i, wide, icon: o.icon, title: o.t, desc: o.s, bg: o.bg, ink: o.ink, onclick: `tpick('${Q.key}','${o.v}')` });
     });
     h += '</div>';
   }
@@ -266,6 +376,13 @@ function trender() {
   window.scrollTo(0, 0);
 }
 
+function thEditRoom() {
+  // Back to the first room question with every answer intact.
+  const V = tvisible();
+  const i = V.findIndex(q => q.group === 'room');
+  tstep = i >= 0 ? i : 0;
+  trender();
+}
 function thContinueHTML() {
   return `<div class="th-cont"><button class="cta-big" onclick="tcontinue()">Next →</button></div>`;
 }
@@ -275,6 +392,10 @@ function tcontinue() {
 }
 function tpick(k, v) {
   tanswers[k] = v;
+  // Changing the seating or its placement can strand a corner answer;
+  // drop the downstream room answers so the branches re-ask cleanly.
+  if (k === 'couch' && v !== 'sectional') { delete tanswers.couchpos; delete tanswers.corner; }
+  if (k === 'couchpos' && v !== 'corner') delete tanswers.corner;
   const V = tvisible();
   if (tstep < V.length - 1) { tstep++; trender(); } else thFinish();
 }
@@ -329,8 +450,9 @@ function thTierTotal(tierKey) {
   const { tv } = thEffTV(tierKey);
   const s1 = thEffSound(tierKey, 'sound').p;
   const s2 = T.sound2 ? thEffSound(tierKey, 'sound2').p : null;
-  let t = tv.price + s1.price + (s2 ? s2.price : 0);
-  if (tierKey !== 'best') t += TH_DATA.cable.price;
+  let t = (thOwned.tv ? 0 : tv.price)
+    + (thOwned.sound ? 0 : s1.price + (s2 ? s2.price : 0));
+  if (tierKey !== 'best' && !thOwned.rest) t += TH_DATA.cable.price;
   return t;
 }
 function thSwapName(p) {
@@ -402,10 +524,12 @@ function thChips() {
   if (tanswers.placement === 'stand') c.push('✓ Feet span fits a standard stand');
   if (tanswers.placement === 'mount') c.push('✓ Wall mount planned in');
   if (tanswers.placement === 'renter') c.push('✓ No-drilling picks only');
-  c.push('✓ Certified HDMI cable included');
+  if (!thOwned.rest) c.push('✓ Certified HDMI cable included');
   if ((tanswers.watch || []).includes('gaming')) c.push(`✓ Fast HDMI ports counted for your ${TH_GAME_LABEL[tanswers.gaming] || 'gaming gear'} + the sound`);
   if (tanswers.subs === 'often') c.push('✓ Real center channel in every system — dialogue stays clear');
   if (tanswers.own === 'streamer') c.push("✓ No streamer sold to you twice");
+  if (thOwned.tv) c.push('✓ Your TV — counted at $0, shown for fit');
+  if (thOwned.sound) c.push('✓ Your sound — counted at $0, shown for fit');
   return c;
 }
 
@@ -423,7 +547,9 @@ function thBackToQuestions() {
   window.scrollTo(0, 0);
 }
 
-function thProductBlock(kind, p, role, tierKey, slot, isSwapped, baseName) {
+function thProductBlock(kind, p, role, tierKey, slot, isSwapped, baseName, owned) {
+  if (owned)
+    return `${cardGallery(kind, p.photo ? [p.photo] : null, p.name)}<div class="th-role">${role}</div><div class="th-name">${esc(p.name)}</div><div class="th-ownedtag">✓ Yours already — $0 in the total. Shown so the fit checks still run.</div><div class="th-meta">${esc(p.meta)}</div>`;
   return `${cardGallery(kind, p.photo ? [p.photo] : null, p.name)}<div class="th-role">${role}</div><div class="th-name">${esc(p.name)}</div><div class="th-price">$${fmt$(p.price)}</div><div class="th-meta">${esc(p.meta)}</div>${thSwapsHTML(tierKey, slot, p, isSwapped, baseName)}`;
 }
 
@@ -444,28 +570,38 @@ function thPanelHTML(tierKey) {
     flags += `<p class="th-flag">You own Sonos: the Arc Ultra swap keeps your whole home in one family.</p>`;
   const snd1 = thEffSound(tierKey, 'sound');
   const snd2 = T.sound2 ? thEffSound(tierKey, 'sound2') : null;
-  const soundHTML = T.sound2
-    ? `${cardGallery('speaker', [snd1.p.photo, snd2.p.photo], thSwapName(snd1.p) + ' + ' + thSwapName(snd2.p))}<div class="th-role">The sound we like</div><div class="th-name">${esc(thSwapName(snd1.p))} + ${esc(thSwapName(snd2.p))}</div><div class="th-price">$${fmt$(snd1.p.price + snd2.p.price)}</div><div class="th-prod"><div class="th-name2">${esc(thSwapName(snd1.p))} — $${fmt$(snd1.p.price)}</div><div class="th-meta">${esc(snd1.p.meta)}</div>${thSwapsHTML(tierKey, 'sound', snd1.p, snd1.swapped, thSwapName(snd1.base))}</div><div class="th-prod"><div class="th-name2">${esc(thSwapName(snd2.p))} — $${fmt$(snd2.p.price)}</div><div class="th-meta">${esc(snd2.p.meta)}</div>${thSwapsHTML(tierKey, 'sound2', snd2.p, snd2.swapped, thSwapName(snd2.base))}</div>`
-    : thProductBlock('speaker', snd1.p, 'The sound we like', tierKey, 'sound', snd1.swapped, thSwapName(snd1.base));
-  const cableLine = tierKey === 'best'
-    ? 'Cables: speaker wire and certified HDMI run about $40 — inside this tier’s reserve.'
-    : `${esc(TH_DATA.cable.name)} — $${fmt$(TH_DATA.cable.price)}, already in the total.`;
+  // Two columns all the way down (patch note 2): TV left, sound right;
+  // a two-product sound setup stacks its cards in the right column.
+  const tvCol = `<div class="th-square">${thProductBlock('tv', tv, tierKey === 'best' ? 'The TV' : 'The TV we like', tierKey, 'tv', tvSwapped, thSwapName(baseTv), thOwned.tv)}${tvNote ? `<p class="th-flag">${esc(tvNote)}</p>` : ''}</div>`;
+  let soundCol;
+  if (snd2) {
+    soundCol = `<div class="th-square">${thProductBlock('speaker', snd1.p, 'The sound we like — the receiver', tierKey, 'sound', snd1.swapped, thSwapName(snd1.base), thOwned.sound)}</div>
+    <div class="th-square">${thProductBlock('speaker', snd2.p, 'The speakers', tierKey, 'sound2', snd2.swapped, thSwapName(snd2.base), thOwned.sound)}</div>
+    ${thOwned.sound ? '' : `<p class="th-coltotal">Sound total: $${fmt$(snd1.p.price + snd2.p.price)}</p>`}`;
+  } else {
+    soundCol = `<div class="th-square">${thProductBlock('speaker', snd1.p, 'The sound we like', tierKey, 'sound', snd1.swapped, thSwapName(snd1.base), thOwned.sound)}</div>`;
+  }
+  const cableLine = thOwned.rest
+    ? 'Cables and extras: yours — nothing added to this total.'
+    : tierKey === 'best'
+      ? 'Cables: speaker wire and certified HDMI run about $40 — inside this tier’s reserve.'
+      : `${esc(TH_DATA.cable.name)} — $${fmt$(TH_DATA.cable.price)}, already in the total.`;
   const swappedNames = [];
-  if (tvSwapped) swappedNames.push(thSwapName(tv));
-  if (snd1.swapped) swappedNames.push(thSwapName(snd1.p));
-  if (snd2 && snd2.swapped) swappedNames.push(thSwapName(snd2.p));
-  const totalLabel = `${esc(T.label)} total${swappedNames.length ? ' with ' + esc(swappedNames.join(' + ')) : ''}${tierKey === 'best' ? '' : ' (cables in)'}: $${fmt$(total)}`;
+  if (tvSwapped && !thOwned.tv) swappedNames.push(thSwapName(tv));
+  if (snd1.swapped && !thOwned.sound) swappedNames.push(thSwapName(snd1.p));
+  if (snd2 && snd2.swapped && !thOwned.sound) swappedNames.push(thSwapName(snd2.p));
+  const totalLabel = `${esc(T.label)} total${swappedNames.length ? ' with ' + esc(swappedNames.join(' + ')) : ''}${tierKey === 'best' || thOwned.rest ? '' : ' (cables in)'}: $${fmt$(total)}`;
   return `<p class="th-tagline">${esc(tagline)}</p>
   ${flags}
-  <div class="th-squares">
-    <div class="th-square">${thProductBlock('tv', tv, tierKey === 'best' ? 'The TV' : 'The TV we like', tierKey, 'tv', tvSwapped, thSwapName(baseTv))}${tvNote ? `<p class="th-flag">${esc(tvNote)}</p>` : ''}</div>
-    <div class="th-square">${soundHTML}</div>
-  </div>
   <div class="th-roomviz">
-    <div class="th-viz"><p class="th-vizcap">Your room from above — where everything goes</p>${thOverhead(T.viz)}</div>
-    <div class="th-viz"><p class="th-vizcap">From the couch — heights &amp; eye line</p>${thCouchview(T.viz)}</div>
+    <div class="th-viz"><p class="th-vizcap">Your room from above — where everything goes</p><img class="th-render" src="${thRenderURL(thAboveFile())}" alt="Your room from above"></div>
+    <div class="th-viz"><p class="th-vizcap">From your seat — the TV wall</p><img class="th-render" src="${thRenderURL(thFrontFile(T.viz))}" alt="The TV wall from your seat"></div>
   </div>
   <p class="factline">${esc(thRoomLine())} ${esc(TH_LIGHT_CLAUSE[tanswers.light] || '')}</p>
+  <div class="th-cols">
+    <div class="th-col">${tvCol}</div>
+    <div class="th-col">${soundCol}</div>
+  </div>
   <div class="th-foot"><div><div class="th-total">${totalLabel}</div><div class="th-cable">${cableLine}</div></div>
   <div class="th-note">${esc(T.note)}</div></div>`;
 }
@@ -473,7 +609,10 @@ function thPanelHTML(tierKey) {
 function thRoomLine() {
   const couch = { straight: 'straight sofa', sectional: 'L-shaped sectional', recliners: 'recliner rows', chairs: 'loveseat + chairs' }[tanswers.couch] || 'your couch';
   const around = { enclosed: 'walls all around', openside: 'open on one side', openbehind: 'open behind the couch', openplan: 'a big open-plan space' }[tanswers.around] || '';
-  return `Your room: ${around}, ${couch} facing the TV wall (from your layout answers).`;
+  const spot = tanswers.couch === 'sectional'
+    ? (tanswers.couchpos === 'corner' ? `, tucked into the ${tanswers.corner === 'corner-right' ? 'right' : 'left'} corner` : ', in the middle of the room')
+    : '';
+  return `Your room: ${around}, ${couch}${spot} facing the TV wall (from your layout answers).`;
 }
 
 function renderThResults() {
@@ -514,93 +653,4 @@ function renderThResults() {
   <div class="th-cont"><button class="cta-big th-alt" onclick="startTheaterBuy()">Start over</button></div>`;
   rEl.innerHTML = h;
   window.scrollTo(0, 0);
-}
-
-// ---- room visuals (ported from the approved design's generators) --------
-function thLay(cfg) {
-  const L = { tvH: 86, couchTop: 330, floorBottom: 330, couchW: 150, couchX: 175, sub: null, rears: null };
-  if (cfg === 'bar51') { L.sub = [82, 300]; L.rears = 'wiredsb'; }
-  if (cfg === 'atmos') { L.tvH = 78; L.sub = [82, 300]; L.rears = 'wireless'; }
-  if (cfg === 'comp51') { L.tvH = 78; L.couchTop = 345; L.floorBottom = 345; L.sub = [82, 315]; L.rears = 'side'; L.comp = true; }
-  return L;
-}
-
-function thOverhead(cfg) {
-  if (tanswers.around === 'openbehind' || tanswers.around === 'openplan') return thOverheadOpen(cfg);
-  const L = thLay(cfg), cx = L.couchX, ct = L.couchTop, cw = L.couchW;
-  const tvW = cfg === 'comp51' ? 226 : 196, barW = tvW - 30;
-  const dist = TH_DIST_LABEL[tanswers.dist] || { small: '≈5–7 ft (small room)', medium: '≈8–9 ft (medium room)', large: '≈10–12 ft (large room)' }[tanswers.roomsize] || '8–9 ft';
-  const P = [];
-  P.push(`<defs><clipPath id="thclip"><rect x="35" y="18" width="430" height="404" rx="10"/></clipPath></defs>`);
-  P.push(`<rect x="35" y="18" width="430" height="404" rx="10" fill="#f7f3ea" stroke="#b8ad97" stroke-width="1.5"/>`);
-  P.push(`<g clip-path="url(#thclip)">`);
-  [46, 70].forEach(r => P.push(`<circle cx="265" cy="262" r="${r}" fill="none" stroke="#c4b59a" stroke-width="1.2" stroke-dasharray="3 5"/>`));
-  P.push(`<polygon points="${250 - tvW / 2 + 12},56 ${250 + tvW / 2 - 12},56 ${250 + tvW / 2 + 40},${ct - 8} ${250 - tvW / 2 - 40},${ct - 8}" fill="#fde68a" opacity="0.28"/>`);
-  if (L.rears === 'wiredsb') { P.push(`<path d="M115,${ct + 63} C 70,${ct + 40} 70,150 210,75" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4"/><path d="M389,${ct + 63} C 434,${ct + 40} 434,150 294,75" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4"/>`); }
-  if (L.rears === 'side') { P.push(`<path d="M146,${ct - 24} C 120,150 180,110 226,86" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4"/><path d="M341,${ct - 24} C 366,150 306,110 260,86" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4"/>`); }
-  P.push('</g>');
-  P.push(`<line x1="35" y1="104" x2="465" y2="104" stroke="#ddd3bd" stroke-width="1.2"/><path d="M35,104 V422 M465,104 V422" stroke="#ddd3bd" stroke-width="1.2"/>`);
-  P.push(`<rect x="${250 - tvW / 2}" y="46" width="${tvW}" height="10" rx="4" fill="#0f172a"/>`);
-  if (!L.comp) P.push(`<rect x="${250 - barW / 2}" y="66" width="${barW}" height="9" rx="4" fill="#334155"/>`);
-  if (cfg === 'atmos') [205, 295].forEach(x => P.push(`<path d="M${x},64 v-14" stroke="#0284c7" stroke-width="2"/><polygon points="${x - 4},52 ${x + 4},52 ${x},44" fill="#0284c7"/><text x="${x + 8}" y="56" font-size="9.5" fill="#0284c7">up</text>`));
-  if (L.comp) {
-    P.push(`<rect x="${250 - tvW / 2 - 26}" y="60" width="22" height="22" rx="3" fill="#7c3aed"/><rect x="${250 + tvW / 2 + 4}" y="60" width="22" height="22" rx="3" fill="#7c3aed"/>`);
-    P.push(`<rect x="239" y="80" width="22" height="16" rx="3" fill="#7c3aed"/>`);
-    P.push(`<rect x="292" y="60" width="64" height="22" rx="3" fill="#e8e2d4" stroke="#b8ad97"/><text x="324" y="74.5" font-size="8" fill="#6b6152" text-anchor="middle">RECEIVER</text>`);
-  }
-  if (L.sub) P.push(`<rect x="${L.sub[0]}" y="${L.sub[1]}" width="34" height="34" rx="5" fill="#7c3aed"/><text x="${L.sub[0] + 17}" y="${L.sub[1] + 21}" font-size="9.5" fill="#fff" text-anchor="middle" font-weight="700">SUB</text>`);
-  if (L.rears === 'wiredsb' || L.rears === 'wireless') {
-    if (L.rears === 'wireless') P.push(`<text x="110" y="${ct + 44}" font-size="16" fill="#94a3b8">∿</text><text x="379" y="${ct + 44}" font-size="16" fill="#94a3b8">∿</text>`);
-    P.push(`<rect x="98" y="${ct + 52}" width="22" height="22" rx="3" fill="#7c3aed"/><rect x="367" y="${ct + 52}" width="22" height="22" rx="3" fill="#7c3aed"/>`);
-  }
-  if (L.rears === 'side') P.push(`<rect x="135" y="${ct - 35}" width="22" height="22" rx="3" fill="#7c3aed"/><rect x="330" y="${ct - 35}" width="22" height="22" rx="3" fill="#7c3aed"/>`);
-  P.push(`<g><rect x="${cx}" y="${ct}" width="${cw}" height="44" rx="9" fill="#dbeafe" stroke="#7ea6d8" stroke-width="1.5"/><rect x="${cx}" y="${ct - 12}" width="${cw}" height="16" rx="7" fill="#c7dbfa"/><rect x="${cx - 14}" y="${ct - 6}" width="16" height="56" rx="7" fill="#c7dbfa"/><rect x="${cx + cw - 2}" y="${ct - 6}" width="16" height="56" rx="7" fill="#c7dbfa"/></g>`);
-  P.push(`<line x1="452" y1="56" x2="452" y2="${ct}" stroke="#b8ad97" stroke-width="1.2" stroke-dasharray="2 4"/><text x="462" y="${(56 + ct) / 2}" font-size="10.5" fill="#6b6152" text-anchor="middle" transform="rotate(-90 462 ${(56 + ct) / 2})">${dist} to the screen</text>`);
-  const legend = TH_DATA.tiers[{ bar51: 'good', atmos: 'better', comp51: 'best' }[cfg]].legend;
-  legend.forEach((s, i) => P.push(`<text x="52" y="${380 + i * 14}" font-size="11" fill="#475569">${esc(s)}</text>`));
-  return `<svg viewBox="0 0 500 440" xmlns="http://www.w3.org/2000/svg" font-family="Verdana, sans-serif">${P.join('')}</svg>`;
-}
-
-function thOverheadOpen(cfg) {
-  const dist = TH_DIST_LABEL[tanswers.dist] || '8–9 ft';
-  const rearY = cfg === 'atmos' ? 332 : 342, rearNote = cfg === 'atmos' ? 'beside the couch · aimed in' : 'beside the couch · angled in';
-  return `<svg viewBox="0 0 500 440" xmlns="http://www.w3.org/2000/svg" font-family="Verdana, sans-serif">
-  <rect x="35" y="18" width="430" height="404" rx="10" fill="#f7f3ea" stroke="#b8ad97" stroke-width="1.5"/>
-  <polygon points="165,56 335,56 372,322 128,322" fill="#fde68a" opacity="0.28"/>
-  <line x1="35" y1="104" x2="465" y2="104" stroke="#ddd3bd" stroke-width="1.2"/>
-  <rect x="152" y="46" width="196" height="10" rx="4" fill="#0f172a"/>
-  <rect x="167" y="66" width="166" height="9" rx="4" fill="#334155"/>
-  <rect x="82" y="300" width="34" height="34" rx="5" fill="#7c3aed"/><text x="99" y="321" font-size="9.5" fill="#fff" text-anchor="middle" font-weight="700">SUB</text>
-  <rect x="96" y="${rearY}" width="22" height="22" rx="3" fill="#7c3aed"/><rect x="382" y="${rearY}" width="22" height="22" rx="3" fill="#7c3aed"/>
-  <path d="M118,${rearY + 11} L168,336" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="4 4"/><path d="M382,${rearY + 11} L332,336" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="4 4"/>
-  <g><rect x="175" y="330" width="150" height="44" rx="9" fill="#dbeafe" stroke="#7ea6d8" stroke-width="1.5"/><rect x="175" y="318" width="150" height="16" rx="7" fill="#c7dbfa"/><rect x="161" y="324" width="16" height="56" rx="7" fill="#c7dbfa"/><rect x="323" y="324" width="16" height="56" rx="7" fill="#c7dbfa"/></g>
-  <line x1="452" y1="56" x2="452" y2="330" stroke="#b8ad97" stroke-width="1.2" stroke-dasharray="2 4"/><text x="462" y="193" font-size="10.5" fill="#6b6152" text-anchor="middle" transform="rotate(-90 462 193)">${dist} to the screen</text>
-  <text x="52" y="392" font-size="11.5" fill="#475569">Surrounds stand ${rearNote} — no wall needed.</text>
-  <text x="52" y="410" font-size="11.5" fill="#475569">An open plan's rears swing to the sides; that's the honest layout here.</text>
-</svg>`;
-}
-
-function thCouchview(cfg) {
-  const L = thLay(cfg);
-  const tvW = cfg === 'comp51' ? 226 : 196, barW = tvW - 30, barH = { bar51: 13, atmos: 15, comp51: 0 }[cfg];
-  const wallNote = tanswers.placement === 'fireplace' ? 'Panel rides high over the fireplace — tilt mount planned'
-    : (tanswers.placement === 'stand' || tanswers.placement === 'renter') ? 'Panel on its stand — eye level sitting down'
-    : 'Panel flat to the wall — eye level sitting down';
-  const P = [];
-  P.push(`<text x="250" y="46" font-size="12" fill="#475569" text-anchor="middle">${wallNote}</text>`);
-  P.push(`<rect x="90" y="60" width="330" height="300" fill="#f7f3ea" stroke="#b8ad97" stroke-width="1.5"/>`);
-  P.push(`<polygon points="90,360 420,360 470,428 40,428" fill="#efe9dc"/>`);
-  P.push(`<rect x="${250 - tvW / 2}" y="84" width="${tvW}" height="${L.tvH}" rx="5" fill="#0f172a"/>`);
-  P.push(`<rect x="${250 - tvW / 2 + 8}" y="92" width="${tvW - 16}" height="${L.tvH - 16}" fill="#0e3a5c"/>`);
-  if (!L.comp) P.push(`<rect x="${250 - barW / 2}" y="${84 + L.tvH + 12}" width="${barW}" height="${barH}" rx="5" fill="#334155"/>`);
-  if (L.comp) {
-    P.push(`<rect x="${250 - tvW / 2 - 34}" y="158" width="22" height="44" rx="3" fill="#7c3aed"/><rect x="${250 + tvW / 2 + 12}" y="158" width="22" height="44" rx="3" fill="#7c3aed"/>`);
-    P.push(`<rect x="239" y="${84 + L.tvH + 10}" width="22" height="15" rx="3" fill="#7c3aed"/>`);
-    P.push(`<rect x="316" y="${84 + L.tvH + 8}" width="60" height="20" rx="3" fill="#e8e2d4" stroke="#b8ad97"/>`);
-    P.push(`<circle cx="150" cy="352" r="15" fill="#7c3aed"/><text x="150" y="356" font-size="8.5" fill="#fff" text-anchor="middle" font-weight="700">SUB</text>`);
-  }
-  [196, 304].forEach(x => P.push(`<path d="M${x - 10},${84 + L.tvH + barH + 16} q10,8 20,0" fill="none" stroke="#94a3b8" stroke-width="1.6"/>`));
-  P.push(`<line x1="250" y1="366" x2="250" y2="${84 + L.tvH / 2}" stroke="#b8ad97" stroke-width="1.2" stroke-dasharray="2 4"/><text x="258" y="240" font-size="10" fill="#6b6152">eye height</text>`);
-  P.push(`<g><rect x="150" y="372" width="200" height="34" rx="12" fill="#dbeafe" stroke="#7ea6d8" stroke-width="1.5"/><circle cx="205" cy="366" r="11" fill="#93c5fd" stroke="#7ea6d8"/><circle cx="295" cy="366" r="11" fill="#93c5fd" stroke="#7ea6d8"/></g>`);
-  return `<svg viewBox="0 0 500 440" xmlns="http://www.w3.org/2000/svg" font-family="Verdana, sans-serif">${P.join('')}</svg>`;
 }

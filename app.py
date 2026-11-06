@@ -2089,12 +2089,12 @@ def _decoded_image_response(name):
 def asset(name):
     if name not in ASSET_FILES and not (
             (name.startswith("logos/") or name.startswith("photos/")
-             or name.startswith("icons-v2/"))
+             or name.startswith("icons-v2/") or name.startswith("renders/"))
             and ".." not in name
             and name.rsplit(".", 1)[-1].lower()
             in ("png", "svg", "jpg", "jpeg", "webp")):
         return ("Not found", 404)
-    if name.startswith(("icons-v2/", "photos/", "logos/")):
+    if name.startswith(("icons-v2/", "photos/", "logos/", "renders/")):
         fixed = _decoded_image_response(name)
         if fixed is not None:
             return fixed
