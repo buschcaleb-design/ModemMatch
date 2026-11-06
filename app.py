@@ -1897,7 +1897,8 @@ ASSET_FILES = {"site.css", "app-core.js", "app-computers.js",
 @app.route("/assets/<path:name>")
 def asset(name):
     if name not in ASSET_FILES and not (
-            (name.startswith("logos/") or name.startswith("photos/"))
+            (name.startswith("logos/") or name.startswith("photos/")
+             or name.startswith("icons-v2/"))
             and ".." not in name
             and name.rsplit(".", 1)[-1].lower()
             in ("png", "svg", "jpg", "jpeg", "webp")):

@@ -378,6 +378,22 @@
     .sortrow.bigs:has(> :nth-child(6)) { grid-template-columns: repeat(6, 1fr); }
     .sort.bigbtn .ric { width: 4.3em; height: 4.3em; }
   }
+  /* Even button spacing (Caleb, 2026-11-03): a button bar always spreads
+     its buttons across the bar's full width — the column count follows
+     the button count, and a lone last-row button spans the row instead
+     of sitting grouped in a corner. */
+  @media (max-width: 759px) {
+    .sortrow.bigs > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+  }
+  @media (min-width: 760px) {
+    .sortrow.bigs:has(> :nth-child(2)):not(:has(> :nth-child(3))) { grid-template-columns: repeat(2, 1fr); }
+    .sortrow.bigs:has(> :nth-child(4)):not(:has(> :nth-child(5))) { grid-template-columns: repeat(4, 1fr); }
+  }
+  @media (min-width: 1200px) {
+    .sortrow.bigs:has(> :nth-child(2)):not(:has(> :nth-child(3))) { grid-template-columns: repeat(2, 1fr); }
+    .sortrow.bigs:has(> :nth-child(5)):not(:has(> :nth-child(6))) { grid-template-columns: repeat(5, 1fr); }
+  }
+  .opt-grid .opt:last-child:nth-child(odd) { grid-column: 1 / -1; }
   /* Icons pop on bigger screens (Caleb, Build .39): on desktop the drawn
      icons outrank the words next to them. */
   .big-ico .ric { width: 2.7em; height: 2.7em; display: block; margin: 0; }
@@ -531,8 +547,12 @@
 
   /* Colored answer tiles: strong-color main block (glyph + display-font
      title), description centered underneath in plain text. */
-  .tile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
-    gap: 14px; margin-bottom: 8px; }
+  /* Even spacing (Caleb, 2026-11-03): tile rows are flex so every row of
+     tiles spreads across the full width — a grid's empty tracks used to
+     strand two tiles grouped at the left when a wide tile shared the grid. */
+  .tile-grid { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 8px; }
+  .tile-grid .tile { flex: 1 1 150px; }
+  .tile-grid .tile.wide { flex-basis: 100%; }
   .tile { background: none; border: none; padding: 0; margin: 0; cursor: pointer;
     font-family: inherit; display: flex; flex-direction: column; width: 100%;
     text-align: center; -webkit-tap-highlight-color: transparent; }
@@ -654,3 +674,9 @@
   #ownslot .ownit { margin: 0 0 14px; }
   #ownslot .owntagline { background: var(--panel); border-left: 3px solid #16a34a;
     border-radius: 8px; padding: 10px 14px; margin: 0 0 14px; }
+
+  /* v2 hand-inked icons (2026-11-03): img sizing beside the svg rules.
+     Buttons only (Caleb's correction) — product pictures keep their
+     original art/photos, so no .pimg img rules exist here. */
+  .tile-ic img.v2ic { width: 36px; height: 36px; display: block; }
+  .tile-ic.lg img.v2ic { width: 52px; height: 52px; }

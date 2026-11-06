@@ -28,13 +28,13 @@ function renderFlowPick() {
     <div class="quiz-stage" data-tint="0">
     <p class="q">What are you buying?</p>
     <div class="tile-grid">
-    ${tileHTML({ i: 0, lg: true, icon: rico('globe'), title: 'Internet', desc: 'Modems, routers & mesh — ditch the ISP rental fee', onclick: "routeFlow('internet')" })}
-    ${tileHTML({ i: 1, lg: true, icon: rico('laptop'), title: 'PC', desc: "Laptops & desktops matched to how you'll actually use them", onclick: "routeFlow('pc')" })}
-    ${tileHTML({ i: 2, lg: true, icon: rico('tv'), title: 'Home Theater', desc: 'TVs & sound — matched to your room and your couch', onclick: "routeFlow('theater')" })}
+    ${tileHTML({ i: 0, lg: true, icon: bico('globe'), title: 'Internet', desc: 'Modems, routers & mesh — ditch the ISP rental fee', onclick: "routeFlow('internet')" })}
+    ${tileHTML({ i: 1, lg: true, icon: bico('laptop'), title: 'PC', desc: "Laptops & desktops matched to how you'll actually use them", onclick: "routeFlow('pc')" })}
+    ${tileHTML({ i: 2, lg: true, icon: bico('tv'), title: 'Home Theater', desc: 'TVs & sound — matched to your room and your couch', onclick: "routeFlow('theater')" })}
     </div>
     <p class="orline">— or —</p>
     <div class="tile-grid">
-    ${tileHTML({ i: 3, lg: true, icon: rico('search'), title: 'Know your model?', desc: 'Type the name — or the model number off the box — and jump straight to it', onclick: 'startModelLookup()' })}
+    ${tileHTML({ i: 3, lg: true, icon: bico('search'), title: 'Know your model?', desc: 'Type the name — or the model number off the box — and jump straight to it', onclick: 'startModelLookup()' })}
     </div>
     </div>`;
   window.scrollTo(0, 0);
@@ -216,16 +216,26 @@ function rico(name) {
   return `<svg class="ric" viewBox="0 0 48 48" aria-hidden="true"><g ${G}>${arts[name] || ''}</g></svg>`;
 }
 
+// Button icons (Caleb, 2026-11-03 correction): the v2 hand-inked set lives
+// on BUTTONS ONLY — tiles, tabs, chips and action buttons resolve through
+// bico(); rico() above keeps the original drawn art for non-button spots
+// (results headings), and cardArt()/photos own the product pictures.
+function bico(name) {
+  const V2 = { pig: 'piggy-bank', shield: 'shield', tag: 'price-tag', bookmark: 'bookmark', plug: 'plug-power', signal: 'signal-wifi', globe: 'globe', laptop: 'laptop', tv: 'tv', search: 'search', target: 'target', gamepad: 'game-controller', chip: 'chip-ai' };
+  if (V2[name]) return `<img class="ric" src="assets/icons-v2/${V2[name]}.png" alt="">`;
+  return rico(name);
+}
+
 function sortButtonsHTML(extra) {
   return `<div class="sortrow bigs">
-    <button class="sort bigbtn${sortMode === 'value' ? ' on' : ''}" onclick="setSort('value')">${rico('pig')}Best value</button>
-    <button class="sort bigbtn${sortMode === 'stability' ? ' on' : ''}" onclick="setSort('stability')">${rico('shield')}Most reliable</button>
-    <button class="sort bigbtn${sortMode === 'cheapest' ? ' on' : ''}" onclick="setSort('cheapest')">${rico('tag')}Cheapest</button>
+    <button class="sort bigbtn${sortMode === 'value' ? ' on' : ''}" onclick="setSort('value')">${bico('pig')}Best value</button>
+    <button class="sort bigbtn${sortMode === 'stability' ? ' on' : ''}" onclick="setSort('stability')">${bico('shield')}Most reliable</button>
+    <button class="sort bigbtn${sortMode === 'cheapest' ? ' on' : ''}" onclick="setSort('cheapest')">${bico('tag')}Cheapest</button>
     <button class="sort bigbtn" data-savedbtn="1" onclick="openMySetup()">${savedBtnHTML()}</button>${extra || ''}
   </div>`;
 }
 function savedBtnHTML() {
-  return `${rico('bookmark')}Saved gear${savedGear.length ? ` (${savedGear.length})` : ''}`;
+  return `${bico('bookmark')}Saved gear${savedGear.length ? ` (${savedGear.length})` : ''}`;
 }
 
 function bestCombo() {
@@ -250,8 +260,8 @@ function comboCardHTML() {
 
 function tabButtonsHTML(modems, routers) {
   return `
-    <button class="sort bigbtn${activeTab === 'modems' ? ' on' : ''}" onclick="setTab('modems')">${rico('plug')}Modems (${modems.length})</button>
-    <button class="sort bigbtn${activeTab === 'routers' ? ' on' : ''}" onclick="setTab('routers')">${rico('signal')}Routers (${routers.length})</button>`;
+    <button class="sort bigbtn${activeTab === 'modems' ? ' on' : ''}" onclick="setTab('modems')">${bico('plug')}Modems (${modems.length})</button>
+    <button class="sort bigbtn${activeTab === 'routers' ? ' on' : ''}" onclick="setTab('routers')">${bico('signal')}Routers (${routers.length})</button>`;
 }
 
 function listHTML(picks) {
@@ -402,7 +412,7 @@ function saveBtnLabel(id) {
   return savedGear.includes(id) ? '✓ Saved — tap to remove' : 'Save this one';
 }
 function saveBtnHTML(id) {
-  return savedGear.includes(id) ? saveBtnLabel(id) : `${rico('bookmark')}Save this one`;
+  return savedGear.includes(id) ? saveBtnLabel(id) : `${bico('bookmark')}Save this one`;
 }
 function toggleSaveGear(btn, id) {
   const i = savedGear.indexOf(id);
@@ -652,7 +662,7 @@ function renderModelCard(m, origin) {
 // The first item found on each shelf — gaming laptop, gaming desktop,
 // everyday laptop, router, mesh, modem — becomes a slide; any shelf
 // the search can't fill simply doesn't appear.
-document.querySelectorAll('[data-navicon]').forEach(el => { el.innerHTML = rico(el.dataset.navicon); });
+document.querySelectorAll('[data-navicon]').forEach(el => { el.innerHTML = bico(el.dataset.navicon); });
 const SHOWCASE_QUERIES = ['asus', 'lenovo', 'hp', 'apple', 'netgear', 'tp-link', 'motorola', 'rog', 'legion'];
 let showSlides = [], showIdx = 0, showTimer = null;
 function showLabelFor(m) {

@@ -147,7 +147,7 @@ function pairChooseMode(m) {
   renderPairing();
 }
 function pairChoiceHTML() {
-  const both = pairSvg(piMon(3, 8, 17, 13, '#0284c7') + `<path d="M24 30 h17 v6 H24 Z M28 30 v-4 M37 30 v-4" stroke="#7c3aed"/>`);
+  const both = '<img class="v2ic" src="assets/icons-v2/multi-monitor.png" alt="">';
   return `<div class="quiz-stage" data-tint="1"><p class="q">What are we pairing today?</p>
     <div class="tile-grid">
     ${pairOptHTML(PAIR_TAB_ICONS.screens, 'Screens', 'Find screens this machine can actually drive', `pairChooseMode('screens')`)}
@@ -293,37 +293,37 @@ function piSpark(cx, cy, c, r) {
   return `<path d="M${cx} ${cy - r} v${2 * r} M${cx - r} ${cy} h${2 * r}" stroke="${c}"/>`;
 }
 const PAIR_ICONS = {
-  'count:laptop:0': () => pairSvg(piLap(10, 11, 24, '#10304f') + piSpark(36, 10, '#e84393', 4)),
-  'count:laptop:1': () => pairSvg(piLap(3, 20, 16, '#10304f') + piMon(23, 9, 18, 13, '#0284c7')),
-  'count:laptop:2': () => pairSvg(piMon(4, 7, 16, 12, '#0284c7') + piMon(24, 7, 16, 12, '#7c3aed') + piLap(14, 27, 16, '#10304f')),
-  'count:laptop:3': () => pairSvg(piMon(2, 7, 12, 9, '#0284c7') + piMon(16, 7, 12, 9, '#7c3aed') + piMon(30, 7, 12, 9, '#db2777') + piLap(14, 26, 16, '#10304f')),
-  'count:desktop:1': () => pairSvg(piMon(11, 10, 22, 16, '#0284c7') + piSpark(37, 9, '#e84393', 4)),
-  'count:desktop:2': () => pairSvg(piMon(3, 11, 17, 13, '#0284c7') + piMon(24, 11, 17, 13, '#7c3aed')),
-  'count:desktop:3': () => pairSvg(piMon(2, 8, 12, 9, '#0284c7') + piMon(16, 8, 12, 9, '#7c3aed') + piMon(30, 8, 12, 9, '#db2777') + piMon(16, 25, 12, 9, '#0d9488')),
-  'res:1080p': () => pairSvg(piDots(3, 2, '#0284c7')),
-  'res:1440p': () => pairSvg(piDots(4, 3, '#7c3aed')),
-  'res:4k': () => pairSvg(piDots(5, 4, '#db2777')),
-  'res:unsure': () => pairSvg(`<path d="M8 8 h28 v22 H8 Z" stroke="#0d9488"/><path d="M17 15 q5 -6 10 0 q-2.4 3.4 -5 4.6 v3" stroke="#0d9488"/><circle cx="22" cy="26.4" r="1.5" fill="#0d9488" stroke="none"/>`),
-  'have:yes': () => pairSvg(piMon(6, 9, 24, 17, '#10304f') + `<circle cx="33" cy="29" r="7.4" fill="#dcfce7" stroke="#16a34a"/><path d="M29.8 29 l2.4 2.5 4 -4.6" stroke="#16a34a"/>`),
-  'have:no': () => pairSvg(piMon(9, 10, 22, 16, '#0284c7') + piSpark(36, 11, '#e84393', 4.4) + piSpark(8, 33, '#f59e0b', 3.4)),
-  'chassis:plastic': () => pairSvg(piLap(10, 12, 24, '#78716c') + `<circle cx="16" cy="18" r="1.4" fill="#78716c" stroke="none"/><circle cx="27" cy="21" r="1.4" fill="#78716c" stroke="none"/>`),
-  'chassis:aluminum': () => pairSvg(piLap(10, 12, 24, '#64748b') + `<path d="M13 24 l18 -9" stroke="#94a3b8" stroke-width="2"/>`),
-  'size:all': () => pairSvg(piMon(2, 13, 12, 9, '#0284c7') + piMon(16, 13, 12, 9, '#7c3aed') + piMon(30, 13, 12, 9, '#db2777')),
-  'size:small': () => pairSvg(piMon(14, 14, 16, 12, '#0284c7')),
-  'size:office': () => pairSvg(piMon(10, 10, 24, 17, '#0d9488')),
-  'size:large': () => pairSvg(piMon(5, 8, 34, 24, '#7c3aed')),
-  'size:widescreen': () => pairSvg(piMon(3, 14, 38, 14, '#db2777')),
-  'quality:all': () => pairSvg(`<path d="M22 6 l2.6 9.4 L34 18 l-9.4 2.6 L22 30 l-2.6 -9.4 L10 18 l9.4 -2.6 Z" stroke="#b0568a"/>`),
-  'quality:everyday': () => pairSvg(`<circle cx="22" cy="22" r="7.4" stroke="#d97706"/><path d="M22 8 v4 M22 32 v4 M8 22 h4 M32 22 h4 M12 12 l2.8 2.8 M32 12 l-2.8 2.8 M12 32 l2.8 -2.8 M32 32 l-2.8 -2.8" stroke="#d97706"/>`),
-  'quality:sharp': () => pairSvg(`<path d="M5 22 q17 -14 34 0 q-17 14 -34 0 Z" stroke="#0284c7"/><circle cx="22" cy="22" r="5.6" stroke="#0284c7"/><circle cx="22" cy="22" r="1.8" fill="#0284c7" stroke="none"/>`),
-  'quality:color': () => pairSvg(`<path d="M22 6 q9 12.4 9 20 a9 9 0 1 1 -18 0 q0 -7.6 9 -20 Z" stroke="#db2777"/><path d="M17.4 27 a4.8 4.8 0 0 0 3.4 5.4" stroke="#db2777"/>`),
-  'quality:premium': () => pairSvg(`<path d="M13 12 h18 l6 9 -15 16 L7 21 Z M7 21 h30 M22 37 L16.4 21 l4 -9 M22 37 l5.6 -16 -4 -9 M16.4 21 l5.6 -9 5.6 9" stroke="#7c3aed" stroke-width="2.3"/>`),
-  'quality:unspecified': () => pairSvg(`<path d="M15 13 q7 -7 13 0 q-3 4.4 -6.4 5.8 v3.6" stroke="#64748b"/><circle cx="21.6" cy="29" r="1.7" fill="#64748b" stroke="none"/>`),
-  'tech:all': () => pairSvg(`<path d="M9 9 h24 v15 H9 Z M13 28 h24 v-4 M33 24 v4" stroke="#64748b"/><path d="M13 33 h24 v-5" stroke="#94a3b8"/>`),
-  'tech:IPS': () => pairSvg(piMon(8, 10, 26, 18, '#0284c7') + `<circle cx="33" cy="10" r="3.6" stroke="#d97706"/>`),
-  'tech:OLED': () => pairSvg(`<path d="M8 9 h28 v22 H8 Z" fill="#10304f" stroke="#10304f"/><path d="M18 15 l1.8 4.6 4.9.4 -3.7 3.2 1.2 4.8 -4.2 -2.6 -4.2 2.6 1.2 -4.8 -3.7 -3.2 4.9 -.4 Z" fill="#ffd166" stroke="none"/>`),
-  'tech:VA': () => pairSvg(`<path d="M8 9 h28 v22 H8 Z" stroke="#10304f"/><path d="M8 9 h14 v22 H8 Z" fill="#10304f" stroke="none" fill-opacity=".55"/>`),
-  'tech:Mini-LED': () => pairSvg(`<path d="M8 8 h28 v24 H8 Z" stroke="#0d9488"/>` + [0, 1, 2].map(i => [0, 1, 2].map(j => `<circle cx="${14.6 + i * 7.4}" cy="${13.6 + j * 6.4}" r="1.5" fill="#0d9488" stroke="none"/>`).join('')).join(''))
+  'count:laptop:0': () => '<img class="v2ic" src="assets/icons-v2/laptop.png" alt="">',
+  'count:laptop:1': () => '<img class="v2ic" src="assets/icons-v2/laptop-plus-monitor.png" alt="">',
+  'count:laptop:2': () => '<img class="v2ic" src="assets/icons-v2/multi-monitor.png" alt="">',
+  'count:laptop:3': () => '<img class="v2ic" src="assets/icons-v2/multi-monitor.png" alt="">',
+  'count:desktop:1': () => '<img class="v2ic" src="assets/icons-v2/monitor.png" alt="">',
+  'count:desktop:2': () => '<img class="v2ic" src="assets/icons-v2/multi-monitor.png" alt="">',
+  'count:desktop:3': () => '<img class="v2ic" src="assets/icons-v2/multi-monitor.png" alt="">',
+  'res:1080p': () => '<img class="v2ic" src="assets/icons-v2/pixel-grid-1080.png" alt="">',
+  'res:1440p': () => '<img class="v2ic" src="assets/icons-v2/pixel-grid-1440.png" alt="">',
+  'res:4k': () => '<img class="v2ic" src="assets/icons-v2/pixel-grid-4k.png" alt="">',
+  'res:unsure': () => '<img class="v2ic" src="assets/icons-v2/monitor-question.png" alt="">',
+  'have:yes': () => '<img class="v2ic" src="assets/icons-v2/monitor-check.png" alt="">',
+  'have:no': () => '<img class="v2ic" src="assets/icons-v2/monitor.png" alt="">',
+  'chassis:plastic': () => '<img class="v2ic" src="assets/icons-v2/material-swatch.png" alt="">',
+  'chassis:aluminum': () => '<img class="v2ic" src="assets/icons-v2/material-swatch.png" alt="">',
+  'size:all': () => '<img class="v2ic" src="assets/icons-v2/multi-monitor.png" alt="">',
+  'size:small': () => '<img class="v2ic" src="assets/icons-v2/monitor-small.png" alt="">',
+  'size:office': () => '<img class="v2ic" src="assets/icons-v2/monitor.png" alt="">',
+  'size:large': () => '<img class="v2ic" src="assets/icons-v2/monitor-wide.png" alt="">',
+  'size:widescreen': () => '<img class="v2ic" src="assets/icons-v2/monitor-wide.png" alt="">',
+  'quality:all': () => '<img class="v2ic" src="assets/icons-v2/sparkle-any.png" alt="">',
+  'quality:everyday': () => '<img class="v2ic" src="assets/icons-v2/sun-bright.png" alt="">',
+  'quality:sharp': () => '<img class="v2ic" src="assets/icons-v2/diamond-sharp.png" alt="">',
+  'quality:color': () => '<img class="v2ic" src="assets/icons-v2/droplet-color.png" alt="">',
+  'quality:premium': () => '<img class="v2ic" src="assets/icons-v2/star-premium.png" alt="">',
+  'quality:unspecified': () => '<img class="v2ic" src="assets/icons-v2/help-question-outline.png" alt="">',
+  'tech:all': () => '<img class="v2ic" src="assets/icons-v2/layers-stack.png" alt="">',
+  'tech:IPS': () => '<img class="v2ic" src="assets/icons-v2/monitor.png" alt="">',
+  'tech:OLED': () => '<img class="v2ic" src="assets/icons-v2/monitor.png" alt="">',
+  'tech:VA': () => '<img class="v2ic" src="assets/icons-v2/monitor.png" alt="">',
+  'tech:Mini-LED': () => '<img class="v2ic" src="assets/icons-v2/monitor.png" alt="">'
 };
 function pairIconFor(kind, v) {
   const f = PAIR_ICONS[kind + ':' + v];
@@ -343,8 +343,8 @@ function pairOptHTML(icon, t, s, onclick, cls) {
     wide: !!(cls && cls.includes('wide')), on: !!(cls && cls.includes('on')) });
 }
 const PAIR_TAB_ICONS = {
-  screens: pairSvg(piMon(10, 9, 24, 18, '#0284c7') + piSpark(37, 9, '#e84393', 4)),
-  dock: pairSvg(`<path d="M7 27 h30 v9 a2 2 0 0 1 -2 2 H9 a2 2 0 0 1 -2 -2 Z" stroke="#7c3aed"/><path d="M15 27 v-6 M29 27 v-6 M15 21 h0 M12 15 q3 -3 6 0 M26 15 q3 -3 6 0" stroke="#7c3aed"/><circle cx="33" cy="32" r="1.7" fill="#e84393" stroke="none"/>`)
+  screens: '<img class="v2ic" src="assets/icons-v2/monitor.png" alt="">',
+  dock: '<img class="v2ic" src="assets/icons-v2/dock-station.png" alt="">'
 };
 
 function pairCountOpts() {
@@ -640,7 +640,7 @@ function updateSetupBtn() {
   const b = document.getElementById('setupbtn');
   if (!b) return;
   const n = setupStore.setups.length + (typeof savedGear !== 'undefined' ? savedGear.length : 0);
-  b.innerHTML = `${rico('bookmark')}Saved stuff${n ? ` (${n})` : ''}`;
+  b.innerHTML = `${bico('bookmark')}Saved stuff${n ? ` (${n})` : ''}`;
 }
 function newSetupId() {
   return 's' + Date.now().toString(36) + Math.floor(Math.random() * 1e5).toString(36);
