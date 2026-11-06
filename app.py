@@ -312,17 +312,17 @@ def api_recommend():
 
     fee = isp["rental_fee_monthly"]
 
-    # Rank, dedupe, keep up to 10 (frontend shows 5, "more" reveals the rest)
-    seen, ranked = set(), []
+    # Rank and dedupe (frontend shows 5, "more" reveals the rest; cap 10)
+    seen, ranked_all = set(), []
     for e, why, score in sorted(picks, key=lambda p: -p[2]):
         if e["id"] not in seen:
             seen.add(e["id"])
             life_mo = 24 if e["type"] == "combo" else 36
-            ranked.append({"id": e["id"], "name": e["name"],
+            ranked_all.append({"id": e["id"], "name": e["name"],
                            "type": e["type"], "price": e["price"],
                            "performance": e.get("performance", 5),
                            "stability": e.get("stability", 5),
-                           "saves_over_life": fee * life_mo - e["price"],
+                           "saves_over_life": round(fee * life_mo - e["price"], 2),
                            "life_years": life_mo // 12,
                            "blurb": e.get("blurb", ""), "why": why,
                            "images": e.get("images") or [],
@@ -331,8 +331,25 @@ def api_recommend():
                            "brand": e.get("brand"),
                            "price_source": e.get("price_source"),
                            "affiliate_url": ""})
-        if len(ranked) == 10:
-            break
+    if setup == "separate":
+        # A separate modem + router answer must never crowd one side out:
+        # modems outscore routers, so a flat top-10 can return ten modems
+        # and leave the Routers tab at 0. Cap each side at 5 in ranked
+        # order, then backfill any leftover slots from what was held.
+        ranked, held = [], []
+        side_count = {"modem": 0, "router": 0}
+        for r in ranked_all:
+            side = ("modem" if r["type"] == "modem" else
+                    "router" if r["type"] in ("router", "mesh") else None)
+            if side and side_count[side] >= 5:
+                held.append(r)
+            else:
+                if side:
+                    side_count[side] += 1
+                ranked.append(r)
+        ranked = (ranked + held)[:10]
+    else:
+        ranked = ranked_all[:10]
 
     # Savings math — cost reflects what they'd actually buy
     if setup == "separate":
@@ -1119,8 +1136,14 @@ def api_recommend_desktops():
             bullets.append(f"Runs {d['platform']} — the system you asked for.")
         if case != "any" and case_label:
             if d["case_bucket"] == case:
-                bullets.append(f"{d['form_factor_label']} case — the size "
-                               f"you picked.")
+                if case == "tower" and d["form_factor"] == "mini-tower":
+                    bullets.append(
+                        "Mini tower case — the compact end of the tower "
+                        "range you picked (that choice covers mini and "
+                        "mid towers).")
+                else:
+                    bullets.append(f"{d['form_factor_label']} case — the size "
+                                   f"you picked.")
             else:
                 bullets.append(
                     f"{d['form_factor_label']} case — outside the "

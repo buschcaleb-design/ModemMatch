@@ -220,9 +220,16 @@ function rico(name) {
 // on BUTTONS ONLY — tiles, tabs, chips and action buttons resolve through
 // bico(); rico() above keeps the original drawn art for non-button spots
 // (results headings), and cardArt()/photos own the product pictures.
+// Money renders trimmed to cents, never a raw float (a savings figure
+// once printed as $117.05000000000001).
+function fmt$(n) {
+  const v = Math.round(Number(n) * 100) / 100;
+  return Number.isInteger(v) ? v.toLocaleString()
+    : v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 function bico(name) {
   const V2 = { pig: 'piggy-bank', shield: 'shield', tag: 'price-tag', bookmark: 'bookmark', plug: 'plug-power', signal: 'signal-wifi', globe: 'globe', laptop: 'laptop', tv: 'tv', search: 'search', target: 'target', gamepad: 'game-controller', chip: 'chip-ai' };
-  if (V2[name]) return `<img class="ric" src="assets/icons-v2/${V2[name]}.png" alt="">`;
+  if (V2[name]) return `<img class="ric" src="/assets/icons-v2/${V2[name]}.png" alt="">`;
   return rico(name);
 }
 
@@ -250,11 +257,11 @@ function comboCardHTML() {
   const { m, rt } = bestCombo();
   if (!m || !rt) return '';
   const total = m.price + rt.price;
-  const saveBit = meta.fee > 0 ? ` <span class="permo">— saves you $${meta.fee * 36 - total} over 3 years</span>` : '';
+  const saveBit = meta.fee > 0 ? ` <span class="permo">— saves you $${fmt$(meta.fee * 36 - total)} over 3 years</span>` : '';
   const kind = sortMode === 'cheapest' ? 'cheapest' : sortMode === 'stability' ? 'most reliable' : 'highest-value';
   return `<div class="card combo breakout"><span class="rank">⭐ OUR COMBO PICK</span>
     <h3>${m.name} + ${rt.name}</h3>
-    <div class="price">$${total}${saveBit}</div>
+    <div class="price">$${fmt$(total)}${saveBit}</div>
     <p class="why">Our ${kind} modem paired with our ${kind} router for your home. Buy both, ditch the rental, done.</p></div>`;
 }
 
@@ -265,6 +272,8 @@ function tabButtonsHTML(modems, routers) {
 }
 
 function listHTML(picks) {
+  if (!picks.length)
+    return `<div class="note">Nothing in this category matched your answers — try the other tab, or start over with a few different answers.</div>`;
   const shown = showAll ? picks : picks.slice(0, 6);
   let h = '<div class="picks-grid breakout">';
   shown.forEach((p, i) => { h += cardHTML(p, i, i === 0); });
@@ -286,8 +295,13 @@ function cmpColumns(list) {
   const cols = [{ p: list[0], label: '⭐ OUR PICK', cls: 'ourpick' }];
   if (list[1]) cols.push({ p: list[1], label: 'ALSO GREAT', cls: 'alsogreat' });
   if (list.length > 2) {
+    // A BUDGET PICK must actually be the budget move — cheaper than OUR
+    // PICK. (Before this check, the cheapest of the remaining picks could
+    // still cost more than the top pick and wear the BUDGET badge.)
     let budget = null;
-    list.slice(2).forEach(p => { if (!budget || p.price < budget.price) budget = p; });
+    list.slice(2).forEach(p => {
+      if (p.price < list[0].price && (!budget || p.price < budget.price)) budget = p;
+    });
     if (budget) cols.push({ p: budget, label: 'BUDGET PICK', cls: 'budget' });
   }
   return cols;
@@ -307,14 +321,14 @@ function cmpTableHTML(cols, rows, head) {
 function gearCmpRows(cols) {
   const kindOf = p => p.type.includes('mesh') ? 'mesh' : p.type.includes('router') ? 'router' : 'modem';
   const saveLine = p => p.saves_over_life > 0
-    ? `saves you $${p.saves_over_life} over ${p.life_years} years`
+    ? `saves you $${fmt$(p.saves_over_life)} over ${p.life_years} years`
     : 'WiFi upgrade — no rental fee on your plan';
   return [
     { label: 'Photo', vals: cols.map(c => cardGallery(kindOf(c.p), c.p.images, c.p.name)) },
-    { label: 'Price', vals: cols.map(c => `<span class="price">$${c.p.price}</span> <span class="permo">— ${saveLine(c.p)}</span>${c.p.price_source ? `<div class="permo">Price via ${esc(c.p.price_source)}, checked Oct 2026</div>` : ''}`) },
+    { label: 'Price', vals: cols.map(c => `<span class="price">$${fmt$(c.p.price)}</span> <span class="permo">— ${saveLine(c.p)}</span>${c.p.price_source ? `<div class="permo">Price via ${esc(c.p.price_source)}, checked Oct 2026</div>` : ''}`) },
     { label: 'Brand', vals: cols.map(c => c.p.brand ? esc(c.p.brand) : '') },
-    { label: 'Rating', vals: cols.map(c => `Performance ${c.p.performance} / 10`) },
-    { label: 'Reliability', vals: cols.map(c => `Stability ${c.p.stability} / 10`) },
+    { label: 'Rating', vals: cols.map(c => `${c.p.performance} / 10`) },
+    { label: 'Reliability', vals: cols.map(c => `${c.p.stability} / 10`) },
     { label: 'Wi-Fi', vals: cols.map(c => c.p.wifi ? esc(c.p.wifi) : '') },
     { label: 'DOCSIS', vals: cols.map(c => c.p.docsis || '') },
     { label: 'Top speed', vals: cols.map(c => c.p.max_speed_mbps ? Number(c.p.max_speed_mbps).toLocaleString() + ' Mbps' : '') },
@@ -323,6 +337,8 @@ function gearCmpRows(cols) {
   ];
 }
 function gearResultsHTML(list) {
+  if (!list.length)
+    return `<div class="note">Nothing in this category matched your answers — try the other tab, or start over with a few different answers.</div>`;
   if (list.length < 2) return listHTML(list);
   const cols = cmpColumns(list);
   const colIds = new Set(cols.map(c => c.p.id));
@@ -429,7 +445,7 @@ function toggleSaveGear(btn, id) {
 
 function cardHTML(p, i, isHero) {
   const saveLine = p.saves_over_life > 0
-    ? `saves you $${p.saves_over_life} over ${p.life_years} years`
+    ? `saves you $${fmt$(p.saves_over_life)} over ${p.life_years} years`
     : `WiFi upgrade — no rental fee on your plan`;
   const kind = p.type.includes('mesh') ? 'mesh' : p.type.includes('router') ? 'router' : 'modem';
   const chips = [];
@@ -439,7 +455,7 @@ function cardHTML(p, i, isHero) {
   return `<div class="card${isHero ? ' hero' : ''}"><span class="rank">#${i + 1} ${p.type.replace('_', ' ').toUpperCase()}</span>
     ${cardGallery(kind, p.images, p.name)}
     <h3>${p.name}</h3>
-    <div class="price">$${p.price} <span class="permo">— ${saveLine}</span></div>
+    <div class="price">$${fmt$(p.price)} <span class="permo">— ${saveLine}</span></div>
     ${p.price_source ? `<p class="permo" style="color:#94a3b8;font-size:.78rem;margin:2px 0 0">Price via ${esc(p.price_source)}, checked Oct 2026</p>` : ''}
     <p class="why">${p.why}</p>
     ${p.blurb ? `<p class="blurb">${p.blurb}</p>` : ''}

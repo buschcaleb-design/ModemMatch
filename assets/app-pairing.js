@@ -147,7 +147,7 @@ function pairChooseMode(m) {
   renderPairing();
 }
 function pairChoiceHTML() {
-  const both = '<img class="v2ic" src="assets/icons-v2/multi-monitor.png" alt="">';
+  const both = '<img class="v2ic" src="/assets/icons-v2/multi-monitor.png" alt="">';
   return `<div class="quiz-stage" data-tint="1"><p class="q">What are we pairing today?</p>
     <div class="tile-grid">
     ${pairOptHTML(PAIR_TAB_ICONS.screens, 'Screens', 'Find screens this machine can actually drive', `pairChooseMode('screens')`)}
@@ -293,37 +293,37 @@ function piSpark(cx, cy, c, r) {
   return `<path d="M${cx} ${cy - r} v${2 * r} M${cx - r} ${cy} h${2 * r}" stroke="${c}"/>`;
 }
 const PAIR_ICONS = {
-  'count:laptop:0': () => '<img class="v2ic" src="assets/icons-v2/laptop.png" alt="">',
-  'count:laptop:1': () => '<img class="v2ic" src="assets/icons-v2/laptop-plus-monitor.png" alt="">',
-  'count:laptop:2': () => '<img class="v2ic" src="assets/icons-v2/multi-monitor.png" alt="">',
-  'count:laptop:3': () => '<img class="v2ic" src="assets/icons-v2/multi-monitor.png" alt="">',
-  'count:desktop:1': () => '<img class="v2ic" src="assets/icons-v2/monitor.png" alt="">',
-  'count:desktop:2': () => '<img class="v2ic" src="assets/icons-v2/multi-monitor.png" alt="">',
-  'count:desktop:3': () => '<img class="v2ic" src="assets/icons-v2/multi-monitor.png" alt="">',
-  'res:1080p': () => '<img class="v2ic" src="assets/icons-v2/pixel-grid-1080.png" alt="">',
-  'res:1440p': () => '<img class="v2ic" src="assets/icons-v2/pixel-grid-1440.png" alt="">',
-  'res:4k': () => '<img class="v2ic" src="assets/icons-v2/pixel-grid-4k.png" alt="">',
-  'res:unsure': () => '<img class="v2ic" src="assets/icons-v2/monitor-question.png" alt="">',
-  'have:yes': () => '<img class="v2ic" src="assets/icons-v2/monitor-check.png" alt="">',
-  'have:no': () => '<img class="v2ic" src="assets/icons-v2/monitor.png" alt="">',
-  'chassis:plastic': () => '<img class="v2ic" src="assets/icons-v2/material-swatch.png" alt="">',
-  'chassis:aluminum': () => '<img class="v2ic" src="assets/icons-v2/material-swatch.png" alt="">',
-  'size:all': () => '<img class="v2ic" src="assets/icons-v2/multi-monitor.png" alt="">',
-  'size:small': () => '<img class="v2ic" src="assets/icons-v2/monitor-small.png" alt="">',
-  'size:office': () => '<img class="v2ic" src="assets/icons-v2/monitor.png" alt="">',
-  'size:large': () => '<img class="v2ic" src="assets/icons-v2/monitor-wide.png" alt="">',
-  'size:widescreen': () => '<img class="v2ic" src="assets/icons-v2/monitor-wide.png" alt="">',
-  'quality:all': () => '<img class="v2ic" src="assets/icons-v2/sparkle-any.png" alt="">',
-  'quality:everyday': () => '<img class="v2ic" src="assets/icons-v2/sun-bright.png" alt="">',
-  'quality:sharp': () => '<img class="v2ic" src="assets/icons-v2/diamond-sharp.png" alt="">',
-  'quality:color': () => '<img class="v2ic" src="assets/icons-v2/droplet-color.png" alt="">',
-  'quality:premium': () => '<img class="v2ic" src="assets/icons-v2/star-premium.png" alt="">',
-  'quality:unspecified': () => '<img class="v2ic" src="assets/icons-v2/help-question-outline.png" alt="">',
-  'tech:all': () => '<img class="v2ic" src="assets/icons-v2/layers-stack.png" alt="">',
-  'tech:IPS': () => '<img class="v2ic" src="assets/icons-v2/monitor.png" alt="">',
-  'tech:OLED': () => '<img class="v2ic" src="assets/icons-v2/monitor.png" alt="">',
-  'tech:VA': () => '<img class="v2ic" src="assets/icons-v2/monitor.png" alt="">',
-  'tech:Mini-LED': () => '<img class="v2ic" src="assets/icons-v2/monitor.png" alt="">'
+  'count:laptop:0': () => '<img class="v2ic" src="/assets/icons-v2/laptop.png" alt="">',
+  'count:laptop:1': () => '<img class="v2ic" src="/assets/icons-v2/laptop-plus-monitor.png" alt="">',
+  'count:laptop:2': () => '<img class="v2ic" src="/assets/icons-v2/multi-monitor.png" alt="">',
+  'count:laptop:3': () => '<img class="v2ic" src="/assets/icons-v2/multi-monitor.png" alt="">',
+  'count:desktop:1': () => '<img class="v2ic" src="/assets/icons-v2/monitor.png" alt="">',
+  'count:desktop:2': () => '<img class="v2ic" src="/assets/icons-v2/multi-monitor.png" alt="">',
+  'count:desktop:3': () => '<img class="v2ic" src="/assets/icons-v2/multi-monitor.png" alt="">',
+  'res:1080p': () => '<img class="v2ic" src="/assets/icons-v2/pixel-grid-1080.png" alt="">',
+  'res:1440p': () => '<img class="v2ic" src="/assets/icons-v2/pixel-grid-1440.png" alt="">',
+  'res:4k': () => '<img class="v2ic" src="/assets/icons-v2/pixel-grid-4k.png" alt="">',
+  'res:unsure': () => '<img class="v2ic" src="/assets/icons-v2/monitor-question.png" alt="">',
+  'have:yes': () => '<img class="v2ic" src="/assets/icons-v2/monitor-check.png" alt="">',
+  'have:no': () => '<img class="v2ic" src="/assets/icons-v2/monitor.png" alt="">',
+  'chassis:plastic': () => '<img class="v2ic" src="/assets/icons-v2/material-swatch.png" alt="">',
+  'chassis:aluminum': () => '<img class="v2ic" src="/assets/icons-v2/material-swatch.png" alt="">',
+  'size:all': () => '<img class="v2ic" src="/assets/icons-v2/multi-monitor.png" alt="">',
+  'size:small': () => '<img class="v2ic" src="/assets/icons-v2/monitor-small.png" alt="">',
+  'size:office': () => '<img class="v2ic" src="/assets/icons-v2/monitor.png" alt="">',
+  'size:large': () => '<img class="v2ic" src="/assets/icons-v2/monitor-wide.png" alt="">',
+  'size:widescreen': () => '<img class="v2ic" src="/assets/icons-v2/monitor-wide.png" alt="">',
+  'quality:all': () => '<img class="v2ic" src="/assets/icons-v2/sparkle-any.png" alt="">',
+  'quality:everyday': () => '<img class="v2ic" src="/assets/icons-v2/sun-bright.png" alt="">',
+  'quality:sharp': () => '<img class="v2ic" src="/assets/icons-v2/diamond-sharp.png" alt="">',
+  'quality:color': () => '<img class="v2ic" src="/assets/icons-v2/droplet-color.png" alt="">',
+  'quality:premium': () => '<img class="v2ic" src="/assets/icons-v2/star-premium.png" alt="">',
+  'quality:unspecified': () => '<img class="v2ic" src="/assets/icons-v2/help-question-outline.png" alt="">',
+  'tech:all': () => '<img class="v2ic" src="/assets/icons-v2/layers-stack.png" alt="">',
+  'tech:IPS': () => '<img class="v2ic" src="/assets/icons-v2/monitor.png" alt="">',
+  'tech:OLED': () => '<img class="v2ic" src="/assets/icons-v2/monitor.png" alt="">',
+  'tech:VA': () => '<img class="v2ic" src="/assets/icons-v2/monitor.png" alt="">',
+  'tech:Mini-LED': () => '<img class="v2ic" src="/assets/icons-v2/monitor.png" alt="">'
 };
 function pairIconFor(kind, v) {
   const f = PAIR_ICONS[kind + ':' + v];
@@ -343,8 +343,8 @@ function pairOptHTML(icon, t, s, onclick, cls) {
     wide: !!(cls && cls.includes('wide')), on: !!(cls && cls.includes('on')) });
 }
 const PAIR_TAB_ICONS = {
-  screens: '<img class="v2ic" src="assets/icons-v2/monitor.png" alt="">',
-  dock: '<img class="v2ic" src="assets/icons-v2/dock-station.png" alt="">'
+  screens: '<img class="v2ic" src="/assets/icons-v2/monitor.png" alt="">',
+  dock: '<img class="v2ic" src="/assets/icons-v2/dock-station.png" alt="">'
 };
 
 function pairCountOpts() {
@@ -739,6 +739,8 @@ function setupLinesHTML(s, comp, cat) {
       lines.push(`<p class="setupline">🔌 ${esc(d.name)} — <span class="ownedtag">✓ Already owned</span> · not counted in your total <button class="sort" onclick="setupRemoveDock('${s.id}')">✕ Remove</button></p>`);
     else
       lines.push(`<p class="setupline">🔌 ${esc(d.name)} — ${d.price_usd != null ? '$' + d.price_usd.toLocaleString() : 'price not shown (not counted in the total)'} <button class="sort" onclick="setupRemoveDock('${s.id}')">✕ Remove</button></p>`);
+  } else if (comp && comp.type === 'desktop') {
+    lines.push(`<p class="setupline">🔌 No dock — desktops don't need one; the graphics card's own ports do the job.</p>`);
   } else {
     lines.push(`<p class="setupline">🔌 No dock added yet — this computer's pairing flow can add one.</p>`);
   }
